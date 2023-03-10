@@ -65,6 +65,7 @@ class Login(APIView):
                         county = County.objects.values('id', 'district', 'name').all()
                         farmer_group = FarmerGroup.objects.values('id', 'cooperative', 'name').all()
                         sub_county = SubCounty.objects.values('id', 'county', 'name').all()
+                        village = Village.objects.values('id', 'parish', 'parish__sub_county', 'name').all()
                         thematic_area = ThematicArea.objects.values('id', 'thematic_area').all()
                         user_type = user.profile.access_level.name.upper() if user.profile.access_level else "NONE"
                         is_admin = user.is_superuser
@@ -91,6 +92,7 @@ class Login(APIView):
                             "farmer_group": farmer_group,
                             "members": [],#MemberListSerializer(members, many=True).data,
                             "sub_county": sub_county,
+                            "village": village,
                             "thematic_area": thematic_area,
                             "response": "Login success"
                             }, status.HTTP_200_OK)
@@ -144,8 +146,8 @@ class MemberEndpoint(APIView):
         mem = CooperativeMember.objects.filter(member_id=request.data.get('member_id'))
         if mem.count() < 1:
             print("%s %s %s %s %s" % (request.data.get('first_name'), request.data.get('other_name'), request.data.get('surname'), request.data.get('date_of_birth'),request.data.get('id_number')))
-            mem = CooperativeMember.objects.filter(first_name=request.data.get('first_name'),other_name=request.data.get('other_name'),surname=request.data.get('surname'),date_of_birth=request.data.get('date_of_birth'), id_number=request.data.get('id_number'))
-
+            mem = CooperativeMember.objects.filter(first_name=request.data.get('first_name'),surname=request.data.get('surname'),date_of_birth=request.data.get('date_of_birth'), id_number=request.data.get('id_number'))
+            print("Members Found %s" % mem.count())
         print ("ADDING........%s, %s " % (mem.count(), request.data.get('member_id')))
         if mem.count() > 0:
             member = MemberSerializer(mem[0], data=request.data) 

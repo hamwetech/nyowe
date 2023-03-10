@@ -18,6 +18,7 @@ class DashboardView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(DashboardView, self).get_context_data(**kwargs)
         cooperatives = Cooperative.objects.all()
+        farmer_group = FarmerGroup.objects.all()
         members = CooperativeMember.objects.all()
         cooperative_contribution = CooperativeContribution.objects.all().order_by('-update_date')[:5]
         cooperative_shares = CooperativeShareTransaction.objects.all().order_by('-update_date')
@@ -62,7 +63,8 @@ class DashboardView(TemplateView):
         is_refugee = members.filter(is_refugee=True)
 
         context['cooperatives'] = cooperatives.count()
-        
+        context['farmer_group'] = farmer_group.count()
+
         context['shares'] = shares['total_amount']
         context['transactions'] = Cooperative.objects.all().count()
         context['members'] = members.count()

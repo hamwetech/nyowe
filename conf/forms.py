@@ -62,6 +62,7 @@ class UploadLocation(forms.Form):
     county_col = forms.ChoiceField(label='County Column', initial=1, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the County')
     sub_county_col = forms.ChoiceField(label='Sub County Column', initial=2, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Sub County')
     parish_col = forms.ChoiceField(label='Parish Column', initial=3, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text="The column contains the Parish")
+    village_col = forms.ChoiceField(label='Village Column', initial=4, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text="The column contains the Village")
     clear_data = forms.BooleanField(initial=False, required=False, help_text="Select to Clear the Saved Data")
 
 

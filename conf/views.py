@@ -197,7 +197,8 @@ class LocationUploadView(ExtraContext, View):
             county_col = int(form.cleaned_data['county_col'])
             sub_county_col = int(form.cleaned_data['sub_county_col'])
             parish_col = int(form.cleaned_data['parish_col'])
-            clear_data = form.cleaned_data['clear_data']            
+            village_col = int(form.cleaned_data['village_col'])
+            clear_data = form.cleaned_data['clear_data']
     
             book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
             sheet = book.sheet_by_index(index)
@@ -236,8 +237,15 @@ class LocationUploadView(ExtraContext, View):
                         data['errors'] = '"%s" is not a valid Parish (row %d)' % \
                         (parish, i+1)
                         return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
+
+                    village = smart_str(row[village_col].value).strip()
+
+                    if not re.search('^[A-Z\s\(\)\-\.]+$', parish, re.IGNORECASE):
+                        data['errors'] = '"%s" is not a valid Village (row %d)' % \
+                                         (village, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
                     
-                    q = {'district': district, 'county': county,'sub_county':sub_county, 'parish': parish}
+                    q = {'district': district, 'county': county,'sub_county':sub_county, 'parish': parish, 'village': village}
                     locations.append(q)
              
                 except Exception as err:
@@ -249,16 +257,20 @@ class LocationUploadView(ExtraContext, View):
                         District.objects.all().delete()
                         County.objects.all().delete()
                         SubCounty.objects.all().delete()
+                        Parish.objects.all().delete()
+                        Village.objects.all().delete()
                     dcount = 0
                     ccount = 0
                     sccount = 0
                     pcount = 0
+                    vcount = 0
                     for d in locations:
                         district = d['district'].title()
                         county = d['county'].title()
                         sub_county = d['sub_county'].title()
                         parish = d['parish'].title()
-                        
+                        village = d['village'].title()
+
                         di = None
                         ci = None
                         
@@ -289,9 +301,19 @@ class LocationUploadView(ExtraContext, View):
                         parishq = Parish.objects.filter(sub_county=sci, name__iexact=parish)
                         
                         if not parishq.exists():
-                            p = Parish(sub_county=sci, name=parish)
-                            p.save()
+                            pci = Parish(sub_county=sci, name=parish)
+                            pci.save()
                             pcount += 1
+                        else:
+                            pci = parishq[0]
+
+                        villageq = Village.objects.filter(parish=pci, name__iexact=village)
+
+                        if not villageq.exists():
+                            vci = Village(parish=pci, name=village)
+                            vci.save()
+                            vcount += 1
+
                     # messages.success(self.request, "%s District added, %s County's added, %s Sub-County's added" % (dcount, ccount, sccount))
                     return redirect('conf:district_list')
             except Exception as e:

@@ -55,7 +55,7 @@
             <nav class="uk-navbar">
                   <div class="main_logo_top">
                         <h2><a href="." style="color:#fff !important;">
-                            {% if request.coop %} <img src="{{ MEDIA_URL }}{{ request.coop.logo }} " alt="" width="100"/>...</a> {% else %} <img src="{% static 'assets/img/logo.png' %}" alt="" width="90"/> {{ product_abbreviation }}</a>{% endif %}</h2>
+                            {% if request.coop %} <img src="{{ MEDIA_URL }}{{ request.coop.logo }} " alt="" width="100"/>...</a> {% else %} <!--<img src="{% static 'assets/img/logo.png' %}" alt="" width="90"/> --> {{ product_abbreviation }}</a>{% endif %}</h2>
                    </div>
                 <!-- main sidebar switch -->
                 <a href="#" id="sidebar_main_toggle" class="sSwitch sSwitch_left">
@@ -407,7 +407,7 @@
                         <li  {% if '__district' in active %}class="act_item"{% endif %}><a href="{% url 'conf:district_list' %}">District</a></li>
                         <li  {% if '__county' in active %}class="act_item"{% endif %}><a href="{% url 'conf:county_list' %}">County</a></li>
                         <li  {% if '__sub_county' in active %}class="act_item"{% endif %}><a href="{% url 'conf:subcounty_list' %}">Sub County</a></li>
-                        <li  {% if '__village' in active %}class="act_item"{% endif %}><a href="{% url 'conf:village_list' %}">Village</a></li>
+                        <li  {% if '__village' in active %}class="act_item"{% endif %}><a href="{% url 'conf:village_list' %}">Parish</a></li>
                         <li  {% if '__payment_method' in active %}class="act_item"{% endif %}><a href="{% url 'conf:payment_list' %}">Payment Mode</a></li>
                         <li  {% if '__email_smtp' in active %}class="act_item"{% endif %}><a href="layout_top_menu.html">SMTP Email</a></li>
                         <li  {% if '__sms_api' in active %}class="act_item"{% endif %}><a href="layout_header_full.html">SMS API</a></li>
@@ -418,7 +418,7 @@
 
         </div>
         <div class="menu_bottom" style="padding: 8px 20px; height: auto; margin-top: 20px">
-            <img src="{% static 'assets/img/logo_footer.png' %}" width="100" style="bottom: 0px;">
+            <img src="{% static 'assets/img/logo.png' %}" width="100" style="bottom: 0px;">
 
         </div>
     </aside><!-- main sidebar end -->
