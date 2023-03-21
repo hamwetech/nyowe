@@ -82,6 +82,17 @@ class FarmerGroup(models.Model):
         return members.count()
     
 
+class FarmerGroupAdmin(models.Model):
+    user = models.ForeignKey(User, blank=True, related_name='farmer_group_admin')
+    farmer_group = models.ForeignKey(FarmerGroup, null=True, blank=True, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'farmer_group_admin'
+
+
 class CooperativeSharePrice(models.Model):
     cooperative = models.ForeignKey(Cooperative, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=10, decimal_places=2)
