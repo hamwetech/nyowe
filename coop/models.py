@@ -4,7 +4,7 @@ import qrcode
 import StringIO
 from datetime import datetime, date
 from django.db import models
-from django.db.models import F, Sum
+from django.db.models import F, Sum, Q
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
@@ -13,6 +13,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from conf.models import District, County, SubCounty, Village, Parish, PaymentMethod
 from product.models import Product, ProductVariation, ProductUnit, Item
 from account.models import Account
+from userprofile.models import Profile
 from conf.utils import generate_numeric
 # from partner.models import PartnerTrainingModule
 
@@ -275,6 +276,7 @@ class CooperativeMember(models.Model):
     soya_beans_acreage = models.DecimalField(max_digits=10, decimal_places=2, default=0, null=True, blank=True)
     soghum_acreage = models.DecimalField(max_digits=10, decimal_places=2, default=0, null=True, blank=True)
     land_acreage = models.DecimalField(max_digits=10, decimal_places=2, default=0, null=True, blank=True)
+    chia_trees = models.PositiveIntegerField(default=0, null=True, blank=True)
     product = models.CharField(max_length=255, null=True, blank=True)
     shares = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
     share_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
@@ -745,7 +747,30 @@ class OrderItem(models.Model):
         
     def __unicode__(self):
         return "%s" % self.item or u''
-    
+
+
+class ProfileManager(models.Manager):
+    def get_queryset(self):
+        return super(ProfileManager, self).get_queryset().filter(Q(access_level__name ='COOPERATIVE')|Q(access_level__name ='AGENT')|Q(access_level__name ='UNION'))
+
+class Agent(Profile):
+    objects = ProfileManager()
+
+    class Meta:
+        proxy = True
+
+    def members(self):
+        members = CooperativeMember.objects.filter(create_by=self.user)
+        return members.count()
+
+    def farmer_groups(self):
+        farmer_groups = FarmerGroupAdmin.objects.filter(user=self.user)
+        fgs = ""
+        for f in farmer_groups:
+            if f.farmer_group:
+                fgs += "%s <br>" % f.farmer_group.name
+        return fgs
+
     
     
     

@@ -732,6 +732,135 @@ class CollectionUploadForm(forms.Form):
                                      help_text='The column containing the Collection Date')
 
 
+
+class AgentSearchForm(forms.Form):
+    name = forms.CharField(max_length=150, required=False)
+    phone_number = forms.CharField(max_length=150, required=False)
+    farmer_group = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
+    start_date = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'class':'some_class', 'id':'uk_dp_1',
+                                                                                               'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
+                                                                                               'autocomplete':"off"}))
+    end_date = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'class':'some_class', 'id':'uk_dp_1',
+                                                                                               'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
+                                                                                               'autocomplete':"off"}))
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(AgentSearchForm, self).__init__(*args, **kwargs)
+
+        qs = CooperativeMember.objects.values('farmer_group__id', 'farmer_group__name').distinct()
+
+        choices = [['', 'Farmer Groups']]
+        for q in qs:
+            choices.append([q['farmer_group__id'], q['farmer_group__name']])
+
+        self.fields['farmer_group'].choices = choices
+
+
+class AgentForm(forms.ModelForm):
+    district = forms.MultipleChoiceField(required=False, choices=[])
+    farmer_group = forms.MultipleChoiceField(required=False, choices=[])
+    confirm_password = forms.CharField(max_length=150, required=True, widget=forms.PasswordInput)
+    password = forms.CharField(max_length=150, required=True, widget=forms.PasswordInput)
+    msisdn = forms.CharField(max_length=150)
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'msisdn', 'is_active', 'username', 'password',
+                  'confirm_password']
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.pop("instance", None)
+        super(AgentForm, self).__init__(*args, **kwargs)
+
+        self.fields['farmer_group'].choices = [[x.id, x.name] for x in FarmerGroup.objects.all()]
+        self.fields['district'].choices = [[x.id, x.name] for x in District.objects.all()]
+        self.fields['farmer_group'].widget.attrs.update({'class': "selec_adv_1"})
+        self.fields['district'].widget.attrs.update({'class': "selec_adv_1"})
+
+        if instance:
+            self.fields.pop('password')
+            self.fields.pop('confirm_password')
+
+
+class AgentUpdateForm(forms.ModelForm):
+    district = forms.MultipleChoiceField(required=False, choices=[])
+    farmer_group = forms.MultipleChoiceField(required=False, choices=[])
+    msisdn = forms.CharField(max_length=150)
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'msisdn', 'is_active', 'username']
+
+    def __init__(self, *args, **kwargs):
+        super(AgentUpdateForm, self).__init__(*args, **kwargs)
+        self.fields['farmer_group'].choices = [[x.id, x.name] for x in FarmerGroup.objects.all()]
+        self.fields['district'].choices = [[x.id, x.name] for x in District.objects.all()]
+        self.fields['farmer_group'].widget.attrs.update({'class': "selec_adv_1"})
+        self.fields['district'].widget.attrs.update({'class': "selec_adv_1"})
+
+
+
+
+
+
+class AgentUploadForm(forms.Form):
+    sheetChoice = (
+        ('1', 'sheet1'),
+        ('2', 'sheet2'),
+        ('3', 'sheet3'),
+        ('4', 'sheet4'),
+        ('5', 'sheet5'),
+    )
+
+    rowchoices = (
+        ('1', 'Row 1'),
+        ('2', 'Row 2'),
+        ('3', 'Row 3'),
+        ('4', 'Row 4'),
+        ('5', 'Row 5')
+    )
+
+    choices = list()
+    for i in range(65, 91):
+        choices.append([i - 65, chr(i)])
+
+    excel_file = forms.FileField()
+    sheet = forms.ChoiceField(label="Sheet", choices=sheetChoice, widget=forms.Select(attrs={'class': 'form-control'}))
+    row = forms.ChoiceField(label="Row", choices=rowchoices, widget=forms.Select(attrs={'class': 'form-control'}))
+    name_col = forms.ChoiceField(label='Name Column', initial=0, choices=choices,
+                                        widget=forms.Select(attrs={'class': 'form-control'}),
+                                        help_text='The column containing the Names')
+    email_column = forms.ChoiceField(label='Email Column', initial=1, choices=choices,
+                                     widget=forms.Select(attrs={'class': 'form-control'}),
+                                     help_text='The column containing the email')
+    phone_number_col = forms.ChoiceField(label='Phone Number Column', initial=2, choices=choices,
+                                       widget=forms.Select(attrs={'class': 'form-control'}),
+                                       help_text='The column containing the phone number')
+    district_col = forms.ChoiceField(label='Distric Column', initial=3, choices=choices,
+                                     widget=forms.Select(attrs={'class': 'form-control'}),
+                                     help_text='The column containing the District')
+    username_col = forms.ChoiceField(label='Password Column', initial=4, choices=choices,
+                                       widget=forms.Select(attrs={'class': 'form-control'}),
+                                       help_text='The column containing the username')
+    password_col = forms.ChoiceField(label='Password Column', initial=5, choices=choices,
+                                   widget=forms.Select(attrs={'class': 'form-control'}),
+                                   help_text='The column containing the password')
+
+
+    def clean(self):
+        data = self.cleaned_data
+        f = data.get('excel_file', None)
+        ext = splitext(f.name)[1][1:].lower()
+        if not ext in ["xlsx", "xls"]:
+            raise forms.ValidationError(("the File type is not accepted"))
+        return data
+
+
+
+bootstrapify(AgentUploadForm)
+bootstrapify(AgentForm)
+bootstrapify(AgentUpdateForm)
 bootstrapify(OrderUploadForm)
 bootstrapify(CollectionUploadForm)
 bootstrapify(FarmerGroupForm)

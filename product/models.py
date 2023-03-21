@@ -114,6 +114,7 @@ class Item(models.Model):
     name = models.CharField(max_length=255, unique=True)
     supplier = models.ForeignKey(Supplier, null=True, blank=True, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=20, decimal_places=2)
+    unit = models.ForeignKey(ProductUnit, null=True, blank=True, on_delete=models.SET_NULL)
     create_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
     

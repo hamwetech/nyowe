@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.contrib.auth.models import Group
 from rest_framework.authtoken.models import Token
+from conf.models import District
 
 
 class AccessLevel(models.Model):
@@ -36,6 +37,8 @@ class Profile(models.Model):
     user = models.OneToOneField(User, related_name='profile')
     msisdn = models.CharField(max_length=12, unique=True, null=True, blank=True)
     access_level = models.ForeignKey(AccessLevel, null=True, blank=True, on_delete=models.CASCADE)
+    district = models.ManyToManyField(District, null=True, blank=True)
+    supervisor = models.ForeignKey(User, null=True, blank=True, related_name="supervisor")
     is_locked = models.BooleanField(default=0)
     receive_sms_notifications = models.BooleanField(default=0)
     create_date = models.DateTimeField(auto_now=True)

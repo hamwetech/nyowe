@@ -224,6 +224,12 @@
                     </a>
                 </li>
                 <hr>
+                <li {% if '_agent' in active %}class="current_section"{% endif %} title="Agents">
+                    <a href="{% url 'coop:agent_list' %}">
+                        <span class="menu_icon"><i class="material-icons">assignment_id</i></span>
+                        <span class="menu_title">Agent</span>
+                    </a>
+                </li>
                 {% if request.user.profile.is_union %}
                     <!-- Union User -->
                     <li {% if '_cooperative' in active %}class="current_section"{% endif %} title="Cooperative">
@@ -407,7 +413,8 @@
                         <li  {% if '__district' in active %}class="act_item"{% endif %}><a href="{% url 'conf:district_list' %}">District</a></li>
                         <li  {% if '__county' in active %}class="act_item"{% endif %}><a href="{% url 'conf:county_list' %}">County</a></li>
                         <li  {% if '__sub_county' in active %}class="act_item"{% endif %}><a href="{% url 'conf:subcounty_list' %}">Sub County</a></li>
-                        <li  {% if '__village' in active %}class="act_item"{% endif %}><a href="{% url 'conf:village_list' %}">Parish</a></li>
+                        <li  {% if '__parish' in active %}class="act_item"{% endif %}><a href="{% url 'conf:parish_list' %}">Parish</a></li>
+                        <li  {% if '__village' in active %}class="act_item"{% endif %}><a href="{% url 'conf:village_list' %}">Village</a></li>
                         <li  {% if '__payment_method' in active %}class="act_item"{% endif %}><a href="{% url 'conf:payment_list' %}">Payment Mode</a></li>
                         <li  {% if '__email_smtp' in active %}class="act_item"{% endif %}><a href="layout_top_menu.html">SMTP Email</a></li>
                         <li  {% if '__sms_api' in active %}class="act_item"{% endif %}><a href="layout_header_full.html">SMS API</a></li>
