@@ -5,6 +5,7 @@ from coop.views.member import *
 from coop.views.collection import *
 from coop.views.order import *
 from coop.views.agent import *
+from coop.views.savings import *
 
 urlpatterns = [
     
@@ -16,6 +17,11 @@ urlpatterns = [
      url(r'order/create/$', MemberOrderCreateView.as_view(), name='order_create'),
      url(r'order/list/$', MemberOrderListView.as_view(), name='order_list'),
      url(r'order/upload/$', OrderUploadView.as_view(), name='order_upload'),
+
+     url(r'savings/list/$', SavingsListView.as_view(), name='savings_list'),
+     url(r'savings/create/$', SavingsCreateView.as_view(), name='savings_create'),
+     url(r'savings/(?P<pk>[\w]+)/$', SavingsUpdateView.as_view(), name='savings_update'),
+     url(r'savings/delete/(?P<pk>[\w]+)/$', SavingsDeleteView.as_view(), name='savings_delete'),
 
      url(r'agent/list/$', AgentListView.as_view(), name='agent_list'),
      url(r'agent/create/$', AgentCreateFormView.as_view(), name='agent_create'),

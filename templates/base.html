@@ -288,11 +288,24 @@
 <!--                </li>-->
 
                 {% endif %}
+                <li {% if '_savings' in active %}class="current_section"{% endif %} title="Member Shares">
+                    <a href="{% url 'coop:savings_list' %}">
+                        <span class="menu_icon"><i class="material-icons">&#xE86F;</i></span>
+                        <span class="menu_title">Savings</span>
+                    </a>
+                </li>
                 <hr>
-                <li {% if '_payment' in active %}class="current_section"{% endif %} title="Member Shares">
+                <li {% if '_transaction' in active %}class="current_section"{% endif %} title="Member Shares">
                     <a href="{% url 'account:transaction_list' %}">
                         <span class="menu_icon"><i class="material-icons">&#xE86F;</i></span>
                         <span class="menu_title">Transactions</span>
+                    </a>
+                </li>
+                <hr>
+                <li {% if '_payment' in active %}class="current_section"{% endif %} title="Member Shares">
+                    <a href="{% url 'payment:list' %}">
+                        <span class="menu_icon"><i class="material-icons">&#xE86F;</i></span>
+                        <span class="menu_title">Payments</span>
                     </a>
                 </li>
                 <hr>
@@ -353,16 +366,16 @@
                     </li>
                 {% endif %}
                 {% if request.user.profile.is_union or request.user.profile.is_cooperative %}
-                <li {% if '_coop_settings' in active %}class="current_section"{% endif %}>
-                    <a href="#">
-                        <span class="menu_icon"><i class="material-icons">&#xE8D2;</i></span>
-                        <span class="menu_title">Coop Settings</span>
-                    </a>
-                    <ul>
-                        <li {% if '__share_price' in active %}class="act_item"{% endif %}><a href="{% url 'coop:share_price_list' %}">Share Price</a></li>
-                        <li {% if '_registration_fee' in active %}class="act_item"{% endif %}><a href="{% url 'coop:fee_list' %}">Registration Fee</a></li>
-                    </ul>
-                </li>
+<!--                <li {% if '_coop_settings' in active %}class="current_section"{% endif %}>-->
+<!--                    <a href="#">-->
+<!--                        <span class="menu_icon"><i class="material-icons">&#xE8D2;</i></span>-->
+<!--                        <span class="menu_title">Coop Settings</span>-->
+<!--                    </a>-->
+<!--                    <ul>-->
+<!--                        <li {% if '__share_price' in active %}class="act_item"{% endif %}><a href="{% url 'coop:share_price_list' %}">Share Price</a></li>-->
+<!--                        <li {% if '_registration_fee' in active %}class="act_item"{% endif %}><a href="{% url 'coop:fee_list' %}">Registration Fee</a></li>-->
+<!--                    </ul>-->
+<!--                </li>-->
                 {% endif %}
 
                 {% if request.user.profile.is_cooperative and not request.user.is_superuser %}

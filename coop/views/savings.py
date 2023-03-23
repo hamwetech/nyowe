@@ -1,0 +1,86 @@
+from __future__ import unicode_literals
+import os
+import magic
+import re
+import xlrd
+import xlwt
+import json
+import datetime
+from django.db import transaction
+from django.shortcuts import render, redirect, HttpResponse
+from django.urls import reverse_lazy
+from django.db.models import Q, CharField, Max, Value as V
+from django.utils.encoding import smart_str
+from django.forms.formsets import formset_factory, BaseFormSet
+from django.views.generic import ListView, DetailView, View
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+
+from coop.forms import SavingsForm
+from coop.views.member import save_transaction
+
+from coop.models import Savings
+from conf.utils import generate_alpanumeric, genetate_uuid4, log_error, log_debug, generate_numeric, float_to_intstring, get_deleted_objects,\
+get_message_template as message_template
+
+
+class ExtraContext(object):
+    extra_context = {}
+
+    def get_context_data(self, **kwargs):
+        context = super(ExtraContext, self).get_context_data(**kwargs)
+
+        context.update(self.extra_context)
+        return context
+
+
+class SavingsListView(ExtraContext, ListView):
+    model = Savings
+    ordering = ['-create_date']
+    extra_context = {'active': ['_savings']}
+
+    def dispatch(self, *args, **kwargs):
+        if self.request.GET.get('download'):
+            return self.download_file()
+        return super(SavingsListView, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super(SavingsListView, self).get_queryset()
+        return queryset
+
+
+class SavingsCreateView(CreateView):
+    model = Savings
+    form_class = SavingsForm
+    success_url = reverse_lazy('coop:saving_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        form.instance.reference = generate_alpanumeric(size=16)
+        return super(SavingsCreateView, self).form_valid(form)
+
+
+class SavingsUpdateView(UpdateView):
+    model = Savings
+    form_class = SavingsForm
+    success_url = reverse_lazy('coop:savings_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super(SavingsUpdateView, self).form_valid(form)
+
+
+class SavingsDeleteView(DeleteView):
+    model = Savings
+    success_url = reverse_lazy('coop:savings_list')
+
+    def get_context_data(self, **kwargs):
+        #
+        context = super(SavingsDeleteView, self).get_context_data(**kwargs)
+        #
+        deletable_objects, model_count, protected = get_deleted_objects([self.object])
+        #
+        context['deletable_objects'] = deletable_objects
+        context['model_count'] = dict(model_count).items()
+        context['protected'] = protected
+        #
+        return context

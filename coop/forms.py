@@ -650,6 +650,12 @@ class FarmerGroupForm(forms.ModelForm):
         fields = '__all__'
 
 
+class SavingsForm(forms.ModelForm):
+    class Meta:
+        model = Savings
+        exclude = ['created_by', 'reference', 'balance_after']
+
+
 class OrderUploadForm(forms.Form):
     sheetChoice = (
         ('1', 'sheet1'),
@@ -858,6 +864,7 @@ class AgentUploadForm(forms.Form):
 
 
 
+bootstrapify(SavingsForm)
 bootstrapify(AgentUploadForm)
 bootstrapify(AgentForm)
 bootstrapify(AgentUpdateForm)

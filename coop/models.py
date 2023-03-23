@@ -17,6 +17,7 @@ from userprofile.models import Profile
 from conf.utils import generate_numeric
 # from partner.models import PartnerTrainingModule
 
+
 class Cooperative(models.Model):
     name = models.CharField(max_length=150, unique=True)
     logo = models.ImageField(upload_to='cooperatives/', null=True, blank=True)
@@ -66,16 +67,37 @@ def create_account_cooperative(sender, instance, created, **kwargs):
     
 
 class FarmerGroup(models.Model):
-    cooperative = models.ForeignKey(Cooperative, on_delete=models.CASCADE)
+    cooperative = models.ForeignKey(Cooperative, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=12, null=True, blank=True)
     contact_person_name = models.CharField(max_length=150)
+    code = models.CharField(max_length=150, unique=True, null=True, blank=True)
+    is_vsla = models.BooleanField(default=0)
+    saving_balance = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
+    district = models.ForeignKey(District, null=True, blank=True, on_delete=models.CASCADE)
+    county = models.ForeignKey(County, null=True, blank=True, on_delete=models.CASCADE)
+    sub_county = models.ForeignKey(SubCounty, null=True, blank=True, on_delete=models.CASCADE)
+    parish = models.ForeignKey(Parish, null=True, blank=True, on_delete=models.CASCADE)
+    village = models.CharField(max_length=255, null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
+    contact_person_number = models.CharField(max_length=150)
+    product = models.ManyToManyField(Product, blank=True)
+    contribution_total = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    is_active = models.BooleanField(default=0)
+    send_message = models.BooleanField(default=0,
+                                       help_text='If not set, the cooperative member will not receive SMS\'s when sent.')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'farmer_group'
 
     def __unicode__(self):
-        return self.name
+        return "{} ({})".format(self.name, self.village)
+
+    def __str__(self):
+        return self.__unicode__()
 
     def member_count(self):
         members = CooperativeMember.objects.filter(farmer_group=self)
@@ -108,7 +130,8 @@ class CooperativeSharePrice(models.Model):
     
     def __unicode__(self):
         return u'%s' % self.price
-    
+
+
 
 class AnimalIdentification(models.Model):
     method = models.CharField('Method', max_length=50)
@@ -293,6 +316,7 @@ class CooperativeMember(models.Model):
     share_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
     collection_amount = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
     collection_quantity = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
+    saving_balance = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
     is_active = models.BooleanField(default=1)
     qrcode = models.ImageField(upload_to='qrcode', blank=True, null=True)
@@ -396,6 +420,25 @@ def create_user_profile(sender, instance, created, **kwargs):
         account = Account.objects.create(reference=generate_numeric(size=8))
         instance.account = account
         instance.save()
+
+
+class Savings(models.Model):
+    cooperative = models.ForeignKey(Cooperative, null=True, blank=True)
+    farmer_group = models.ForeignKey(FarmerGroup, null=True, blank=True)
+    transaction_date = models.DateField()
+    member = models.ForeignKey(CooperativeMember, null=True, blank=True)
+    amount = models.DecimalField(max_digits=9, decimal_places=2, default=0)
+    balance_after = models.DecimalField(max_digits=9, decimal_places=2, default=0)
+    reference = models.CharField(max_length=120, null=True, blank=True)
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'savings'
+
+    def __unicode__(self):
+        return u'%s' % self.price
 
 
 class RegistrationTransaction(models.Model):
