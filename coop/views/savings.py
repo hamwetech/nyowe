@@ -51,11 +51,23 @@ class SavingsListView(ExtraContext, ListView):
 class SavingsCreateView(CreateView):
     model = Savings
     form_class = SavingsForm
-    success_url = reverse_lazy('coop:saving_list')
+    success_url = reverse_lazy('coop:savings_list')
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         form.instance.reference = generate_alpanumeric(size=16)
+        if form.instance.member:
+            balance = form.instance.member.savings_balance
+            new_balance = balance + form.instance.amount
+            form.instance.member.savings_balance = new_balance
+            form.instance.member.save()
+
+        if not form.instance.member and form.instance.farmer_group:
+            balance = form.instance.farmer_group.savings_balance
+            new_balance = balance + form.instance.amount
+            form.instance.farmer_group.savings_balance = new_balance
+            form.instance.farmer_group.savings_balance.save()
+        form.instance.balance_after = new_balance
         return super(SavingsCreateView, self).form_valid(form)
 
 

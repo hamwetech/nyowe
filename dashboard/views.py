@@ -44,6 +44,7 @@ class DashboardView(TemplateView):
         total_payment = success_payments.aggregate(total_amount=Sum('amount'))
         collection_amt = collections.aggregate(total_amount=Sum('total_price'))
         members_shares = members.aggregate(total_amount=Sum('shares'))
+        savings_balance = members.aggregate(total_amount=Sum('savings_balance'))
         male = members.filter(Q(gender='male') | Q(gender='m'))
         female = members.filter(Q(gender='female') | Q(gender='f'))
         # members_animals = members.aggregate(total_amount=Sum('animal_count'))
@@ -73,6 +74,7 @@ class DashboardView(TemplateView):
         context['is_refugee'] = is_refugee.count()
         context['active'] = ['_dashboard', '']
         context['members_shares'] = members_shares['total_amount']
+        context['savings_balance'] = savings_balance['total_amount']
         context['m_shares'] = m_shares[:5]
         context['collections_latest'] = collections[:5]
         context['collections'] = collection_qty['total_amount']

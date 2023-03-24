@@ -81,7 +81,10 @@ class MemberCreateView(ExtraContext, CreateView):
             form.instance.create_by = self.request.user
             member = super(MemberCreateView, self).form_valid(form)
         except Exception as e:
-            form.add_error(None, 'The Phone Number %s exists. Please provide another.' % form.instance.phone_number)
+            # form.add_error(None, 'The Phone Number %s exists. Please provide another.' % form.instance.phone_number)
+            import traceback
+            print(traceback.format_exc())
+            form.add_error(None, e)
             return super(MemberCreateView, self).form_invalid(form)
         try:
             
@@ -109,8 +112,11 @@ class MemberCreateView(ExtraContext, CreateView):
         # fint = "%04d"%count
         # idno = str(cooperative.code)+yr+fint
         # member = member.filter(member_id=idno)
-        idno = self.check_id(member, cooperative, count, yr)
-        log_debug("Cooperative %s code is %s" % (cooperative.code, idno))
+        if cooperative:
+            idno = self.check_id(member, cooperative, count, yr)
+            log_debug("Cooperative %s code is %s" % (cooperative.code, idno))
+        else:
+            idno = self.check_id_nc(member, count, yr)
         return idno
     
     def check_id(self, member, cooperative, count, yr):
@@ -121,6 +127,17 @@ class MemberCreateView(ExtraContext, CreateView):
             count = count + 1
             #print "iteration count %s" % count
             return self.check_id(member, cooperative, count, yr)
+        return idno
+
+    def check_id_nc(self, member, count, yr):
+        rnd = generate_alpanumeric(size=3).upper()
+        fint = "%04d"%count
+        idno = rnd+yr+fint
+        member = member.filter(member_id=idno)
+        if member.exists():
+            count = count + 1
+            #print "iteration count %s" % count
+            return self.check_id_nc(member, count, yr)
         return idno
 
 
@@ -510,6 +527,11 @@ class CooperativeMemberListView(ExtraContext, ListView):
     def get_context_data(self, **kwargs):
         context = super(CooperativeMemberListView, self).get_context_data(**kwargs)
         context['form'] = MemberProfileSearchForm(self.request.GET, request=self.request)
+        qr = self.get_queryset()
+        of = qr.filter(own_phone=True)
+        hmm = qr.filter(has_mobile_money=True)
+        context['own_phone'] = of.count()
+        context['has_mobile_money'] = hmm.count()
         return context
     
     def download_file(self, *args, **kwargs):

@@ -29,7 +29,7 @@
                         <th>Contact Person</th>
                         <th>Phone Number</th>
                         <th>Members</th>
-                        <th>Shares</th>
+                        <th>Collectios</th>
                         <th></th>
                     </tr>
                     </thead>
@@ -44,7 +44,7 @@
                                 <td>{{ item.sub_county }}</td>
                                 <td>{{ item.contact_person_name }}</td>
                                 <td>{{ item.phone_number }}</td>
-                                <td><a href="{% url 'coop:member_list' %}?cooperative={{ item.id }}"><strong>{{ item.member_count }}</strong></a></td>
+                                <td><a href="{% url 'coop:member_list' %}?cooperative={{ item.id }}"><strong>{{ item.get_colections }}</strong></a></td>
                                 <td><strong>{{ item.shares }}</strong></a></td>
                                <!-- <td>
                                     

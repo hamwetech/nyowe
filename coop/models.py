@@ -57,6 +57,10 @@ class Cooperative(models.Model):
         members = CooperativeMember.objects.filter(cooperative=self)
         return members.count()
 
+    def get_collection(self):
+        members = Collection.objects.filter(member__coooperative=self)
+        return members.count()
+
 
 @receiver(post_save, sender=Cooperative)
 def create_account_cooperative(sender, instance, created, **kwargs):
@@ -73,7 +77,7 @@ class FarmerGroup(models.Model):
     contact_person_name = models.CharField(max_length=150)
     code = models.CharField(max_length=150, unique=True, null=True, blank=True)
     is_vsla = models.BooleanField(default=0)
-    saving_balance = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
+    savings_balance = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
     district = models.ForeignKey(District, null=True, blank=True, on_delete=models.CASCADE)
     county = models.ForeignKey(County, null=True, blank=True, on_delete=models.CASCADE)
     sub_county = models.ForeignKey(SubCounty, null=True, blank=True, on_delete=models.CASCADE)
@@ -101,6 +105,10 @@ class FarmerGroup(models.Model):
 
     def member_count(self):
         members = CooperativeMember.objects.filter(farmer_group=self)
+        return members.count()
+
+    def get_collection(self):
+        members = Collection.objects.filter(member__farmer_group=self)
         return members.count()
     
 
@@ -296,11 +304,13 @@ class CooperativeMember(models.Model):
         ('pp', 'PassPort'), ('o', 'Other')))
     phone_number = models.CharField(max_length=16, null=True, blank=True)
     other_phone_number = models.CharField(max_length=12, null=True, blank=True)
+    own_phone = models.BooleanField(default=False)
+    has_mobile_money = models.BooleanField(default=False)
     email = models.EmailField(max_length=254, null=True, blank=True)
-    district = models.ForeignKey(District, null=True, blank=True, on_delete=models.CASCADE)
-    county = models.ForeignKey(County, null=True, blank=True, on_delete=models.CASCADE)
-    sub_county = models.ForeignKey(SubCounty, null=True, blank=True, on_delete=models.CASCADE)
-    parish = models.ForeignKey(Parish, null=True, blank=True, on_delete=models.CASCADE)
+    district = models.ForeignKey(District, null=True, blank=True, on_delete=models.SET_NULL)
+    county = models.ForeignKey(County, null=True, blank=True, on_delete=models.SET_NULL)
+    sub_county = models.ForeignKey(SubCounty, null=True, blank=True, on_delete=models.SET_NULL)
+    parish = models.ForeignKey(Parish, null=True, blank=True, on_delete=models.SET_NULL)
     village = models.CharField(max_length=150, null=True, blank=True)
     address = models.CharField(max_length=150, null=True, blank=True)
     gps_coodinates = models.CharField(max_length=150, null=True, blank=True)
@@ -316,7 +326,7 @@ class CooperativeMember(models.Model):
     share_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
     collection_amount = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
     collection_quantity = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
-    saving_balance = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
+    savings_balance = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
     is_active = models.BooleanField(default=1)
     qrcode = models.ImageField(upload_to='qrcode', blank=True, null=True)
@@ -398,6 +408,13 @@ class CooperativeMember(models.Model):
             return CooperativeMemberSupply.objects.get(cooperative_member=self)
         except Exception:
             return None
+
+    def get_village(self):
+        try:
+            village = Village.objects.get(pk=self.village)
+            return village.name
+        except Exception:
+            return None
     
     def get_order(self):
         try:
@@ -438,7 +455,7 @@ class Savings(models.Model):
         db_table = 'savings'
 
     def __unicode__(self):
-        return u'%s' % self.price
+        return u'%s' % self.amount
 
 
 class RegistrationTransaction(models.Model):

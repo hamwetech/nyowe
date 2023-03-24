@@ -22,13 +22,14 @@
                         <th></th>
                         <th>Name</th>
                         <th>Code</th>
-                        <th>Partner</th>
                         <th>District</th>
                         <th>Sub County</th>
                         <th>Village</th>
                         <th>Contact Person</th>
                         <th>Phone Number</th>
                         <th>Members</th>
+
+                        <th>Collection</th>
                         <th>Create Date</th>
                         <th></th>
                     </tr>
@@ -45,6 +46,7 @@
                                 <td>{{ item.village }}</td>
                                 <td>{{ item.contact_person_name }}</td>
                                 <td>{{ item.phone_number }}</td>
+                                <td>{{ item.colections }}</td>
                                 <td>{{ item.create_date }}</td>
                                 <td><a href="{% url 'coop:member_list' %}?farmer_group={{ item.id }}"><strong>{{ item.member_count }}</strong></a></td>
                                <!-- <td>
