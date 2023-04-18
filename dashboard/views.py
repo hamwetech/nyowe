@@ -20,6 +20,7 @@ class DashboardView(TemplateView):
         cooperatives = Cooperative.objects.all()
         farmer_group = FarmerGroup.objects.all()
         members = CooperativeMember.objects.all()
+        agents = Profile.objects.filter(access_level__name='AGENT')
         cooperative_contribution = CooperativeContribution.objects.all().order_by('-update_date')[:5]
         cooperative_shares = CooperativeShareTransaction.objects.all().order_by('-update_date')
         product_price = ProductVariationPrice.objects.all().order_by('-update_date')
@@ -45,9 +46,18 @@ class DashboardView(TemplateView):
         collection_amt = collections.aggregate(total_amount=Sum('total_price'))
         members_shares = members.aggregate(total_amount=Sum('shares'))
         savings_balance = members.aggregate(total_amount=Sum('savings_balance'))
+        eighteen = [f for f in members if f.age if f.age <= 18]
+        youth = [f for f in members if f.age if f.age > 15 and f.age <= 25]
+        midlife = [f for f in members if f.age if f.age > 25]
         male = members.filter(Q(gender='male') | Q(gender='m'))
         female = members.filter(Q(gender='female') | Q(gender='f'))
+        with_phones = members.filter(own_phone=True)
+        male_phones = male.filter(own_phone=True)
+        female_phones = female.filter(own_phone=True)
         # members_animals = members.aggregate(total_amount=Sum('animal_count'))
+
+
+
         shares = cooperatives.aggregate(total_amount=Sum('shares'))
         m_shares = m_shares.values('cooperative_member',
                                    name=Concat('cooperative_member__surname',
@@ -69,8 +79,18 @@ class DashboardView(TemplateView):
         context['shares'] = shares['total_amount']
         context['transactions'] = Cooperative.objects.all().count()
         context['members'] = members.count()
+        context['eighteen'] = len(eighteen)
+        context['youth'] = len(youth)
+        context['midlife'] = len(midlife)
         context['male'] = male.count()
         context['female'] = female.count()
+        context['with_phones'] = with_phones.count()
+        context['male_phones'] = male_phones.count()
+        context['female_phones'] = female_phones.count()
+        context['agents'] = agents.count()
+
+
+
         context['is_refugee'] = is_refugee.count()
         context['active'] = ['_dashboard', '']
         context['members_shares'] = members_shares['total_amount']

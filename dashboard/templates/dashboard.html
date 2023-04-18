@@ -54,7 +54,7 @@
                     <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
                     <span class="uk-text-muted uk-text-small">Members</span>
                     <h2 class="uk-margin-remove">{{ members }}</h2>
-                    <table class="table">
+                    <table class="uk-table">
                         <thead>
                             <tr>
                                 <th>Male</th>
@@ -68,6 +68,7 @@
                                 <td>{{ female|intcomma }}</td>
                                 <td>{{ is_refugee|intcomma }}</td>
                             </tr>
+
                         </tbody>
                     </table>
                 </div>
@@ -101,6 +102,68 @@
                 </div>
             </div>
         </div>
+    </div>
+
+
+    <div class="uk-grid uk-grid-width-large-1-4 uk-grid-width-medium-1-2 uk-grid-medium uk-sortable sortable-handler" data-uk-sortable data-uk-grid-margin>
+        <div>
+            <div class="md-card">
+                <div class="md-card-content">
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
+                    <span class="uk-text-muted uk-text-small">Farmer Demographics</span>
+                    <table class="uk-table">
+                        <thead>
+                            <tr>
+                                <th>15 >< 25 </th>
+                                <th> > 25 </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+<!--                                <td>{{ eighteen|intcomma }}<br><small>18 < </small></td>-->
+                                <td>{{ youth|intcomma }}<br><small></small></td>
+                                <td>{{ midlife|intcomma }}<br><small> </small></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="md-card">
+                <div class="md-card-content">
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
+                    <span class="uk-text-muted uk-text-small">Farmers with Phones</span>
+                    <h2 class="uk-margin-remove">{{ with_phones }}</h2>
+                    <table class="uk-table">
+                        <thead>
+                            <tr>
+                                <th>Male</th>
+                                <th>Females</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ male_phones|intcomma }}</td>
+                                <td>{{ female_phones|intcomma }}</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="md-card">
+                <div class="md-card-content">
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_sale peity_data">5,3,9,6,5,9,7,3,5,2</span></div>
+                    <span class="uk-text-muted uk-text-small">Agents</span>
+                    <h2 class="uk-margin-remove">{{ agents|intcomma }}</h2>
+                </div>
+            </div>
+        </div>
+
+
     </div>
 
    <!-- end Quantitative stats -->

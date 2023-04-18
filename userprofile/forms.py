@@ -30,7 +30,7 @@ class UserProfileForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ['msisdn', 'access_level', 'other_cooperative']
+        fields = ['sex', 'date_of_birth', 'msisdn', 'access_level', 'other_cooperative']
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')

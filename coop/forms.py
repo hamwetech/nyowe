@@ -769,10 +769,12 @@ class AgentForm(forms.ModelForm):
     confirm_password = forms.CharField(max_length=150, required=True, widget=forms.PasswordInput)
     password = forms.CharField(max_length=150, required=True, widget=forms.PasswordInput)
     msisdn = forms.CharField(max_length=150)
+    sex = forms.ChoiceField(widget=forms.Select(), choices=[['', '--------------'], ['Male', 'Male'], ['Female', 'Female']])
+    date_of_birth = forms.CharField(max_length=150)
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'msisdn', 'is_active', 'username', 'password',
+        fields = ['first_name', 'last_name', 'email', 'sex', 'date_of_birth', 'msisdn', 'is_active', 'username', 'password',
                   'confirm_password']
 
     def __init__(self, *args, **kwargs):

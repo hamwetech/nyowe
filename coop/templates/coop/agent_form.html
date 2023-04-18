@@ -35,7 +35,31 @@
  <!--  forms advanced functions -->
 <script src="{% static 'assets/js/pages/forms_advanced.min.js' %}"></script>
 
+   <script src="{% static 'bower_components/jquery.formset.js' %}"></script>
+
+    <!-- kendo UI -->
+    <script src="{% static 'assets/js/kendoui_custom.min.js' %}"></script>
+
+    <!--  kendoui functions -->
+    <script src="{% static 'assets/js/pages/kendoui.min.js' %}"></script>
+
+
 <script>
+
+    UIkit.datepicker("#id_date_of_birth", {maxDate:get_current_date(), format:'YYYY-MM-DD' });
+    function get_current_date(){
+            var fullDate = new Date()
+            console.log(fullDate);
+            //Thu May 19 2011 17:25:38 GMT+1000 {}
+
+            //convert month to 2 digits
+            var twoDigitMonth = ((fullDate.getMonth().length+1) === 1)? (fullDate.getMonth()+1) : (fullDate.getMonth()+1);
+
+            var currentDate = fullDate.getFullYear() + "-" + twoDigitMonth + "-" + (fullDate.getDate()+1);
+            console.log(currentDate);
+            return currentDate;
+         }
+
     $(".selec_adv_1").selectize({
         plugins:{remove_button:{label:""}},
     })

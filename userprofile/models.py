@@ -35,6 +35,8 @@ class AccessLevelGroup(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, related_name='profile')
+    sex = models.CharField('Sex', max_length=10, choices=(('Male', 'Male'), ('Female', 'Female')), null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
     msisdn = models.CharField(max_length=12, unique=True, null=True, blank=True)
     access_level = models.ForeignKey(AccessLevel, null=True, blank=True, on_delete=models.CASCADE)
     district = models.ManyToManyField(District, null=True, blank=True)

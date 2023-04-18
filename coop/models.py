@@ -296,7 +296,7 @@ class CooperativeMember(models.Model):
     is_refugee = models.BooleanField(default=False)
     is_handicap = models.BooleanField(default=False)
     date_of_birth = models.DateField(null=True, blank=True)
-    gender = models.CharField(max_length=10, choices=(('Male', 'Male'), ('Female', 'Female')), null=True, blank=True)
+    gender = models.CharField('Sex', max_length=10, choices=(('Male', 'Male'), ('Female', 'Female')), null=True, blank=True)
     maritual_status = models.CharField(max_length=10, null=True, blank=True, choices=(('Single', 'Single'), ('Married', 'Married'),
         ('Widowed', 'Widow'), ('Divorced', 'Divorced')))
     id_number = models.CharField(max_length=150, null=True, blank=True, unique=True)
