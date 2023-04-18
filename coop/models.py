@@ -822,7 +822,7 @@ class OrderItem(models.Model):
 
 class ProfileManager(models.Manager):
     def get_queryset(self):
-        return super(ProfileManager, self).get_queryset().filter(Q(access_level__name ='COOPERATIVE')|Q(access_level__name ='AGENT')|Q(access_level__name ='UNION'))
+        return super(ProfileManager, self).get_queryset().filter(Q(access_level__name ='COOPERATIVE')|Q(access_level__name ='AGENT')|Q(access_level__name ='UNION')|Q(access_level__name ='TERRITORY'))
 
 class Agent(Profile):
     objects = ProfileManager()
