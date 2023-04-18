@@ -24,16 +24,17 @@
 {% block page_content %}
     <div class="uk-grid" data-uk-grid-margin>
         <div class="uk-width-medium-1-2">
-            <h2 class="heading_a uk-margin-bottom">Cooperative Member List</h2>
+            <h2 class="heading_a uk-margin-bottom">Member List</h2>
         </div>
         <div class="uk-width-medium-1-1">
-            
+            {% if request.user.profile.is_union or request.user.profile.is_cooperative %}
             <a href="{% url 'coop:member_create' %}" class="md-btn md-btn-success uk-float-right">Add Member</a>
             
 <!--            <a href="{% url 'coop:registration_list' %}" class="md-btn md-btn-success uk-float-right">Registration Fee</a>-->
             <a href="{% url 'coop:member_upload' %}" class="md-btn md-btn-success uk-float-right">Upload Excel</a>
-            <a href="{% url 'coop:member_map' %}" class="md-btn md-btn-default uk-float-right">OPEN MAPS</a>
             <a  id="download_file" class="md-btn md-btn-primary uk-float-right">Download Excel</a>
+            {% endif %}
+            <a href="{% url 'coop:member_map' %}" class="md-btn md-btn-default uk-float-right">OPEN MAPS</a>
         </div>
     </div>
 

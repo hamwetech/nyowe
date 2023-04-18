@@ -14,7 +14,7 @@ from userprofile.models import Profile
 class CooperativeForm(forms.ModelForm):
     class Meta:
         model = Cooperative
-        fields = ['name', 'logo', 'district', 'sub_county', 'phone_number', 'address', 'contact_person_name',
+        fields = ['name', 'fpo_type', 'logo', 'district', 'sub_county', 'phone_number', 'address', 'contact_person_name',
                   'product', 'is_active', 'send_message', 'sms_api_url', 'sms_api_token', 'payments_account',
                   'payments_token', 'payments_authentication', 'system_url', 'coop_abbreviation']
     

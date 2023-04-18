@@ -168,10 +168,10 @@ class MemberEndpoint(APIView):
                             if re.search('<NAME>', message):
                                 if __member.surname:
                                     message = message.replace('<NAME>', '%s %s' % (__member.surname.title(), __member.first_name.title()))
-                                    if cooperative:
-                                        message = message.replace('<COOPERATIVE>', __member.cooperative.name)
-                                    if fgs:
-                                        message = message.replace('<COOPERATIVE>', __member.farmer_group.name)
+                                    # if cooperative:
+                                    #     message = message.replace('<COOPERATIVE>', __member.cooperative.name)
+                                    # if fgs:
+                                    #     message = message.replace('<COOPERATIVE>', __member.farmer_group.name)
                                     message = message.replace('<IDNUMBER>', __member.member_id)
                                     sendMemberSMS(request, __member, message)
                     else:
@@ -186,8 +186,8 @@ class MemberEndpoint(APIView):
                         gender=request.data.get("gender"),
                         maritual_status=request.data.get("maritual_status"),
                         phone_number=request.data.get("phone_number"), 
-                        own_phone=request.data.get("own_phone"),
-                        has_mobile_money=request.data.get("has_mobile_money"),
+                        # own_phone=request.data.get("own_phone"),
+                        # has_mobile_money=request.data.get("has_mobile_money"),
                         email=request.data.get("email"),
                         district=request.data.get("district"), 
                         county=request.data.get("county"), 
@@ -230,7 +230,7 @@ class MemberEndpoint(APIView):
         member = member.filter(member_id=idno)
         if member.exists():
             count = count + 1
-            print "iteration count %s" % count
+            print ("iteration count %s" % count)
             return self.check_id(member, cooperative, count, yr)
         return idno
 
@@ -366,13 +366,13 @@ class TrainingSessionView(APIView):
     
     def post(self, request, format=None):
         pk = request.data.get('session_id')
-        print pk
+        print (pk)
         training = TrainingSessionSerializer(data=request.data)
         
         try:
             if pk:
                 ts = TrainingSession.objects.get(pk=pk)
-                print ts
+                print(ts)
                 training = TrainingSessionUpdateSerializer(ts, data=request.data)
             print request.data
             if training.is_valid():

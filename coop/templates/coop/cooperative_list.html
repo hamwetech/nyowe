@@ -5,13 +5,13 @@
 {% block page_content %}
     <div class="uk-grid" data-uk-grid-margin>
         <div class="uk-width-medium-1-2">
-            <h2 class="heading_a uk-margin-bottom">Cooperative List</h2>
+            <h2 class="heading_a uk-margin-bottom">FPO List</h2>
         </div>
         <div class="uk-width-medium-1-2">
             
-           <a href="{% url 'coop:create' %}" class="md-btn md-btn-success uk-float-right">Add Cooperative</a>
+           <a href="{% url 'coop:create' %}" class="md-btn md-btn-primary uk-float-right">Add FPO</a>
             
-            <a href="{% url 'coop:upload' %}" class="md-btn md-btn-success uk-float-right">Upload Cooperative</a>
+            <a href="{% url 'coop:upload' %}" class="md-btn md-btn-success uk-float-right">Upload FPO</a>
         </div>
     </div>
     <div class="md-card uk-margin-medium-bottom">
@@ -21,8 +21,8 @@
                     <thead>
                     <tr>
                         <th></th>
-                        <th>Cooperative</th>
-                        <th>Code</th>
+                        <th>FPO Name</th>
+                        <th>FPO Type</th>
                         <th>Balance</th>
                         <th>District</th>
                         <th>Sub County</th>
@@ -38,12 +38,13 @@
                             <tr>
                                 <td class="uk-text-center"><img class="md-user-image" src="{{ MEDIA_URL }}{{ item.logo }}" alt=""/></td>
                                 <td>{{ item.name }}</td>
-                                <td>{{ item.code }}</td>
+                                <td>{{ item.fpo_type }}</td>
                                 <td>{{ item.account.balance|default:"-" }}</td>
                                 <td>{{ item.district }}</td>
                                 <td>{{ item.sub_county }}</td>
                                 <td>{{ item.contact_person_name }}</td>
-                                <td>{{ item.phone_number }}</td>
+                                <td>{{ item.phone_number|default:"" }}</td>
+                                <td>{{ item.member_count }}</td>
                                 <td><a href="{% url 'coop:member_list' %}?cooperative={{ item.id }}"><strong>{{ item.get_colections }}</strong></a></td>
                                 <td><strong>{{ item.shares }}</strong></a></td>
                                <!-- <td>

@@ -235,7 +235,7 @@
                     <li {% if '_cooperative' in active %}class="current_section"{% endif %} title="Cooperative">
                         <a href="{% url 'coop:list' %}">
                             <span class="menu_icon"><i class="material-icons">account_balance</i></span>
-                            <span class="menu_title">Cooperative</span>
+                            <span class="menu_title">FPO</span>
                         </a>
                     </li>
 
@@ -267,11 +267,11 @@
                     <!--</li>-->
                     <!-- /union user -->
                 {% endif %}
-                {% if request.user.profile.is_union or request.user.profile.is_cooperative %}
+                {% if request.user.profile.is_union or request.user.profile.is_cooperative  or request.user.profile.is_partner %}
                 <li {% if '_coop_member' in active %}class="current_section"{% endif %} title="Coop Member">
                     <a href="{% url 'coop:member_list' %}">
                         <span class="menu_icon"><i class="material-icons">&#xE86F;</i></span>
-                        <span class="menu_title">Coop Member</span>
+                        <span class="menu_title">Members</span>
                     </a>
                 </li>
                 <!--<li {% if '_coop_member' in active %}class="current_section"{% endif %} title="Snippets">-->
