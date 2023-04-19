@@ -321,6 +321,7 @@ class CooperativeMember(models.Model):
     soghum_acreage = models.DecimalField(max_digits=10, decimal_places=2, default=0, null=True, blank=True)
     land_acreage = models.DecimalField(max_digits=10, decimal_places=2, default=0, null=True, blank=True)
     chia_trees = models.PositiveIntegerField('Shea Trees', default=0, null=True, blank=True)
+    bee_hives = models.PositiveIntegerField('Bee Hives', default=0, null=True, blank=True)
     product = models.CharField(max_length=255, null=True, blank=True)
     shares = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
     share_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)

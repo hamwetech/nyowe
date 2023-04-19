@@ -45,12 +45,23 @@ class DashboardView(TemplateView):
         total_payment = success_payments.aggregate(total_amount=Sum('amount'))
         collection_amt = collections.aggregate(total_amount=Sum('total_price'))
         members_shares = members.aggregate(total_amount=Sum('shares'))
+        shea_trees = members.aggregate(total_amount=Sum('chia_trees'))
+        hives = members.aggregate(total_amount=Sum('bee_hives'))
         savings_balance = members.aggregate(total_amount=Sum('savings_balance'))
-        eighteen = [f for f in members if f.age if f.age <= 18]
-        youth = [f for f in members if f.age if f.age > 15 and f.age <= 25]
-        midlife = [f for f in members if f.age if f.age > 25]
+
         male = members.filter(Q(gender='male') | Q(gender='m'))
         female = members.filter(Q(gender='female') | Q(gender='f'))
+        male_fifteen = [f for f in male if f.age if f.age < 15]
+        male_youth = [f for f in male if f.age if f.age >= 15 and f.age <= 24]
+        male_old_youth = [f for f in male if f.age if f.age >= 25 and f.age <= 50]
+        male_midlife = [f for f in male if f.age if f.age > 50]
+
+        female_fifteen = [f for f in female if f.age if f.age < 15]
+        female_youth = [f for f in female if f.age if f.age >= 15 and f.age <= 24]
+        female_old_youth = [f for f in female if f.age if f.age >= 25 and f.age <= 50]
+        female_midlife = [f for f in female if f.age if f.age > 50]
+
+
         with_phones = members.filter(own_phone=True)
         male_phones = male.filter(own_phone=True)
         female_phones = female.filter(own_phone=True)
@@ -79,9 +90,17 @@ class DashboardView(TemplateView):
         context['shares'] = shares['total_amount']
         context['transactions'] = Cooperative.objects.all().count()
         context['members'] = members.count()
-        context['eighteen'] = len(eighteen)
-        context['youth'] = len(youth)
-        context['midlife'] = len(midlife)
+
+        context['male_fifteen'] = len(male_fifteen)
+        context['male_youth'] = len(male_youth)
+        context['male_old_youth'] = len(male_old_youth)
+        context['male_midlife'] = len(male_midlife)
+
+        context['female_fifteen'] = len(female_fifteen)
+        context['female_youth'] = len(female_youth)
+        context['female_old_youth'] = len(female_old_youth)
+        context['female_midlife'] = len(female_midlife)
+
         context['male'] = male.count()
         context['female'] = female.count()
         context['with_phones'] = with_phones.count()
@@ -93,6 +112,8 @@ class DashboardView(TemplateView):
 
         context['is_refugee'] = is_refugee.count()
         context['active'] = ['_dashboard', '']
+        context['shea_trees'] = shea_trees['total_amount']
+        context['hives'] = hives['total_amount']
         context['members_shares'] = members_shares['total_amount']
         context['savings_balance'] = savings_balance['total_amount']
         context['m_shares'] = m_shares[:5]

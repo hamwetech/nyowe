@@ -92,6 +92,7 @@ class AgentCreateFormView(ExtraContext, FormView):
 
                 profile.msisdn=form.cleaned_data.get('msisdn')
                 profile.sex=form.cleaned_data.get('sex')
+                profile.nin=form.cleaned_data.get('nin')
                 profile.date_of_birth=form.cleaned_data.get('date_of_birth')
 
                 profile.access_level=get_object_or_404(AccessLevel, name="AGENT")

@@ -770,7 +770,8 @@ class AgentForm(forms.ModelForm):
     password = forms.CharField(max_length=150, required=True, widget=forms.PasswordInput)
     msisdn = forms.CharField(max_length=150)
     sex = forms.ChoiceField(widget=forms.Select(), choices=[['', '--------------'], ['Male', 'Male'], ['Female', 'Female']])
-    date_of_birth = forms.CharField(max_length=150)
+    date_of_birth = forms.CharField(max_length=150, required=False)
+    nin = forms.CharField(max_length=150, required=False)
 
     class Meta:
         model = User
