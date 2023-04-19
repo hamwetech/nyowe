@@ -70,16 +70,37 @@
                             </tr>
                             <tr>
                                 <td>
-                                    {{ male_fifteen|intcomma }} <small>< 15</small> <br>
-                                    {{ male_youth|intcomma }} <small> 15 - 24</small> <br>
-                                    {{ male_old_youth|intcomma }} <small>25 - 50</small> <br>
-                                    {{ male_midlife|intcomma }} <small> 50 > </small> <br>
+                                    <table>
+                                        <tr>
+                                            <td>{{ male_fifteen|intcomma }}</td><td><small>< 15</small></td>
+                                        </tr>
+                                         <tr>
+                                             <td>{{ male_youth|intcomma }}</td><td><small> 15 - 24</small></td>
+                                         </tr>
+                                        <tr>
+                                            <td>{{ male_old_youth|intcomma }}</td><td><small>25 - 50</small></td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ male_midlife|intcomma }} </td><td> <small> 50 > </small></td>
+                                        </tr>
+                                    </table>
+
                                 </td>
                                 <td>
-                                    {{ female_fifteen|intcomma }} <small>< 15</small> <br>
-                                    {{ female_youth|intcomma }} <small> 15 - 24</small> <br>
-                                    {{ female_old_youth|intcomma }} <small>25 - 50</small> <br>
-                                    {{ female_midlife|intcomma }} <small> 50 > </small> <br>
+                                   <table>
+                                        <tr>
+                                            <td>{{ female_fifteen|intcomma }}</td><td><small>< 15</small></td>
+                                        </tr>
+                                         <tr>
+                                             <td>{{ female_youth|intcomma }}</td><td><small> 15 - 24</small></td>
+                                         </tr>
+                                        <tr>
+                                            <td>{{ female_old_youth|intcomma }}</td><td><small>25 - 50</small></td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ female_midlife|intcomma }} </td><td> <small> 50 > </small></td>
+                                        </tr>
+                                    </table>
                                 </td>
                                 <td></td>
                             </tr>
