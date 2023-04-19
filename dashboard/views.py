@@ -61,6 +61,17 @@ class DashboardView(TemplateView):
         female_old_youth = [f for f in female if f.age if f.age >= 25 and f.age <= 50]
         female_midlife = [f for f in female if f.age if f.age > 50]
 
+        male_agent = agents.filter(Q(sex='male') | Q(sex='m'))
+        female_agent = agents.filter(Q(sex='female') | Q(sex='f'))
+
+        agent_male_youth = [f for f in male_agent if f.age if f.age >= 15 and f.age <= 24]
+        agent_male_old_youth = [f for f in male_agent if f.age if f.age >= 25 and f.age <= 50]
+        agent_male_midlife = [f for f in male_agent if f.age if f.age > 50]
+
+        agent_female_youth = [f for f in female_agent if f.age if f.age >= 15 and f.age <= 24]
+        agent_female_old_youth = [f for f in female_agent if f.age if f.age >= 25 and f.age <= 50]
+        agent_female_midlife = [f for f in female_agent if f.age if f.age > 50]
+
 
         with_phones = members.filter(own_phone=True)
         male_phones = male.filter(own_phone=True)
@@ -106,7 +117,18 @@ class DashboardView(TemplateView):
         context['with_phones'] = with_phones.count()
         context['male_phones'] = male_phones.count()
         context['female_phones'] = female_phones.count()
+
         context['agents'] = agents.count()
+        context['male_agent'] = male_agent.count()
+        context['female_agent'] = female_agent.count()
+
+        context['agent_male_youth'] = len(agent_male_youth)
+        context['agent_male_old_youth'] = len(agent_male_old_youth)
+        context['agent_male_midlife'] = len(agent_male_midlife)
+
+        context['agent_female_youth'] = len(agent_female_youth)
+        context['agent_female_old_youth'] = len(agent_female_old_youth)
+        context['agent_female_midlife'] = len(agent_female_midlife)
 
 
 

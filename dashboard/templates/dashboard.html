@@ -167,6 +167,52 @@
                     <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_sale peity_data">5,3,9,6,5,9,7,3,5,2</span></div>
                     <span class="uk-text-muted uk-text-small">Agents</span>
                     <h2 class="uk-margin-remove">{{ agents|intcomma }}</h2>
+                    <table class="uk-table">
+                        <thead>
+                            <tr>
+                                <th>Male</th>
+                                <th>Females</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ male_agent|intcomma }}</td>
+                                <td>{{ female_agent|intcomma }}</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table>
+
+                                         <tr>
+                                             <td>{{ agent_male_youth|intcomma }}</td><td><small> 15 - 24</small></td>
+                                         </tr>
+                                        <tr>
+                                            <td>{{ agent_male_old_youth|intcomma }}</td><td><small>25 - 50</small></td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ agent_male_midlife|intcomma }} </td><td> <small> 50 > </small></td>
+                                        </tr>
+                                    </table>
+
+                                </td>
+                                <td>
+                                   <table>
+
+                                         <tr>
+                                             <td>{{ agent_female_youth|intcomma }}</td><td><small> 15 - 24</small></td>
+                                         </tr>
+                                        <tr>
+                                            <td>{{ agent_female_old_youth|intcomma }}</td><td><small>25 - 50</small></td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ agent_female_midlife|intcomma }} </td><td> <small> 50 > </small></td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
