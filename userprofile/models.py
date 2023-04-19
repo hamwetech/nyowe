@@ -49,6 +49,13 @@ class Profile(models.Model):
  
     class Meta:
         db_table = 'user_profile'
+
+    @property
+    def age(self):
+        if self.date_of_birth:
+            m = date.today() - self.date_of_birth
+            return m.days / 365
+        return None
         
     def is_union(self):
         if self.access_level:
