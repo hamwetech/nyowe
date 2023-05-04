@@ -549,7 +549,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
         profile_choices = ['id','cooperative__name', 'member_id', 'surname', 'first_name', 'other_name',
                                'date_of_birth', 'gender', 'maritual_status','phone_number','email',
                                'district__name','sub_county__name','village','address','gps_coodinates',
-                               'coop_role','cotton_acreage', 'soya_beans_acreage','soghum_acreage','shares',
+                               'coop_role','land_acreage', 'chia_trees', 'bee_hives', 'product',
                                'collection_amount','collection_quantity', 'paid_amount', 'create_by__username']
 
         columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]

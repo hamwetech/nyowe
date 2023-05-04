@@ -355,6 +355,11 @@ class CooperativeMember(models.Model):
         m = date.today() - obj.date_of_birth
         return m.days / 365
 
+    @property
+    def age_(self):
+        m = date.today() - self.date_of_birth
+        return m.days / 365
+
 
     def generate_qrcode(self):
         qr = qrcode.QRCode(

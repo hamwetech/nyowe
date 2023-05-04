@@ -51,15 +51,16 @@ class DashboardView(TemplateView):
 
         male = members.filter(Q(gender='male') | Q(gender='m'))
         female = members.filter(Q(gender='female') | Q(gender='f'))
-        male_fifteen = [f for f in male if f.age if f.age < 15]
-        male_youth = [f for f in male if f.age if f.age >= 15 and f.age <= 24]
-        male_old_youth = [f for f in male if f.age if f.age >= 25 and f.age <= 50]
-        male_midlife = [f for f in male if f.age if f.age > 50]
 
-        female_fifteen = [f for f in female if f.age if f.age < 15]
-        female_youth = [f for f in female if f.age if f.age >= 15 and f.age <= 24]
-        female_old_youth = [f for f in female if f.age if f.age >= 25 and f.age <= 50]
-        female_midlife = [f for f in female if f.age if f.age > 50]
+        male_fifteen = [f for f in male if f.age(f) if f.age(f) < 15]
+        male_youth = [f for f in male if f.age(f) if f.age(f) >= 15 and f.age(f) <= 24]
+        male_old_youth = [f for f in male if f.age(f) if f.age(f) >= 25 and f.age(f) <= 50]
+        male_midlife = [f for f in male if f.age(f) if f.age(f) > 50]
+
+        female_fifteen = [f for f in female if f.age(f) if f.age(f) < 15]
+        female_youth = [f for f in female if f.age(f) if f.age(f) >= 15 and f.age(f) <= 24]
+        female_old_youth = [f for f in female if f.age(f) if f.age(f) >= 25 and f.age(f) <= 50]
+        female_midlife = [f for f in female if f.age(f) if f.age(f) > 50]
 
         male_agent = agents.filter(Q(sex='male') | Q(sex='m'))
         female_agent = agents.filter(Q(sex='female') | Q(sex='f'))
