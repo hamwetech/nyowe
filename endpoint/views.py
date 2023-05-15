@@ -133,14 +133,25 @@ class MemberEndpoint(APIView):
     def post(self, request, format=None):
         farmer_group = request.data.get('farmer_group')
         cooperative = request.data.get('cooperative')
-        fgs = FarmerGroup.objects.filter(pk=farmer_group)
-        coops = Cooperative.objects.filter(pk=cooperative)
+
+        if farmer_group or farmer_group != "":
+            fgs = FarmerGroup.objects.filter(pk=farmer_group)
+            if not fgs.exists():
+                request.data['farmer_group'] = None
+        else:
+            request.data['farmer_group'] = None
+
+        if cooperative or cooperative !="":
+            coops = Cooperative.objects.filter(pk=cooperative)
+            if not coops.exists():
+                request.data['cooperative'] = None
+        else:
+            request.data['cooperative'] = None
+
         log_debug("XXXX Farmer Submission Request from User %s XXXX" % (self.request.user))
         print("XXXX Farmer Submission Request from User %s XXXX" % (self.request.user))
-        if not fgs.exists():
-            request.data['farmer_group'] = None
-        if not coops.exists():
-            request.data['cooperative'] = None
+
+
         if request.data.get('farmer_group') == "0":
             request.data['farmer_group'] = None
         print(request.data)
