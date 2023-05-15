@@ -172,7 +172,7 @@ LOGGING = {
             'level':'DEBUG',
             'class':'logging.handlers.RotatingFileHandler',
             #'filename': "/var/log/hamwepay.log",
-            'filename': "/tmp/umis.log",
+            'filename': "/tmp/nyowe.log",
             'maxBytes': 50000,
             'backupCount': 20,
             'formatter': 'standard',
@@ -194,7 +194,7 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-        'umis': {
+        'nyowe': {
             'handlers': ['console', 'logfile'],
             'level': 'DEBUG',
         },

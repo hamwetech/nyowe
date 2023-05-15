@@ -126,6 +126,7 @@ class LoginView(View):
 
     def get(self, request, *args, **kwargs):
         data = dict()
+        log_debug('Login Page')
         data["form"] = LoginForm
         host = request.get_host()
         coop = check_coop_url(host)

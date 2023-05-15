@@ -135,6 +135,8 @@ class MemberEndpoint(APIView):
         cooperative = request.data.get('cooperative')
         fgs = FarmerGroup.objects.filter(pk=farmer_group)
         coops = Cooperative.objects.filter(pk=cooperative)
+        log_debug("XXXX Farmer Submission Request from User %s XXXX" % (self.request.user))
+        print("XXXX Farmer Submission Request from User %s XXXX" % (self.request.user))
         if not fgs.exists():
             request.data['farmer_group'] = None
         if not coops.exists():
@@ -142,6 +144,7 @@ class MemberEndpoint(APIView):
         if request.data.get('farmer_group') == "0":
             request.data['farmer_group'] = None
         print(request.data)
+        log_debug(request.data)
         member = MemberSerializer(data=request.data)
         mem = CooperativeMember.objects.filter(member_id=request.data.get('member_id'))
         if mem.count() < 1:
@@ -149,6 +152,7 @@ class MemberEndpoint(APIView):
             mem = CooperativeMember.objects.filter(first_name=request.data.get('first_name'),surname=request.data.get('surname'),date_of_birth=request.data.get('date_of_birth'), id_number=request.data.get('id_number'))
             print("Members Found %s" % mem.count())
         print ("ADDING........%s, %s " % (mem.count(), request.data.get('member_id')))
+        log_debug ("ADDING........%s, %s " % (mem.count(), request.data.get('member_id')))
         if mem.count() > 0:
             member = MemberSerializer(mem[0], data=request.data) 
         try:
@@ -163,6 +167,7 @@ class MemberEndpoint(APIView):
                         __member.save()
                         mes = message_template()
                         print('Saved  Record %s' % __member.member_id)
+                        log_debug('Saved  Record %s' % __member.member_id)
                         if mes:
                             message = message_template().member_registration
                             if re.search('<NAME>', message):
@@ -204,6 +209,9 @@ class MemberEndpoint(APIView):
             log_debug(member.errors)
             return Response(member.errors)
         except Exception as err:
+            print(err)
+            log_debug(err)
+            log_error()
             return Response({"status": "ERROR", "response": err}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(member.errors, status=status.HTTP_400_BAD_REQUEST)
