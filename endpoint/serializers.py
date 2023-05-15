@@ -138,9 +138,9 @@ class MemberSerializer(serializers.ModelSerializer):
             except ValueError:
                 raise serializers.ValidationError("Please enter a valid phone number.'%s' is not valid" % phone_number)
             
-            member = CooperativeMember.objects.filter(phone_number=phone_number, first_name=first_name, surname=surname, other_name=other_name)
-            if member.exists():
-                raise serializers.ValidationError("The phone number.'%s' is arleady in use. Please provide another number" % phone_number)
+            # member = CooperativeMember.objects.filter(phone_number=phone_number, first_name=first_name, surname=surname, other_name=other_name)
+            # if member.exists():
+            #     raise serializers.ValidationError("The phone number.'%s' is arleady in use. Please provide another number" % phone_number)
         
         if other_phone_number:
             try:
