@@ -39,7 +39,7 @@ class Profile(models.Model):
     sex = models.CharField('Sex', max_length=10, choices=(('Male', 'Male'), ('Female', 'Female')), null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     msisdn = models.CharField(max_length=12, unique=True, null=True, blank=True)
-    nin = models.CharField(max_length=12,  null=True, blank=True)
+    nin = models.CharField(max_length=255,  null=True, blank=True)
     access_level = models.ForeignKey(AccessLevel, null=True, blank=True, on_delete=models.CASCADE)
     district = models.ManyToManyField(District, null=True, blank=True)
     supervisor = models.ForeignKey(User, null=True, blank=True, related_name="supervisor")
