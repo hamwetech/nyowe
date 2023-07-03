@@ -73,6 +73,7 @@
                     <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Parish</th>
                         <th>Sub County</th>
                        <th>County</th>
                        <th>District</th>
@@ -84,9 +85,10 @@
                         {% for item in object_list %}
                             <tr>
                                 <td>{{ item.name }}</td>
-                                <td>{{ item.sub_county }}</td>
-                                <td>{{ item.sub_county.county }}</td>
-                                <td>{{ item.sub_county.county.district }}</td>
+                                <td>{{ item.parish }}</td>
+                                <td>{{ item.parish.sub_county }}</td>
+                                <td>{{ item.parish.sub_county.county }}</td>
+                                <td>{{ item.parish.sub_county.county.district }}</td>
                                
                                 <td>
                                      <a href="{% url 'conf:subcounty_edit' item.id %}"  class="uk-float-right"><i class="md-icon material-icons">&#xE254;</i></a>

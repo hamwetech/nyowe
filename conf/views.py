@@ -106,9 +106,9 @@ class SubCountyUpdateView(ExtraContext, UpdateView):
 
 class ParishListView(ExtraContext, ListView):
     model = Parish
-    template_name = "conf/village_list.html"
+    template_name = "conf/parish_list.html"
     order_by = '-name'
-    extra_context = {'active': ['_config', '__village']}
+    extra_context = {'active': ['_config', '__parish']}
 
     # paginate_by = 10
 
@@ -157,23 +157,22 @@ class VillageListView(ExtraContext, ListView):
     extra_context = {'active': ['_config', '__village']}
     # paginate_by = 10
         
-    def get_queryset(self):
-        queryset = None
-        village = self.request.GET.get('village')
-        subcounty = self.request.GET.get('subcounty')
-        county = self.request.GET.get('county')
-        district = self.request.GET.get('district')
-        queryset = Parish.objects.all()
-        if village:
-            queryset = queryset.filter(name=query)
-        if subcounty:
-            queryset = queryset.filter(sub_county__name=subcounty)
-        if county:
-            queryset = queryset.filter(sub_county__county__name=county)
-        if district:
-            queryset = queryset.filter(sub_county__county__district__name=district)
-            
-        return queryset
+    # def get_queryset(self):
+    #     village = self.request.GET.get('village')
+    #     subcounty = self.request.GET.get('subcounty')
+    #     county = self.request.GET.get('county')
+    #     district = self.request.GET.get('district')
+    #     queryset = self.get_queryset()
+    #     if village:
+    #         queryset = queryset.filter(name=query)
+    #     if subcounty:
+    #         queryset = queryset.filter(sub_county__name=subcounty)
+    #     if county:
+    #         queryset = queryset.filter(sub_county__county__name=county)
+    #     if district:
+    #         queryset = queryset.filter(sub_county__county__district__name=district)
+    #
+    #     return queryset
         
     def get_context_data(self, **kwargs):
         context = super(VillageListView, self).get_context_data(**kwargs)
@@ -186,6 +185,7 @@ class VillageCreateView(ExtraContext, CreateView):
     form_class = VillageForm
     extra_context = {'active': ['_config', '__village']}
     success_url = reverse_lazy('conf:village_list')
+
 
 class VillageUpdateView(ExtraContext, UpdateView):
     model = Village

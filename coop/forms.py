@@ -649,6 +649,21 @@ class FarmerGroupForm(forms.ModelForm):
         model = FarmerGroup
         fields = '__all__'
 
+    def __init__(self, *args, **kwargs):
+        super(FarmerGroupForm, self).__init__(*args, **kwargs)
+
+        qs = Village.objects.all()
+
+        choices = [['', 'Village']]
+        for q in qs:
+            choices.append([q.name, q.name])
+
+        print(choices)
+
+        self.fields['village'].widget = forms.Select(choices=choices)
+        # self.fields['village'].choices = choices
+
+
 
 class SavingsForm(forms.ModelForm):
     class Meta:
