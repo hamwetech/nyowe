@@ -119,7 +119,7 @@
                                 <td>{{ item.phone_number }}</td>
                                 <td>{{ item.gender }}</td>
                                 <td>{{ item.cooperative  }}</td>
-                                <td>{{ item.farmer_group  }}</td>
+                                <td>{{ item.farmer_group|default:""  }}</td>
                                 <td>{{ item.coop_role|default:'' }}</td>
                                 <td>{{ item.district|default:'' }} </td>
                                 <td>{{ item.sub_county|default:'' }} </td>
