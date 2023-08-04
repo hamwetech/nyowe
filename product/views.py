@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
-from django.http import JsonResponse
+import xlwt
+import datetime
+from django.http import JsonResponse, HttpResponse
 from django.urls import reverse_lazy
 from django.forms.formsets import formset_factory, BaseFormSet
 from django.shortcuts import render, redirect
@@ -242,6 +243,96 @@ class ItemUpdateView(ExtraContext, UpdateView):
 class ItemListView(ExtraContext, ListView):
     model = Item
     extra_context = {'active': ['_union_prod','__Item']}
+
+    def get_queryset(self):
+        queryset = super(ItemListView, self).get_queryset()
+        item = self.request.GET.get('item')
+        category = self.request.GET.get('category')
+        supplier = self.request.GET.get('supplier')
+        if item:
+            queryset = queryset.filter(name__icontains=item)
+        if category:
+            queryset = queryset.filter(category__name__icontains=item)
+        if supplier:
+            queryset = queryset.filter(supplier__name__icontains=item)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(ItemListView, self).get_context_data(**kwargs)
+        context['form'] = ItemSearchForm
+        return context
+
+    def dispatch(self, *args, **kwargs):
+        if self.request.GET.get('download'):
+            return self.download_file()
+        return super(ItemListView, self).dispatch(*args, **kwargs)
+
+    def download_file(self, *args, **kwargs):
+
+        _value = []
+        columns = []
+        item = self.request.GET.get('item')
+        category = self.request.GET.get('category')
+        supplier = self.request.GET.get('supplier')
+
+        profile_choices = ['id', 'name', 'supplier__name', 'price', 'create_date']
+
+        columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
+        # Gather the Information Found
+        # Create the HttpResponse object with Excel header.This tells browsers that
+        # the document is a Excel file.
+        response = HttpResponse(content_type='application/ms-excel')
+
+        # The response also has additional Content-Disposition header, which contains
+        # the name of the Excel file.
+        response['Content-Disposition'] = 'attachment; filename=NyoweItems_%s.xls' % datetime.datetime.now().strftime(
+            '%Y%m%d%H%M%S')
+
+        # Create object for the Workbook which is under xlwt library.
+        workbook = xlwt.Workbook()
+
+        # By using Workbook object, add the sheet with the name of your choice.
+        worksheet = workbook.add_sheet("Cooperatives")
+
+        row_num = 0
+        style_string = "font: bold on; borders: bottom dashed"
+        style = xlwt.easyxf(style_string)
+
+        for col_num in range(len(columns)):
+            # For each cell in your Excel Sheet, call write function by passing row number,
+            # column number and cell data.
+            worksheet.write(row_num, col_num, columns[col_num], style=style)
+
+        queryset = super(ItemListView, self).get_queryset().values(*profile_choices)
+        if item:
+            queryset = queryset.filter(name__icontains=item)
+        if category:
+            queryset = queryset.filter(category__name__icontains=item)
+        if supplier:
+            queryset = queryset.filter(supplier__name__icontains=item)
+
+        for m in queryset:
+
+            row_num += 1
+            # ##print profile_choices
+            row = [
+                m['%s' % x] if 'create_date' not in x else m['%s' % x].strftime('%d-%m-%Y')  if m.get('%s' % x) else ""
+                for x in profile_choices]
+
+            for col_num in range(len(row)):
+                worksheet.write(row_num, col_num, row[col_num])
+        workbook.save(response)
+        return response
+
+    def replaceMultiple(self, mainString, toBeReplaces, newString):
+        # Iterate over the strings to be replaced
+        for elem in toBeReplaces:
+            # Check if string is in the main string
+            if elem in mainString:
+                # Replace the string
+                mainString = mainString.replace(elem, newString)
+
+        return mainString
     
 
 def get_item_price(request, pk):

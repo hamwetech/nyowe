@@ -148,15 +148,20 @@ class MemberEndpoint(APIView):
         else:
             request.data['cooperative'] = None
 
-        log_debug("XXXX Farmer Submission Request from User %s XXXX" % (self.request.user))
-        print("XXXX Farmer Submission Request from User %s XXXX" % (self.request.user))
+        print("XXXX Farmer Group %s XXXX" % (request.data['farmer_group']))
+        # log_debug("XXXX Farmer Submission Request from User %s XXXX" % (self.request.user))
+        # print("XXXX Farmer Submission Request from User %s XXXX" % (self.request.user))
 
 
         if request.data.get('farmer_group') == "0":
             request.data['farmer_group'] = None
         print(request.data)
+
+        fg_obj = FarmerGroup.objects.get(pk=request.data['farmer_group']) #Epects Pk value not Object
         log_debug(request.data)
         member = MemberSerializer(data=request.data)
+
+        # return Response({"status": "ERROR", "response": "Stoped"}, status.HTTP_200_OK)
         mem = CooperativeMember.objects.filter(member_id=request.data.get('member_id'))
         if mem.count() < 1:
             print("%s %s %s %s %s" % (request.data.get('first_name'), request.data.get('other_name'), request.data.get('surname'), request.data.get('date_of_birth'),request.data.get('id_number')))
@@ -174,6 +179,7 @@ class MemberEndpoint(APIView):
                     if mem.count() < 1: 
                         __member = member.save()
                         __member.member_id = self.generate_member_id(__member)
+                        __member.farmer_group = fg_obj
                         __member.create_by = request.user
                         __member.save()
                         mes = message_template()

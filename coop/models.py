@@ -745,6 +745,7 @@ class Collection(models.Model):
     collection_date = models.DateTimeField()
     is_member = models.BooleanField(default=1)
     cooperative = models.ForeignKey(Cooperative, null=True, blank=True, on_delete=models.CASCADE)
+    farmer_group = models.ForeignKey(FarmerGroup, null=True, blank=True, on_delete=models.CASCADE)
     member = models.ForeignKey(CooperativeMember, null=True, blank=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, null=True, blank=True)
     phone_number = models.CharField(max_length=30, null=True, blank=True)
@@ -829,6 +830,11 @@ class OrderItem(models.Model):
 class ProfileManager(models.Manager):
     def get_queryset(self):
         return super(ProfileManager, self).get_queryset().filter(Q(access_level__name ='COOPERATIVE')|Q(access_level__name ='AGENT')|Q(access_level__name ='UNION')|Q(access_level__name ='TERRITORY'))
+
+    def members(self):
+        members = CooperativeMember.objects.filter(create_by=self.user)
+        return members.count()
+
 
 class Agent(Profile):
     objects = ProfileManager()

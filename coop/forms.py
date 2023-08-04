@@ -564,13 +564,53 @@ class CollectionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
+        super(MemberOrderForm, self).__init__(*args, **kwargs)
+
+        if not self.request.user.profile.is_union():
+            self.fields['cooperative'].widget = forms.HiddenInput()
+            self.fields['cooperative'].initial = self.request.user.cooperative_admin.cooperative
+
+        self.fields['member'].queryset = CooperativeMember.objects.none()
+
+        if 'cooperative' in self.data:
+            try:
+                cooperative_id = int(self.data.get('cooperative'))
+                self.fields['member'].queryset = CooperativeMember.objects.filter(cooperative=cooperative_id).order_by(
+                    'first_name')
+            except Exception as e:  # (ValueError, TypeError):
+                pass  # invalid input from the client; ignore and fallback to empty City queryset
+        elif self.instance.pk:
+            if self.instance.cooperative:
+                self.fields['member'].queryset = self.instance.cooperative.member_set.order_by('first_name')
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         super(CollectionForm, self).__init__(*args, **kwargs)
         self.fields['collection_date'].widget=forms.TextInput(attrs={"data-uk-datepicker": "{maxDate:10, format:'YYYY-MM-D'}"})
+        self.fields['member'].queryset = CooperativeMember.objects.none()
 
-        
         if not self.request.user.profile.is_union():
             self.fields['cooperative'].widget=forms.HiddenInput()
             self.fields['cooperative'].initial=self.request.user.cooperative_admin.cooperative
+
+        if 'cooperative' in self.data:
+            try:
+                cooperative_id = int(self.data.get('cooperative'))
+                self.fields['member'].queryset = CooperativeMember.objects.filter(cooperative=cooperative_id).order_by(
+                    'first_name')
+            except Exception as e:  # (ValueError, TypeError):
+                pass  # invalid input from the client; ignore and fallback to empty City queryset
+        elif 'farmer_group' in self.data:
+            try:
+                farmer_group_id = int(self.data.get('farmer_group'))
+                self.fields['member'].queryset = CooperativeMember.objects.filter(farmer_group=farmer_group_id).order_by(
+                    'first_name')
+            except Exception as e:  # (ValueError, TypeError):
+                pass  # invalid input from the client; ignore and fallback to empty City queryset
+        elif self.instance.pk:
+            if self.instance.cooperative:
+                self.fields['member'].queryset = self.instance.cooperative.member_set.order_by('first_name')
+
         
     def clean(self):
         data = self.cleaned_data

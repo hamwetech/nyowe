@@ -3,9 +3,10 @@ from __future__ import unicode_literals
 
 import re
 import xlrd
+import xlwt
 import datetime
 from django.urls import reverse_lazy
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.utils.encoding import smart_str
 from django.db import transaction
 from django.db.models import Count, Q
@@ -16,6 +17,8 @@ from conf.models import District, County, SubCounty
 from coop.models import *
 from coop.forms import *
 from userprofile.models import Profile, AccessLevel
+from django.db.models import Value, Prefetch
+
 
 
 class ExtraContext(object):
@@ -29,6 +32,11 @@ class ExtraContext(object):
 
 class AgentListView(ExtraContext, ListView):
     template_name = 'coop/agents_list.html'
+
+    def dispatch(self, *args, **kwargs):
+        if self.request.GET.get('download'):
+            return self.download_file()
+        return super(AgentListView, self).dispatch(*args, **kwargs)
 
     def get(self, request, **kwargs):
 
@@ -69,6 +77,88 @@ class AgentListView(ExtraContext, ListView):
             'active': ['_agent']
         }
         return render(request, self.template_name, data)
+
+    def download_file(self, *args, **kwargs):
+
+        _value = []
+        columns = []
+        name = self.request.GET.get('name')
+        phone_number = self.request.GET.get('phone_number')
+        cooperative = self.request.GET.get('cooperative')
+        end_date = self.request.GET.get('end_date')
+        start_date = self.request.GET.get('start_date')
+
+        profile_choices = ['user__id', 'user__first_name', 'user__last_name', 'user__email', 'sex', 'date_of_birth',
+                           'date_recruited', 'msisdn', 'nin',  'create_date']
+
+        columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
+        columns += ['District', 'Farmers Profiled']
+        # Gather the Information Found
+        # Create the HttpResponse object with Excel header.This tells browsers that
+        # the document is a Excel file.
+        response = HttpResponse(content_type='application/ms-excel')
+
+        # The response also has additional Content-Disposition header, which contains
+        # the name of the Excel file.
+        response['Content-Disposition'] = 'attachment; filename=NyoweAgents_%s.xls' % datetime.now().strftime(
+            '%Y%m%d%H%M%S')
+
+        # Create object for the Workbook which is under xlwt library.
+        workbook = xlwt.Workbook()
+
+        # By using Workbook object, add the sheet with the name of your choice.
+        worksheet = workbook.add_sheet("Members")
+
+        row_num = 0
+        style_string = "font: bold on; borders: bottom dashed"
+        style = xlwt.easyxf(style_string)
+
+        for col_num in range(len(columns)):
+            # For each cell in your Excel Sheet, call write function by passing row number,
+            # column number and cell data.
+            worksheet.write(row_num, col_num, columns[col_num], style=style)
+
+        agents = Agent.objects.values(*profile_choices).all()
+        # agents = Agent.objects.values(*profile_choices).prefetch_related('district')
+        # agents = Agent.objects.values(*profile_choices).prefetch_related(Prefetch('district', queryset=District.objects.all()))
+        # agents_with_districts = agents.annotate(districts=StringAgg('district__name', Value(', '))).values(*profile_choices, 'districts')
+        if phone_number:
+            agents = agents.filter(phone_number=phone_number)
+
+        if name:
+            agents = agents.filter(Q(user__first_name__icontains=name) | Q(user__last_name__icontains=name))
+
+        if self.request.user.profile.district.all().count() > 0:
+            agents = agents.filter(district__id__in=self.request.user.profile.district.all())
+
+        for m in agents:
+            row_num += 1
+            # ##print profile_choices
+            # agent_districts = ', '.join(district.name for district in m['district'])
+            agent_districts = ', '.join(d.name for d in Agent.objects.get(user__id=m['user__id']).district.all())
+            row = [
+                m['%s' % x] if 'create_date' not in x else m['%s' % x].strftime('%d-%m-%Y') if 'date_recruited' not in x else m['%s' % x].strftime('%d-%m-%Y') if 'date_of_birth' not in x else m['%s' % x].strftime('%d-%m-%Y') if m.get('%s' % x) else ""
+                for x in profile_choices
+            ]
+            row.append(agent_districts)
+            row.append(CooperativeMember.objects.filter(create_by__id=m['user__id']).count())
+
+
+
+            for col_num in range(len(row)):
+                worksheet.write(row_num, col_num, row[col_num])
+        workbook.save(response)
+        return response
+
+    def replaceMultiple(self, mainString, toBeReplaces, newString):
+        # Iterate over the strings to be replaced
+        for elem in toBeReplaces:
+            # Check if string is in the main string
+            if elem in mainString:
+                # Replace the string
+                mainString = mainString.replace(elem, newString)
+
+        return mainString
 
 
 class AgentCreateFormView(ExtraContext, FormView):

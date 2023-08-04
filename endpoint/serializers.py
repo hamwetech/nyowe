@@ -126,7 +126,6 @@ class MemberSerializer(serializers.ModelSerializer):
         if id_number == "":
             data['id_number'] = None
 
-
         if date_of_birth:
             if date_of_birth > timezone.now().date():
                 raise serializers.ValidationError("Error! Date of Birth cannot be in the Future")
@@ -141,7 +140,7 @@ class MemberSerializer(serializers.ModelSerializer):
             # member = CooperativeMember.objects.filter(phone_number=phone_number, first_name=first_name, surname=surname, other_name=other_name)
             # if member.exists():
             #     raise serializers.ValidationError("The phone number.'%s' is arleady in use. Please provide another number" % phone_number)
-        
+        print(data)
         if other_phone_number:
             try:
                 other_phone_number = internationalize_number(other_phone_number)

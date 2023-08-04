@@ -13,7 +13,7 @@ from django.db.models import Q
 from django.views.generic import ListView, DetailView, View
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
-from coop.models import Collection, CooperativeMember
+from coop.models import Collection, CooperativeMember, Cooperative, FarmerGroup
 from coop.forms import CollectionForm, CollectionFilterForm, CollectionUploadForm
 from coop.views.member import save_transaction
 from conf.utils import generate_alpanumeric, genetate_uuid4, log_error, get_message_template as message_template
@@ -37,7 +37,7 @@ class CollectionListView(ExtraContext, ListView):
     extra_context = {'active': ['_collection']}
     
     def dispatch(self, request, *args, **kwargs):
-        if self.request.GET.get('_download'):
+        if self.request.GET.get('download'):
             return redirect('coop:collection_download')
         else:
             return super(CollectionListView, self).dispatch(request, *args, **kwargs)
@@ -77,7 +77,7 @@ class CollectionDownload(View):
     def get(self, request, *args, **kwargs):
         columns = []
         fields = ['id', 'is_member', 'cooperative__name', 'member__surname', 'member__first_name', 'member__phone_number', 'collection_reference', 'product__name', 'quantity',
-                               'unit_price', 'total_price', 'created_by']
+                               'unit_price', 'total_price', 'collection_date', 'create_date', 'created_by']
         columns = [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in fields]
         
         #Gather the Information Found
@@ -107,7 +107,20 @@ class CollectionDownload(View):
         _collection = Collection.objects.values(*fields).all()
         for m in _collection:
             row_num += 1
-            row = [m['%s' % x] for x in fields]
+            row = []
+            # row = [m['%s' % x] if 'create_date' not in x else m['%s' % x].strftime('%d-%m-%Y %H:%M:%S') if 'collection_date' not in x else m['%s' % x].strftime('%d-%m-%Y') if m.get('%s' % x) else "" for x in fields]
+            # row = [m['%s' % x] if 'collection_date' not in x else m['%s' % x].replace(tzinfo=None).strftime('%d-%m-%Y') if m.get('%s' % x) else "" for x in fields]
+            for x in fields:
+                if m.get('%s' % x):
+                    if 'collection_date' in x:
+                        row.append(m['%s' %x].strftime('%d-%m-%Y'))
+                    elif 'create_date' in x:
+                        row.append(m['%s' %x].strftime('%d-%m-%Y %H:%M:%S'))
+                    else:
+                        row.append(m['%s' % x])
+                else:
+                    row.append("")
+
             for col_num in range(len(row)):
                 worksheet.write(row_num, col_num, row[col_num])
         workbook.save(response)
@@ -122,7 +135,6 @@ class CollectionDownload(View):
                 mainString = mainString.replace(elem, newString)
         
         return  mainString       
-         
 
     
 class CollectionCreateView(ExtraContext, CreateView):
@@ -146,7 +158,8 @@ class CollectionCreateView(ExtraContext, CreateView):
                       'member': form.instance.member,
                       'transaction_reference': form.instance.collection_reference ,
                       'transaction_type': 'COLLECTION',
-                      'entry_type': 'CREDIT'
+                      'entry_type': 'CREDIT',
+                      'status': 'SUCCESS'
                       }
             member = CooperativeMember.objects.filter(pk=form.instance.member.id)
             if member.exists():
@@ -312,3 +325,11 @@ class CollectionUploadView(View):
                                   {'active': 'setting', 'form': form, 'error': e})
 
 
+def get_farmer_groups(request):
+    cooperative_id = request.GET.get('cooperative_id')
+    if cooperative_id:
+        fgs = FarmerGroup.objects.filter(cooperative__id=cooperative_id)
+        data = [{'id': fg.id, 'name': fg.name} for fg in fgs]
+        return JsonResponse(data, safe=False)
+    else:
+        return JsonResponse([], safe=False)

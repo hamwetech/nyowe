@@ -35,8 +35,15 @@ class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
         exclude = ['create_date', 'update_date']
-    
+
+
+class ItemSearchForm(forms.Form):
+    item = forms.CharField(max_length=150, required=False)
+    category = forms.CharField(max_length=150, required=False)
+    supplier = forms.CharField(max_length=150, required=False)
+
        
+bootstrapify(ItemSearchForm)
 bootstrapify(SupplierForm)
 bootstrapify(ItemForm)
 bootstrapify(ProductForm)

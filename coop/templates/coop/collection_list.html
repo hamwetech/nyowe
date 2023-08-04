@@ -7,11 +7,12 @@
         <div class="uk-width-medium-1-2">
             <h4 class="heading_a uk-margin-bottom">Collections</h4>
         </div>
-        <div class="uk-width-medium-1-2 uk-text-right" >
+        <div class="uk-width-medium-1-1 uk-text-right" >
             <!--<a href="#" class="md-btn md-btn-success " id="id_download">Download Excel</a>-->
             {% if request.user.profile.is_union or request.user.profile.is_cooperative %}
                  <a href="{% url 'coop:collection_create' %}" class="md-btn md-btn-success ">Add Collection</a>
                  <a href="{% url 'coop:collection_upload' %}" class="md-btn md-btn-success ">Upload Collection</a>
+                 <a href="{% url 'coop:collection_list' %}?download=true" class="md-btn md-btn-primary ">Download Collection</a>
             {% endif %}
         </div>
     </div>

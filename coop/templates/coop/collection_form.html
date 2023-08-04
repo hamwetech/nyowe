@@ -35,6 +35,7 @@
                    <div class="uk-grid" data-uk-grid-margin>
                     <div class="uk-width-medium-1-2">
                         {% include "form/field.html" with field=form.cooperative input_group_add_on='<i class="uk-input-group-icon uk-icon-user "></i>' %}
+                        {% include "form/field.html" with field=form.farmer_group input_group_add_on='<i class="uk-input-group-icon uk-icon-user "></i>' %}
                         </br></br>
                         <div id="member_wrap">
                             {% include "form/field.html" with field=form.member input_group_add_on='<i class="uk-input-group-icon uk-icon-user "></i>' %}
@@ -166,6 +167,40 @@
            $("#non_member").show()
            $("#member_wrap").hide()
         })
+
+        //$("#id_village").empty();
+        $("#id_cooperative").change(function () {
+            var url = "{% url 'coop:ajax_load_members' %}"  // get the url of the `load_cities` view
+            var cooperative = $(this).val();  // get the selected country ID from the HTML input
+
+            $.ajax({                       // initialize an AJAX request
+                url: url,                    // set the url of the request (= localhost:8000/hr/ajax/load-cities/)
+                data: {
+                    'cooperative': cooperative       // add the country id to the GET parameters
+                },
+                success: function (data) {   // `data` is the return of the `load_cities` view function
+                    $("#id_member").html(data);  // replace the contents of the city input with the data that came from the server
+                }
+            });
+
+        });
+
+        //$("#id_farmer_group").empty();
+        $("#id_farmer_group").change(function () {
+            var url = "{% url 'coop:load_fg_members' %}"  // get the url of the `load_cities` view
+            var farmer_group = $(this).val();  // get the selected country ID from the HTML input
+
+            $.ajax({                       // initialize an AJAX request
+                url: url,                    // set the url of the request (= localhost:8000/hr/ajax/load-cities/)
+                data: {
+                    'farmer_group': farmer_group       // add the country id to the GET parameters
+                },
+                success: function (data) {   // `data` is the return of the `load_cities` view function
+                    $("#id_member").html(data);  // replace the contents of the city input with the data that came from the server
+                }
+            });
+
+        });
       
     </script>
 {% endblock %}

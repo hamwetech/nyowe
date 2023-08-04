@@ -4,9 +4,10 @@ from __future__ import unicode_literals
 import re
 import json
 import xlrd
+import xlwt
 import datetime
 from django.urls import reverse_lazy
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from django.utils.encoding import smart_str
 from django.db import transaction
 from django.http import JsonResponse
@@ -34,6 +35,87 @@ def animal_identification(request):
 class CooperativeListView(ListView):
     model = Cooperative
     fields = ['name', 'code', 'location']
+
+    def dispatch(self, *args, **kwargs):
+        if self.request.GET.get('download'):
+            return self.download_file()
+        return super(CooperativeListView, self).dispatch(*args, **kwargs)
+
+    def download_file(self, *args, **kwargs):
+
+        _value = []
+        columns = []
+        name = self.request.GET.get('name')
+        phone_number = self.request.GET.get('phone_number')
+        cooperative = self.request.GET.get('cooperative')
+        end_date = self.request.GET.get('end_date')
+        start_date = self.request.GET.get('start_date')
+
+        profile_choices = ['id', 'name', 'name', 'phone_number', 'code',
+                           'district__name', 'sub_county__name',
+                           'created_by__username',  'create_date']
+
+        columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
+        columns += ['Farmers', 'Collections']
+        # Gather the Information Found
+        # Create the HttpResponse object with Excel header.This tells browsers that
+        # the document is a Excel file.
+        response = HttpResponse(content_type='application/ms-excel')
+
+        # The response also has additional Content-Disposition header, which contains
+        # the name of the Excel file.
+        response['Content-Disposition'] = 'attachment; filename=NyoweFPO_%s.xls' % datetime.datetime.now().strftime(
+            '%Y%m%d%H%M%S')
+
+        # Create object for the Workbook which is under xlwt library.
+        workbook = xlwt.Workbook()
+
+        # By using Workbook object, add the sheet with the name of your choice.
+        worksheet = workbook.add_sheet("Cooperatives")
+
+        row_num = 0
+        style_string = "font: bold on; borders: bottom dashed"
+        style = xlwt.easyxf(style_string)
+
+        for col_num in range(len(columns)):
+            # For each cell in your Excel Sheet, call write function by passing row number,
+            # column number and cell data.
+            worksheet.write(row_num, col_num, columns[col_num], style=style)
+
+        fgs = Cooperative.objects.values(*profile_choices).all()
+        if phone_number:
+            fgs = fgs.filter(phone_number=phone_number)
+
+        if name:
+            fgs = fgs.filter(Q(user__first_name__icontains=name) | Q(user__last_name__icontains=name))
+
+        if self.request.user.profile.district.all().count() > 0:
+            fgs = fgs.filter(district__id__in=self.request.user.profile.district.all())
+
+        for m in fgs:
+
+            row_num += 1
+            # ##print profile_choices
+            row = [
+                m['%s' % x] if 'create_date' not in x else m['%s' % x].strftime('%d-%m-%Y')  if m.get('%s' % x) else ""
+                for x in profile_choices]
+            row.append(FarmerGroup.objects.get(pk=m['id']).member_count())
+            row.append(FarmerGroup.objects.get(pk=m['id']).get_collection())
+
+            for col_num in range(len(row)):
+                worksheet.write(row_num, col_num, row[col_num])
+        workbook.save(response)
+        return response
+
+    def replaceMultiple(self, mainString, toBeReplaces, newString):
+        # Iterate over the strings to be replaced
+        for elem in toBeReplaces:
+            # Check if string is in the main string
+            if elem in mainString:
+                # Replace the string
+                mainString = mainString.replace(elem, newString)
+
+        return mainString
     
     
 class CooperativeCreateView(CreateView):
@@ -388,6 +470,87 @@ class CooperateCommonDiseaseListView(ListView):
 class FarmerGroupListView(ListView):
     model = FarmerGroup
     fields = ['cooperative', 'name']
+
+    def dispatch(self, *args, **kwargs):
+        if self.request.GET.get('download'):
+            return self.download_file()
+        return super(FarmerGroupListView, self).dispatch(*args, **kwargs)
+
+    def download_file(self, *args, **kwargs):
+
+        _value = []
+        columns = []
+        name = self.request.GET.get('name')
+        phone_number = self.request.GET.get('phone_number')
+        cooperative = self.request.GET.get('cooperative')
+        end_date = self.request.GET.get('end_date')
+        start_date = self.request.GET.get('start_date')
+
+        profile_choices = ['id', 'name', 'cooperative__name', 'phone_number', 'code', 'is_vsla',
+                           'savings_balance', 'district__name', 'county__name', 'sub_county__name', 'parish__name',
+                           'village', 'created_by__username',  'create_date']
+
+        columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
+        columns += ['Farmers', 'Collections']
+        # Gather the Information Found
+        # Create the HttpResponse object with Excel header.This tells browsers that
+        # the document is a Excel file.
+        response = HttpResponse(content_type='application/ms-excel')
+
+        # The response also has additional Content-Disposition header, which contains
+        # the name of the Excel file.
+        response['Content-Disposition'] = 'attachment; filename=NyoweFarmerGroups_%s.xls' % datetime.datetime.now().strftime(
+            '%Y%m%d%H%M%S')
+
+        # Create object for the Workbook which is under xlwt library.
+        workbook = xlwt.Workbook()
+
+        # By using Workbook object, add the sheet with the name of your choice.
+        worksheet = workbook.add_sheet("Members")
+
+        row_num = 0
+        style_string = "font: bold on; borders: bottom dashed"
+        style = xlwt.easyxf(style_string)
+
+        for col_num in range(len(columns)):
+            # For each cell in your Excel Sheet, call write function by passing row number,
+            # column number and cell data.
+            worksheet.write(row_num, col_num, columns[col_num], style=style)
+
+        fgs = FarmerGroup.objects.values(*profile_choices).all()
+        if phone_number:
+            fgs = fgs.filter(phone_number=phone_number)
+
+        if name:
+            fgs = fgs.filter(Q(user__first_name__icontains=name) | Q(user__last_name__icontains=name))
+
+        if self.request.user.profile.district.all().count() > 0:
+            fgs = fgs.filter(district__id__in=self.request.user.profile.district.all())
+
+        for m in fgs:
+
+            row_num += 1
+            # ##print profile_choices
+            row = [
+                m['%s' % x] if 'create_date' not in x else m['%s' % x].strftime('%d-%m-%Y')  if m.get('%s' % x) else ""
+                for x in profile_choices]
+            row.append(FarmerGroup.objects.get(pk=m['id']).member_count())
+            row.append(FarmerGroup.objects.get(pk=m['id']).get_collection())
+
+            for col_num in range(len(row)):
+                worksheet.write(row_num, col_num, row[col_num])
+        workbook.save(response)
+        return response
+
+    def replaceMultiple(self, mainString, toBeReplaces, newString):
+        # Iterate over the strings to be replaced
+        for elem in toBeReplaces:
+            # Check if string is in the main string
+            if elem in mainString:
+                # Replace the string
+                mainString = mainString.replace(elem, newString)
+
+        return mainString
 
 
 class FarmerGroupCreateView(CreateView):

@@ -159,7 +159,8 @@ def save_transaction(params):
         transaction_reference = params.get('transaction_reference')
         transaction_type = params.get('transaction_type')
         entry_type = params.get('entry_type')
-        
+
+
         bal_before = 0
         tq = MemberTransaction.objects.all().order_by('-id')
         if tq.exists():
@@ -172,7 +173,7 @@ def save_transaction(params):
             transaction_reference = transaction_reference, 
             balance_before = bal_before,
             amount = amount,
-            balance_after = new_bal
+            balance_after = new_bal,
         )
         CooperativeMember.objects.filter(pk=member.id).update(collection_amount=new_bal)
         
@@ -188,6 +189,13 @@ def load_coop_members(request):
     members = dict()
     if cooperative_id: 
         members = CooperativeMember.objects.filter(cooperative=cooperative_id).order_by('first_name')
+    return render(request, 'coop/member_dropdown_list_options.html', {'members': members})
+
+def load_fg_members(request):
+    fg_id = request.GET.get('farmer_group')
+    members = dict()
+    if fg_id:
+        members = CooperativeMember.objects.filter(farmer_group=fg_id).order_by('first_name')
     return render(request, 'coop/member_dropdown_list_options.html', {'members': members})
 
 
@@ -550,7 +558,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
                                'date_of_birth', 'gender', 'maritual_status','phone_number','email',
                                'district__name','sub_county__name','village','address','gps_coodinates',
                                'coop_role','land_acreage', 'chia_trees', 'bee_hives', 'product',
-                               'collection_amount','collection_quantity', 'paid_amount', 'create_by__username']
+                               'collection_amount','collection_quantity', 'paid_amount', 'create_by__username', 'create_date']
 
         columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
         #Gather the Information Found
@@ -598,7 +606,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
             
             row_num += 1
             # ##print profile_choices
-            row = [m['%s' % x] if 'date_of_birth' not in x else m['%s' % x].strftime('%d-%m-%Y') if m.get('%s' % x) else ""  for x in profile_choices]
+            row = [m['%s' % x] if 'create_date' not in x else m['%s' % x].strftime('%d-%m-%Y %H:%M:%S') if 'date_of_birth' not in x else m['%s' % x].strftime('%d-%m-%Y') if m.get('%s' % x) else ""  for x in profile_choices]
             
             for col_num in range(len(row)):
                 worksheet.write(row_num, col_num, row[col_num])
