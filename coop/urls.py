@@ -65,6 +65,7 @@ urlpatterns = [
      url(r'ajax/village/$', load_villages, name='ajax_load_village'),
      url(r'ajax/member/$', load_coop_members, name='ajax_load_members'),
      url(r'ajax/fg-member/$', load_fg_members, name='load_fg_members'),
+     url(r'ajax/member-detail/$', load_fg_member, name='ajax_load_member_details'),
 
      url(r'communication/send/$', SendCommunicationView.as_view(), name='communication_send'),
      

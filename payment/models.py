@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
-from coop.models import CooperativeMember, Cooperative
+from coop.models import CooperativeMember, Cooperative, FarmerGroup
 
 class PaymentAPI():
     pass
@@ -95,6 +95,7 @@ class MobileMoneyRequest(models.Model):
     
 class MemberPaymentTransaction(models.Model):
     cooperative = models.ForeignKey(Cooperative, blank=True, null=True, on_delete=models.CASCADE)
+    farmer_group = models.ForeignKey(FarmerGroup, blank=True, null=True, on_delete=models.CASCADE)
     member = models.ForeignKey(CooperativeMember, blank=True, null=True, on_delete=models.CASCADE)
     payment_date = models.DateTimeField()
     transaction_reference = models.CharField(max_length=255)

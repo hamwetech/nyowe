@@ -8,7 +8,7 @@ from coop.models import CooperativeMember, Cooperative
 class MemberPaymentForm(forms.ModelForm):
     class Meta:
         model = MemberPaymentTransaction
-        fields = ['cooperative', 'member', 'amount', 'payment_date', 'payment_method']
+        fields = ['cooperative', 'farmer_group', 'member', 'amount', 'payment_date', 'payment_method']
         
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -20,6 +20,16 @@ class MemberPaymentForm(forms.ModelForm):
             try:
                 cooperative_id = int(self.data.get('cooperative'))
                 self.fields['member'].queryset = CooperativeMember.objects.filter(cooperative=cooperative_id).order_by('first_name')
+            except Exception as e: #(ValueError, TypeError):
+                pass  # invalid input from the client; ignore and fallback to empty City queryset
+        elif self.instance.pk:
+            if self.instance.cooperative:
+                self.fields['member'].queryset = self.instance.cooperative.member_set.order_by('first_name')
+
+        if 'farmer_group' in self.data:
+            try:
+                farmer_group_id = int(self.data.get('farmer_group'))
+                self.fields['member'].queryset = CooperativeMember.objects.filter(farmer_group=farmer_group_id).order_by('first_name')
             except Exception as e: #(ValueError, TypeError):
                 pass  # invalid input from the client; ignore and fallback to empty City queryset
         elif self.instance.pk:

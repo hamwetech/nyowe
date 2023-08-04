@@ -198,6 +198,19 @@ def load_fg_members(request):
         members = CooperativeMember.objects.filter(farmer_group=fg_id).order_by('first_name')
     return render(request, 'coop/member_dropdown_list_options.html', {'members': members})
 
+def load_fg_member(request):
+    m_id = request.GET.get('member')
+    amount = 0
+    if m_id:
+        try:
+            members = CooperativeMember.objects.get(pk=m_id)
+            amount = members.collection_amount - members.paid_amount
+        except Exception as e:
+            print(e)
+            amount = 0
+
+    return JsonResponse({"amount": amount}, safe=False)
+
 
 class MemberUploadExcel(ExtraContext, View):
     template_name = 'coop/upload_member.html'

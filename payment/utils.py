@@ -14,11 +14,12 @@ def payment_transction(msisdn, amount, reference):
         #     return {"status": "FAILED", "statusMessage": "Test Complete"}
         msisdn = msisdn
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-        password = 'W3E4g8weR5TgH0Td2344'
+        password = 'W3E4g8weR5TgH0Td2344--wrong'
         accountid = 'andrew'
         token = base64.urlsafe_b64encode(accountid + password + timestamp)
-        http_auth = base64.urlsafe_b64encode('andrew:hamwe')
-        url = 'https://hamwepay.com/endpoint/service/transaction/'
+        http_auth = base64.urlsafe_b64encode('andrew:hamwe-not')
+        # url = 'https://hamwepay.com/endpoint/service/transaction/'
+        url = 'https://payments.hamwepay.com/endpoint/service/transaction/'
 
         try:
             data = {
@@ -31,10 +32,12 @@ def payment_transction(msisdn, amount, reference):
                 "accountid": accountid
             }
 
-            log_debug("Sending Airtime: %s" % data)
+            log_debug("Sending trx: %s" % data)
+            print("Sending trx: %s" % data)
             headers = {'content-type': 'application/json', 'Authorization': 'Basic %s' % http_auth}
 
             req = requests.post(url, data=json.dumps(data), headers=headers)
+            print(req.text)
             jr = json.loads(req.text)
             if 'transactionStatus' in jr:
                 if jr['transactionStatus'] == 'SUCCESSFUL':

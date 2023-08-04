@@ -78,7 +78,7 @@ class PaymentTransaction:
             
             reference = mm_request.transaction_reference
             res = payment_transction(msisdn, amount, reference)
-            status = res['status']
+            status =  res['status'] #'SUCCESSFUL'
             if res['status'] == 'ERROR':
                 status = 'FAILED'
             if res['status'] == 'OK':
