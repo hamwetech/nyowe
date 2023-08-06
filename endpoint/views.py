@@ -149,8 +149,8 @@ class MemberEndpoint(APIView):
             request.data['cooperative'] = None
 
         print("XXXX Farmer Group %s XXXX" % (request.data['farmer_group']))
-        # log_debug("XXXX Farmer Submission Request from User %s XXXX" % (self.request.user))
-        # print("XXXX Farmer Submission Request from User %s XXXX" % (self.request.user))
+        log_debug("XXXX Farmer Submission Request from User %s XXXX" % (self.request.user))
+        print("XXXX Farmer Submission Request from User %s XXXX" % (self.request.user))
 
 
         if request.data.get('farmer_group') == "0":
