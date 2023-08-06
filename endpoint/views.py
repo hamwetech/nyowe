@@ -156,8 +156,10 @@ class MemberEndpoint(APIView):
         if request.data.get('farmer_group') == "0":
             request.data['farmer_group'] = None
         print(request.data)
-
-        fg_obj = FarmerGroup.objects.get(pk=request.data['farmer_group']) #Epects Pk value not Object
+        try:
+            fg_obj = FarmerGroup.objects.get(pk=request.data['farmer_group']) #Epects Pk value not Object
+        except Exception as e:
+            fg_obj = None
         log_debug(request.data)
         member = MemberSerializer(data=request.data)
 
