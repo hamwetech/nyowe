@@ -134,7 +134,7 @@ class MemberEndpoint(APIView):
         farmer_group = request.data.get('farmer_group')
         cooperative = request.data.get('cooperative')
 
-        if farmer_group or farmer_group != "":
+        if farmer_group or farmer_group != "" or farmer_group != "null":
             fgs = FarmerGroup.objects.filter(pk=farmer_group)
             if not fgs.exists():
                 request.data['farmer_group'] = None
