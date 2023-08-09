@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% load material_form %}
+{% block style %}
+    <!-- additional styles for plugins -->
+    <!-- dropify -->
+    <link rel="stylesheet" href="{% static 'assets/skins/dropify/css/dropify.css' %}">
+    <!-- additional styles for plugins -->
+    <!-- kendo UI -->
+    <link rel="stylesheet" href="{% static 'bower_components/kendo-ui/styles/kendo.common-material.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'bower_components/kendo-ui/styles/kendo.material.min.css' %}"/>
+    <style>
+        #id_common_animal_deseases{height: auto !important; min-height: 0px !important;}
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="uk-grid" data-uk-grid-margin>
+        <div class="uk-width-medium-1-2">
+            <h4 class="heading_a uk-margin-bottom">Agent Dashboard</h4>
+        </div>
+        <div class="uk-width-medium-1-2 uk-text-right" >
+            <!--<a href="#" class="md-btn md-btn-primary " id="id_download">Download Excel</a>-->
+
+        </div>
+    </div>
+
+    <div class="uk-grid uk-grid-width-large-1-4 uk-grid-width-medium-1-2 uk-grid-medium uk-sortable sortable-handler " data-uk-sortable data-uk-grid-margin>
+        <div>
+            <div class="md-card">
+                <div class="md-card-content">
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
+                    <span class="uk-text-muted uk-text-small">Farmers Profiled</span>
+                    <h2 class="uk-margin-remove">{{ farmer_count|intcomma }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="md-card">
+                <div class="md-card-content">
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_orders peity_data">64/100</span></div>
+                    <span class="uk-text-muted uk-text-small">Farmer Groups</span>
+                    <h2 class="uk-margin-remove">{{ unique_group_count|intcomma }}</h2>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="md-card">
+                <div class="md-card-content">
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_live peity_data">5,3,9,6,5,9,7,3,5,2,5,3,9,6,5,9,7,3,5,2</span></div>
+                    <span class="uk-text-muted uk-text-small">Collections</span>
+                    <h2 class="uk-margin-remove" id="peity_live_text">{{ collection_count|intcomma }}</h2>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="md-card">
+                <div class="md-card-content">
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_live peity_data">5,3,9,6,5,9,7,3,5,2,5,3,9,6,5,9,7,3,5,2</span></div>
+                    <span class="uk-text-muted uk-text-small">Orders</span>
+                    <h2 class="uk-margin-remove" id="peity_live_text">{{ order_count|intcomma }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="uk-grid uk-grid-width-large-1-4 uk-grid-width-medium-1-2 uk-grid-medium uk-sortable sortable-handler " data-uk-sortable data-uk-grid-margin>
+        <div>
+            <div class="md-card">
+                <div class="md-card-content">
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
+                    <span class="uk-text-muted uk-text-small">Training Done</span>
+                    <h2 class="uk-margin-remove">{{ training_module|intcomma }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="md-card">
+                <div class="md-card-content">
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
+                    <span class="uk-text-muted uk-text-small">Farmers Trained</span>
+                    <h2 class="uk-margin-remove">{{ training_done|intcomma }}</h2>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+{% endblock %}
+{% block page_specific_scripts %}
+ <!-- datatables -->
+    <script src="{% static 'bower_components/datatables/media/js/jquery.dataTables.min.js' %}"></script>
+    <!-- datatables colVis-->
+    <script src="{% static 'bower_components/datatables-colvis/js/dataTables.colVis.js' %}"></script>
+<!-- datatables tableTools-->
+    <script src="{% static 'bower_components/datatables-tabletools/js/dataTables.tableTools.js' %}"></script>
+    <!-- datatables custom integration -->
+    <script src="{% static 'assets/js/custom/datatables_uikit.min.js' %}"></script>
+
+    <!--  datatables functions -->
+    <script src="{% static 'assets/js/pages/plugins_datatables.min.js' %}"></script>
+{% endblock %}

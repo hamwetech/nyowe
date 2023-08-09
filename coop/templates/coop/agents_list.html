@@ -66,6 +66,7 @@
                                 <td>{{ item.agent.user.profile.access_level.name }}</td>
                                 <td>
                                     <a href="{% url 'coop:agent_edit' item.agent.user.id %}" class="uk-float-right"><i class="md-icon material-icons">&#xE254;</i></a>
+                                    <a href="{% url 'coop:agent_detail' item.agent.user.id %}" class="uk-float-right"><i class="md-icon material-icons">remove_red_eye</i></a>
                                 </td>
                             </tr>
 
@@ -90,4 +91,15 @@
 
     <!--  datatables functions -->
     <script src="{% static 'assets/js/pages/plugins_datatables.min.js' %}"></script>
+
+    <!-- page specific plugins -->
+    <!-- kendo UI -->
+    <script src="{% static 'assets/js/kendoui_custom.min.js' %}"></script>
+
+    <!--  kendoui functions -->
+    <script src="{% static 'assets/js/pages/kendoui.min.js' %}"></script>
+
+    <script>
+
+    </script>
 {% endblock %}

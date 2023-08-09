@@ -26,6 +26,7 @@ urlpatterns = [
      url(r'agent/list/$', AgentListView.as_view(), name='agent_list'),
      url(r'agent/create/$', AgentCreateFormView.as_view(), name='agent_create'),
      url(r'agent/edit/(?P<pk>[\w]+)/$', AgentUpdateFormView.as_view(), name='agent_edit'),
+     url(r'agent/detail/(?P<pk>[\w]+)/$', AgentDetailView.as_view(), name='agent_detail'),
      url(r'agent/upload/$', AgentUploadView.as_view(), name='agent_upload'),
 
      url(r'collection/download/$', CollectionDownload.as_view(), name='collection_download'),

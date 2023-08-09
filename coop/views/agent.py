@@ -10,11 +10,12 @@ from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.utils.encoding import smart_str
 from django.db import transaction
 from django.db.models import Count, Q
-from django.views.generic import View, ListView, FormView
+from django.views.generic import View, ListView, FormView, DetailView, TemplateView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from conf.utils import log_debug, log_error, get_deleted_objects, get_consontant_upper
 from conf.models import District, County, SubCounty
 from coop.models import *
+from activity.models import *
 from coop.forms import *
 from userprofile.models import Profile, AccessLevel
 from django.db.models import Value, Prefetch
@@ -45,6 +46,10 @@ class AgentListView(ExtraContext, ListView):
         cooperative = self.request.GET.get('cooperative')
         end_date = self.request.GET.get('end_date')
         start_date = self.request.GET.get('start_date')
+        start_time = self.request.GET.get('start_time') if self.request.GET.get('start_time') else "00:00"
+        end_time = self.request.GET.get('end_time') if self.request.GET.get('end_time') else "23:59"
+        filter_start_date = "%s %s" % (start_date, start_time)
+        filter_end_time = "%s %s" % (end_date, end_time)
 
         agents = Agent.objects.all()
         if phone_number:
@@ -61,10 +66,10 @@ class AgentListView(ExtraContext, ListView):
             queryset = CooperativeMember.objects.filter(create_by=a.user)
 
             if start_date:
-                queryset = queryset.filter(create_date__gte=start_date)
+                queryset = queryset.filter(create_date__gte=filter_start_date)
 
             if end_date:
-                queryset = queryset.filter(create_date__lte=end_date)
+                queryset = queryset.filter(create_date__lte=filter_end_time)
 
             if cooperative:
                 queryset = queryset.filter(cooperative_id=cooperative)
@@ -418,3 +423,24 @@ class AgentUploadView(View):
         data['form'] = form
         data['active'] = ['_agent']
         return render(request, self.template_name, data)
+
+
+class AgentDetailView(ExtraContext, TemplateView):
+    template_name = "coop/agent_dashboard.html"
+
+    def get_context_data(self, **kwargs):
+        profile_pk = self.kwargs.get('pk')
+        agent = Agent.objects.get(pk=profile_pk)
+        context = super(AgentDetailView, self).get_context_data(**kwargs)
+        farmers_profiled = CooperativeMember.objects.filter(create_by=agent.user)
+        unique_group_count = CooperativeMember.objects.values('farmer_group').filter(create_by=agent.user).distinct().count()
+        collection_count = Collection.objects.filter(created_by=agent.user).count()
+        context['farmer_count'] = farmers_profiled.count()
+        context['unique_group_count'] = unique_group_count
+        context['collection_count'] = collection_count
+        context['order_count'] = MemberOrder.objects.filter(created_by=agent.user).count()
+        context['training_done'] = TrainingAttendance.objects.filter(created_by=agent.user).count()
+        context['training_module'] = TrainingModule.objects.filter(created_by=agent.user).count()
+        return context
+
+

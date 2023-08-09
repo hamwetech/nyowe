@@ -798,12 +798,18 @@ class AgentSearchForm(forms.Form):
     name = forms.CharField(max_length=150, required=False)
     phone_number = forms.CharField(max_length=150, required=False)
     farmer_group = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
-    start_date = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'class':'some_class', 'id':'uk_dp_1',
+    start_date = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'id':'uk_dp_start',
                                                                                                'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
                                                                                                'autocomplete':"off"}))
-    end_date = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'class':'some_class', 'id':'uk_dp_1',
+    start_time = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'id':'uk_dp_start',
+                                                                                               'data-uk-timepicker':"",
+                                                                                               'autocomplete':"off"}))
+    end_date = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'class':'some_class', 'id':'uk_dp_end',
                                                                                                'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
                                                                                                'autocomplete':"off"}))
+    end_time = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'id': 'uk_tp_end',
+                                                                                         'data-uk-timepicker': "",
+                                                                                         'autocomplete': "off"}))
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -922,6 +928,7 @@ class AgentUploadForm(forms.Form):
 
 
 
+bootstrapify(AgentSearchForm)
 bootstrapify(SavingsForm)
 bootstrapify(AgentUploadForm)
 bootstrapify(AgentForm)
