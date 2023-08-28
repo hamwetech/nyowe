@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import os
+import csv
 import magic
 import re
 import xlrd
@@ -515,6 +516,8 @@ class CooperativeMemberListView(ExtraContext, ListView):
     def dispatch(self, *args, **kwargs):
         if self.request.GET.get('download'):
             return self.download_file()
+        if self.request.GET.get('csv'):
+            return self.download_csv()
         return super(CooperativeMemberListView, self).dispatch(*args, **kwargs)
     
     def get_queryset(self):
@@ -624,6 +627,59 @@ class CooperativeMemberListView(ExtraContext, ListView):
             for col_num in range(len(row)):
                 worksheet.write(row_num, col_num, row[col_num])
         workbook.save(response)
+        return response
+
+    def download_csv(self, *args, **kwargs):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="CooperativeMembers_%s.csv"' % datetime.now().strftime('%Y%m%d%H%M%S')
+
+        writer = csv.writer(response)
+        _value = []
+        columns = []
+        msisdn = self.request.GET.get('phone_number')
+        name = self.request.GET.get('name')
+        coop = self.request.GET.get('cooperative')
+        role = self.request.GET.get('role')
+        district = self.request.GET.get('district')
+        create_by = self.request.GET.get('create_by')
+
+        profile_choices = ['id', 'cooperative__name', 'member_id', 'surname', 'first_name', 'other_name',
+                           'date_of_birth', 'gender', 'maritual_status', 'phone_number', 'email',
+                           'district__name', 'sub_county__name', 'village', 'address', 'gps_coodinates',
+                           'coop_role', 'land_acreage', 'chia_trees', 'bee_hives', 'product',
+                           'collection_amount', 'collection_quantity', 'paid_amount', 'create_by__username',
+                           'create_date']
+
+        columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
+
+        # for col_num in range(len(columns)):
+        #     # For each cell in your Excel Sheet, call write function by passing row number,
+        #     # column number and cell data.
+        #     worksheet.write(row_num, col_num, columns[col_num], style=style)
+        writer.writerow(columns)  # Add column headers
+
+        _members = CooperativeMember.objects.values(*profile_choices).all()  # Modify the queryset based on your needs
+
+        if msisdn:
+            _members = _members.filter(phone_number='%s' % msisdn)
+        if name:
+            _members = _members.filter(Q(surname__icontains=name)|Q(first_name__icontains=name)|Q(other_name=name))
+        if coop:
+            _members = _members.filter(cooperative__id=coop)
+        if role:
+            _members = _members.filter(coop_role=role)
+        if district:
+            _members = _members.filter(district__id=district)
+        if create_by:
+            _members = _members.filter(create_by__profile__id=create_by)
+
+        for m in _members:
+
+            row = [m['%s' % x] if 'create_date' not in x else m['%s' % x].strftime(
+                '%d-%m-%Y %H:%M:%S') if 'date_of_birth' not in x else m['%s' % x].strftime('%d-%m-%Y') if m.get(
+                '%s' % x) else "" for x in profile_choices]
+            writer.writerow(row)  # Add object data
+
         return response
     
     def replaceMultiple(self, mainString, toBeReplaces, newString):
