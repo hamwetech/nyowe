@@ -570,8 +570,8 @@ class CooperativeMemberListView(ExtraContext, ListView):
         create_by = self.request.GET.get('create_by')
 
         
-        profile_choices = ['id','cooperative__name', 'member_id', 'surname', 'first_name', 'other_name',
-                               'date_of_birth', 'gender', 'maritual_status','phone_number','email',
+        profile_choices = ['id','cooperative__name', 'farmer_group__name', 'member_id', 'surname', 'first_name', 'other_name',
+                               'date_of_birth', 'gender', 'id_number','phone_number','email',
                                'district__name','sub_county__name','village','address','gps_coodinates',
                                'coop_role','land_acreage', 'chia_trees', 'bee_hives', 'product',
                                'collection_amount','collection_quantity', 'paid_amount', 'create_by__username', 'create_date']
@@ -643,8 +643,8 @@ class CooperativeMemberListView(ExtraContext, ListView):
         district = self.request.GET.get('district')
         create_by = self.request.GET.get('create_by')
 
-        profile_choices = ['id', 'cooperative__name', 'member_id', 'surname', 'first_name', 'other_name',
-                           'date_of_birth', 'gender', 'maritual_status', 'phone_number', 'email',
+        profile_choices = ['id', 'cooperative__name', 'farmer_group__name', 'member_id', 'surname', 'first_name', 'other_name',
+                           'date_of_birth', 'gender', 'id_number', 'phone_number', 'email',
                            'district__name', 'sub_county__name', 'village', 'address', 'gps_coodinates',
                            'coop_role', 'land_acreage', 'chia_trees', 'bee_hives', 'product',
                            'collection_amount', 'collection_quantity', 'paid_amount', 'create_by__username',
