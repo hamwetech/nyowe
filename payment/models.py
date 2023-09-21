@@ -76,11 +76,13 @@ class MobileMoneyRequest(models.Model):
     transaction_reference = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=25)
     member = models.ForeignKey(CooperativeMember, blank=True, null=True, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=255, null=True, blank=True)
     amount = models.DecimalField(max_digits=32, decimal_places=2)
     transaction_type = models.CharField(max_length=15, choices=(('COLLECTION', 'COLLECTION'), ('PAYOUT', 'PAYOUT')), blank=True)
     status = models.CharField(max_length=15, choices=(('PENDING', 'PENDING'), ('SUCCESSFUL', 'SUCCESSFUL'), ('FAILED', 'FAILED')), blank=True)
     request = models.TextField(blank=True)
     response = models.TextField(blank=True)
+    response_reference = models.CharField(max_length=255, null=True, blank=True)
     response_date = models.DateTimeField(blank=True, null=True)
     user = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
     create_date = models.DateTimeField(auto_now_add=True)
@@ -97,6 +99,7 @@ class MemberPaymentTransaction(models.Model):
     cooperative = models.ForeignKey(Cooperative, blank=True, null=True, on_delete=models.CASCADE)
     farmer_group = models.ForeignKey(FarmerGroup, blank=True, null=True, on_delete=models.CASCADE)
     member = models.ForeignKey(CooperativeMember, blank=True, null=True, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=255, null=True, blank=True)
     payment_date = models.DateTimeField()
     transaction_reference = models.CharField(max_length=255)
     payment_method = models.CharField(max_length=16, choices=(('CASH', 'CASH'), ('BANK', 'BANK'), ('MOBILE MONEY', 'MOBILE MONEY')))
@@ -113,3 +116,10 @@ class MemberPaymentTransaction(models.Model):
         
     def __unicode__(self):
         return "%s" % self.transaction_reference
+
+    def get_mobile_money_transaction(self):
+        mm_transaction = None
+        trx = MobileMoneyRequest.objects.filter(transaction_reference=self.transaction_reference)
+        if trx.exists():
+            mm_transaction = trx[0]
+        return mm_transaction

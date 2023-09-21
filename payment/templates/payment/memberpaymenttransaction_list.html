@@ -71,7 +71,8 @@
                         <th>Reference</th>
                         <th>Status</th>
                         <th>Payment Method</th>
-                        <th>Payment Method</th>
+                        <th>Transaction Date</th>
+                        <th>Update Date</th>
                         <th></th>
                         <th></th>
                     </tr>
@@ -88,6 +89,7 @@
                                 <td>{{ item.transaction_reference }}</td>
                                 <td>{% include 'status_text.html' with field=item.status %}</td>
                                 <td>{{ item.payment_method }}</td>
+                                <td>{{ item.transaction_date }}</td>
                                 <td>{{ item.update_date }}</td>
                                 <td><a href="{% url 'payment:detail' item.id %}" class="md-btn md-btn-success uk-margin-small-top uk-float-right" >Detail</a></td>
                             </tr>

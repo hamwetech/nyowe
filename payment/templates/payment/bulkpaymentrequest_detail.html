@@ -77,6 +77,7 @@
                                 <th>Amount</th>
                                 <th>Status</th>
                                 <th>Sent Date</th>
+                                <th>Response</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -87,6 +88,7 @@
                                         <td class="uk-text-center">{{ item.amount }}</td>
                                         <td class="uk-text-center">{{ item.process_state }}</td>
                                         <td class="uk-text-center">{{ item.update_date| date:"d, M Y" }}</td>
+                                        <td class="uk-text-center">{{ item.response }}</td>
                                     </tr>
                                 {% endfor %}
                                

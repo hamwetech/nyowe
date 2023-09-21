@@ -24,9 +24,9 @@ class PaymentTransaction:
                 payment_method = params.get('payment_method')
                 user = params.get('user')
                 status = params.get('status')
-                
+                reference = generate_alpanumeric('60', 10)
                 payment_request = MemberPaymentTransaction.objects.create(
-                    transaction_reference = generate_alpanumeric('60', 10),
+                    transaction_reference = reference,
                     cooperative = cooperative,
                     member = self.member,
                     amount = amount,
@@ -57,10 +57,12 @@ class PaymentTransaction:
             
     def mobile_money_transation(self, payment_request):
         try:
-            transaction_reference = generate_alpanumeric('WC', 12)
+            transaction_reference = payment_request.transaction_reference #generate_alpanumeric('WC', 12)
             phone_number = payment_request.member.phone_number
             member = self.member
             msisdn = self.member.phone_number
+            if payment_request.phone_number:
+                phone_number = payment_request.phone_number
             amount = payment_request.amount
             status = 'PENDING'
             request = ''
@@ -77,14 +79,20 @@ class PaymentTransaction:
             )
             
             reference = mm_request.transaction_reference
-            res = payment_transction(msisdn, amount, reference)
-            status =  res['status'] #'SUCCESSFUL'
-            if res['status'] == 'ERROR':
-                status = 'FAILED'
-            if res['status'] == 'OK':
-                status = res['transactionStatus']
+            res = payment_transction(phone_number, amount, reference)
+            status = 'FAILED'
+            transactionReference = None
+            if 'status' in res:
+                if res['status'] == 'ERROR':
+                    status = 'FAILED'
+                if res['status'] == 'OK':
+                    status = res['transactionStatus']
+                    transactionReference = res['transactionReference']
+
+            print("sdsdsds")
             mm_request.status = status
             mm_request.response = res
+            mm_request.response_reference = transactionReference
             mm_request.response_date = datetime.datetime.now()
             mm_request.save()
             return {"status": mm_request.status}

@@ -43,6 +43,11 @@
                        </div>
                    </div>
                    <div class="uk-grid" data-uk-grid-margin="">
+                       <div class="uk-width-medium-1-2">
+                           <div class="md-input-wrapper">
+                               {% include "form/field.html" with field=form.phone_number  input_group_add_on='<i class="uk-input-group-icon uk-icon-calendar"></i>' %}
+                           </div>
+                       </div>
                      <div class="uk-width-medium-1-2">
                            <div class="md-input-wrapper">
                                {% include "form/field.html" with field=form.payment_method  input_group_add_on='<i class="uk-input-group-icon uk-icon-calendar"></i>' %}
@@ -203,6 +208,7 @@
                 },
                 success: function (data) {   // `data` is the return of the `load_cities` view function
                     $("#id_amount").val(data.amount);  // replace the contents of the city input with the data that came from the server
+                    $("#id_phone_number").val(data.phone_number);  // replace the contents of the city input with the data that came from the server
                 }
             });
 

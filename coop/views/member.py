@@ -155,28 +155,31 @@ class MemberUpdateView(ExtraContext, UpdateView):
     
     
 def save_transaction(params):
+
         amount = params.get('amount')
         member = params.get('member')
         transaction_reference = params.get('transaction_reference')
         transaction_type = params.get('transaction_type')
         entry_type = params.get('entry_type')
-
-
         bal_before = 0
         tq = MemberTransaction.objects.all().order_by('-id')
         if tq.exists():
             bal_before = tq[0].balance_after
-        new_bal = amount + bal_before
+        if entry_type == "CREDIT":
+            new_bal = amount + bal_before
+        if entry_type == "DEBIT":
+            new_bal = bal_before - amount
         MemberTransaction.objects.create(
             member = member,
             transaction_type = transaction_type,
             entry_type = entry_type,
-            transaction_reference = transaction_reference, 
+            transaction_reference = transaction_reference,
             balance_before = bal_before,
             amount = amount,
             balance_after = new_bal,
         )
-        CooperativeMember.objects.filter(pk=member.id).update(collection_amount=new_bal)
+        # CooperativeMember.objects.filter(pk=member.id).update(collection_amount=new_bal)
+        log_debug("Saved")
         
                
 def load_villages(request):
@@ -202,15 +205,18 @@ def load_fg_members(request):
 def load_fg_member(request):
     m_id = request.GET.get('member')
     amount = 0
+    phone_number = ""
     if m_id:
         try:
             members = CooperativeMember.objects.get(pk=m_id)
+            phone_number = members.phone_number
             amount = members.collection_amount - members.paid_amount
         except Exception as e:
             print(e)
             amount = 0
+            phone_number = ""
 
-    return JsonResponse({"amount": amount}, safe=False)
+    return JsonResponse({"amount": amount, "phone_number": phone_number}, safe=False)
 
 
 class MemberUploadExcel(ExtraContext, View):

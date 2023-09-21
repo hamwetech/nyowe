@@ -35,7 +35,7 @@ class ExtraContext(object):
 
 class PaymentMethodListView(ExtraContext, ListView):
     model = MemberPaymentTransaction
-    ordering = ['-payment_date']
+    ordering = ['-transaction_date']
     extra_context = {'active': ['_payment']}
     
     def get_queryset(self):
@@ -75,6 +75,7 @@ class PaymentMethodListView(ExtraContext, ListView):
 
 class PaymentTransactionDetail(ExtraContext, DetailView):
     model = MemberPaymentTransaction
+
    
     
 class PaymentMethodCreateView_deprec(ExtraContext, CreateView):
