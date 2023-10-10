@@ -296,9 +296,11 @@ class LocationUploadView(ExtraContext, View):
              
                 except Exception as err:
                     log_error()
+                    print(err)
                     return render(request, self.template_name, {'active': 'setting', 'form':form, 'error': err})
             try:
                 with transaction.atomic():
+                    print('adding..')
                     if clear_data:
                         District.objects.all().delete()
                         County.objects.all().delete()
@@ -364,6 +366,7 @@ class LocationUploadView(ExtraContext, View):
                     return redirect('conf:district_list')
             except Exception as e:
                 log_error()
+                print(e)
                    
         return render(request, self.template_name, {'active': 'settings', 'form':form})
 

@@ -854,6 +854,8 @@ class Agent(Profile):
                 fgs += "%s <br>" % f.farmer_group.name
         return fgs
 
+
+
     
     
 

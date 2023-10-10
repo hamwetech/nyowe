@@ -169,6 +169,19 @@ class MemberProfileSearchForm(forms.Form):
     role = forms.ChoiceField(widget=forms.Select(), choices=choices, required=False)
     district = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
     create_by = forms.ModelChoiceField(queryset=None, required=False)
+    start_date = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'id': 'uk_dp_start',
+                                                                                               'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
+                                                                                               'autocomplete': "off"}))
+    start_time = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'id': 'uk_dp_start',
+                                                                                               'data-uk-timepicker': "",
+                                                                                               'autocomplete': "off"}))
+    end_date = forms.CharField(max_length=150, required=False,
+                               widget=forms.TextInput(attrs={'class': 'some_class', 'id': 'uk_dp_end',
+                                                             'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
+                                                             'autocomplete': "off"}))
+    end_time = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'id': 'uk_tp_end',
+                                                                                             'data-uk-timepicker': "",
+                                                                                             'autocomplete': "off"}))
 
     def __init__(self,  *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -868,10 +881,6 @@ class AgentUpdateForm(forms.ModelForm):
         self.fields['district'].choices = [[x.id, x.name] for x in District.objects.all()]
         self.fields['farmer_group'].widget.attrs.update({'class': "selec_adv_1"})
         self.fields['district'].widget.attrs.update({'class': "selec_adv_1"})
-
-
-
-
 
 
 class AgentUploadForm(forms.Form):

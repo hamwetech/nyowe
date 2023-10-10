@@ -1,18 +1,27 @@
 import xmlrpclib
+from django.conf import settings
 from datetime import datetime, date
+
+settings.configure()
+ITDB="nyowe"
+ITUSERNAME="apiuser@nyowe.tecthings.it"
+ITPASSWORD="2cd696a66b01dcbc3d2c32ab7ccaedcb735283f3"
+ITURL="https://nyowe.techthings.it"
+
+
 
 if __name__ == "__main__":
     # Specify the url for the odoo system to connect to for example
     #https://www.odoo.com
-    url = "https://nyowetest.techthings.it"
+    url = ITURL
     # Specify the database name for the odoo system to connect to for example nyowe
-    db = "nyowetest"
+    db = ITDB
     # Set the credentials eg the username and api key
     # The username is a valid user login used to connect to the odoo system eg
     #smsapiuser
-    username = 'test@nyowetest.techthings.it'
+    username = ITUSERNAME
     # Specify the api key
-    password = "0ff925894fd38348c9b0109f58e3b708cd5b1c41"
+    password = ITPASSWORD
     # This is for getting the version of odoo and the server
     common = xmlrpclib.ServerProxy('{}/xmlrpc/2/common'.format(url))
     response = common.version()

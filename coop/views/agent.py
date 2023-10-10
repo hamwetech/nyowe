@@ -40,7 +40,6 @@ class AgentListView(ExtraContext, ListView):
         return super(AgentListView, self).dispatch(*args, **kwargs)
 
     def get(self, request, **kwargs):
-
         name = self.request.GET.get('name')
         phone_number = self.request.GET.get('phone_number')
         cooperative = self.request.GET.get('cooperative')

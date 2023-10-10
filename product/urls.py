@@ -22,4 +22,12 @@ urlpatterns = [
       url(r'unit/list/$', ProductUnitListView.as_view(), name='unit_list'),
       url(r'unit/create/$', ProductUnitCreateView.as_view(), name='unit_create'),
       url(r'unit/(?P<pk>[\w]+)/$', ProductUnitUpdateView.as_view(), name='unit_edit'),
+
+      url(r'offtaker/list/$', OffTakerListView.as_view(), name='offtaker_list'),
+      url(r'offtaker/create/$', OffTakerCreateView.as_view(), name='offtaker_create'),
+      url(r'offtaker/(?P<pk>[\w]+)/$', OffTakerUpdateView.as_view(), name='offtaker_edit'),
+
+      url(r'offtaker/sale/list/$', OffTakerSaleListView.as_view(), name='offtaker_sale_list'),
+      url(r'offtaker/sale/create/$', OffTakerSaleCreateView.as_view(), name='offtaker_sale_create'),
+      url(r'offtaker/sale/(?P<pk>[\w]+)/$', OffTakerSaleUpdateView.as_view(), name='offtaker_sale_edit'),
 ]

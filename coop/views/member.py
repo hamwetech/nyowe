@@ -521,9 +521,9 @@ class CooperativeMemberListView(ExtraContext, ListView):
     
     def dispatch(self, *args, **kwargs):
         if self.request.GET.get('download'):
-            return self.download_file()
+            return self.download_file(*args, **kwargs)
         if self.request.GET.get('csv'):
-            return self.download_csv()
+            return self.download_csv(*args, **kwargs)
         return super(CooperativeMemberListView, self).dispatch(*args, **kwargs)
     
     def get_queryset(self):
@@ -534,6 +534,12 @@ class CooperativeMemberListView(ExtraContext, ListView):
         role = self.request.GET.get('role')
         district = self.request.GET.get('district')
         create_by = self.request.GET.get('create_by')
+        end_date = self.request.GET.get('end_date')
+        start_date = self.request.GET.get('start_date')
+        start_time = self.request.GET.get('start_time') if self.request.GET.get('start_time') else "00:00"
+        end_time = self.request.GET.get('end_time') if self.request.GET.get('end_time') else "23:59"
+        filter_start_date = "%s %s" % (start_date, start_time)
+        filter_end_time = "%s %s" % (end_date, end_time)
 
         if not self.request.user.profile.is_union():
             cooperative = self.request.user.cooperative_admin.cooperative 
@@ -552,6 +558,10 @@ class CooperativeMemberListView(ExtraContext, ListView):
             queryset = queryset.filter(district__id=district)
         if create_by:
             queryset = queryset.filter(create_by__profile__id=create_by)
+        if start_date:
+            queryset = queryset.filter(create_date__gte=filter_start_date)
+        if end_date:
+            queryset = queryset.filter(create_date__lte=filter_end_time)
         return queryset
         
     def get_context_data(self, **kwargs):
@@ -574,6 +584,12 @@ class CooperativeMemberListView(ExtraContext, ListView):
         role = self.request.GET.get('role')
         district = self.request.GET.get('district')
         create_by = self.request.GET.get('create_by')
+        end_date = self.request.GET.get('end_date')
+        start_date = self.request.GET.get('start_date')
+        start_time = self.request.GET.get('start_time') if self.request.GET.get('start_time') else "00:00"
+        end_time = self.request.GET.get('end_time') if self.request.GET.get('end_time') else "23:59"
+        filter_start_date = "%s %s" % (start_date, start_time)
+        filter_end_time = "%s %s" % (end_date, end_time)
 
         
         profile_choices = ['id','cooperative__name', 'farmer_group__name', 'member_id', 'surname', 'first_name', 'other_name',
@@ -622,10 +638,12 @@ class CooperativeMemberListView(ExtraContext, ListView):
             _members = _members.filter(district__id=district)
         if create_by:
             _members = _members.filter(create_by__profile__id=create_by)
+        if start_date:
+            _members = _members.filter(create_date__gte=filter_start_date)
+        if end_date:
+            _members = _members.filter(create_date__lte=filter_end_time)
         
         for m in _members:
-            
-            
             row_num += 1
             # ##print profile_choices
             row = [m['%s' % x] if 'create_date' not in x else m['%s' % x].strftime('%d-%m-%Y %H:%M:%S') if 'date_of_birth' not in x else m['%s' % x].strftime('%d-%m-%Y') if m.get('%s' % x) else ""  for x in profile_choices]
@@ -642,12 +660,20 @@ class CooperativeMemberListView(ExtraContext, ListView):
         writer = csv.writer(response)
         _value = []
         columns = []
+        print(self.request)
         msisdn = self.request.GET.get('phone_number')
         name = self.request.GET.get('name')
         coop = self.request.GET.get('cooperative')
         role = self.request.GET.get('role')
         district = self.request.GET.get('district')
         create_by = self.request.GET.get('create_by')
+        end_date = self.request.GET.get('end_date')
+        start_date = self.request.GET.get('start_date')
+        start_time = self.request.GET.get('start_time') if self.request.GET.get('start_time') else "00:00"
+        end_time = self.request.GET.get('end_time') if self.request.GET.get('end_time') else "23:59"
+        filter_start_date = "%s %s" % (start_date, start_time)
+        filter_end_time = "%s %s" % (end_date, end_time)
+
 
         profile_choices = ['id', 'cooperative__name', 'farmer_group__name', 'member_id', 'surname', 'first_name', 'other_name',
                            'date_of_birth', 'gender', 'id_number', 'phone_number', 'email',
@@ -677,10 +703,14 @@ class CooperativeMemberListView(ExtraContext, ListView):
         if district:
             _members = _members.filter(district__id=district)
         if create_by:
+            print("teed")
             _members = _members.filter(create_by__profile__id=create_by)
+        if start_date:
+            _members = _members.filter(create_date__gte=filter_start_date)
+        if end_date:
+            _members = _members.filter(create_date__lte=filter_end_time)
 
         for m in _members:
-
             row = [m['%s' % x] if 'create_date' not in x else m['%s' % x].strftime(
                 '%d-%m-%Y %H:%M:%S') if 'date_of_birth' not in x else m['%s' % x].strftime('%d-%m-%Y') if m.get(
                 '%s' % x) else "" for x in profile_choices]

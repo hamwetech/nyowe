@@ -134,4 +134,36 @@ def save_price_log(sender, instance, **kwargs):
     ProductVariationPriceLog.objects.create(product=instance.product,
                                             price=instance.price,
                                             unit=instance.unit,
-                                            created_by=instance.created_by) 
+                                            created_by=instance.created_by)
+
+
+class OffTaker(models.Model):
+    name = models.CharField(max_length=255)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    created_by = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'off_taker'
+
+    def __unicode__(self):
+        return "%s" % self.name or u''
+
+
+class OffTakerSale(models.Model):
+    off_taker = models.ForeignKey(OffTaker, on_delete=models.CASCADE)
+    product = models.ForeignKey(ProductVariation, on_delete=models.CASCADE )
+    unit_price = models.DecimalField(max_digits=9, decimal_places=2)
+    quantity = models.DecimalField(max_digits=9, decimal_places=2)
+    total_price = models.DecimalField(max_digits=9, decimal_places=2)
+    created_by = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'off_taker_sale'
+
+    def __unicode__(self):
+        return "%s" % self.name or u''
+

@@ -341,7 +341,83 @@ def get_item_price(request, pk):
         return JsonResponse({"price": pp.price})
     except Exception:
         return JsonResponse({"price": "error"})
-    
+
+
+#
+class OffTakerListView(ExtraContext, ListView):
+    model = OffTaker
+
+    def get_context_data(self, **kwargs):
+        context = super(OffTakerListView, self).get_context_data(**kwargs)
+        context['active'].append('__offtaker')
+        return context
+
+
+class OffTakerCreateView(ExtraContext, CreateView):
+    model = OffTaker
+    form_class = OffTakerForm
+    template_name = "product/offtaker_form.html"
+    success_url = reverse_lazy('product:offtaker_list')
+
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super(OffTakerCreateView, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super(OffTakerCreateView, self).get_context_data(**kwargs)
+        context['active'].append('__offtaker')
+        return context
+
+
+class OffTakerUpdateView(OffTakerCreateView, UpdateView):
+    model = OffTaker
+    #
+    # def form_valid(self, form):
+    #     form.instance.created_by = self.request.user
+    #     return super(ProductUpdateView, self).form_valid(form)
+    def get_context_data(self, **kwargs):
+        context = super(OffTakerUpdateView, self).get_context_data(**kwargs)
+        context['active'].append('__offtaker')
+        return context
+
+
+class OffTakerSaleListView(ExtraContext, ListView):
+    model = OffTakerSale
+
+    def get_context_data(self, **kwargs):
+        context = super(OffTakerSaleListView, self).get_context_data(**kwargs)
+        context['active'].append('__offtaker')
+        return context
+
+
+class OffTakerSaleCreateView(ExtraContext, CreateView):
+    model = OffTakerSale
+    form_class = OffTakerSaleForm
+    template_name = "product/offtakersale_form.html"
+    success_url = reverse_lazy('product:offtaker_sale_list')
+
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super(OffTakerSaleCreateView, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super(OffTakerSaleCreateView, self).get_context_data(**kwargs)
+        context['active'].append('__offtaker')
+        return context
+
+
+class OffTakerSaleUpdateView(OffTakerSaleCreateView, UpdateView):
+    model = OffTakerSale
+    #
+    # def form_valid(self, form):
+    #     form.instance.created_by = self.request.user
+    #     return super(ProductUpdateView, self).form_valid(form)
+    def get_context_data(self, **kwargs):
+        context = super(OffTakerSaleUpdateView, self).get_context_data(**kwargs)
+        context['active'].append('__offtaker')
+        return context
 
     
     

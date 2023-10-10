@@ -26,6 +26,7 @@ class DashboardView(TemplateView):
         product_price = ProductVariationPrice.objects.all().order_by('-update_date')
         collections = Collection.objects.all().order_by('-update_date')
         payments = MemberPaymentTransaction.objects.all().order_by('-transaction_date')
+        orders = MemberOrder.objects.all().order_by('-update_date')
         success_payments = payments.filter(status='SUCCESSFUL')
         training = TrainingSession.objects.all().order_by('-create_date')
         # supply_requests = MemberSupplyRequest.objects.all().order_by('-create_date')
@@ -48,6 +49,7 @@ class DashboardView(TemplateView):
         shea_trees = members.aggregate(total_amount=Sum('chia_trees'))
         hives = members.aggregate(total_amount=Sum('bee_hives'))
         savings_balance = members.aggregate(total_amount=Sum('savings_balance'))
+        order_sum = orders.aggregate(total_amount=Sum('order_price'))
 
         male = members.filter(Q(gender='male') | Q(gender='m'))
         female = members.filter(Q(gender='female') | Q(gender='f'))
@@ -101,6 +103,8 @@ class DashboardView(TemplateView):
 
         context['shares'] = shares['total_amount']
         context['transactions'] = Cooperative.objects.all().count()
+        context['orders'] = orders.count()
+        context['order_sum'] = order_sum
         context['members'] = members.count()
 
         context['male_fifteen'] = len(male_fifteen)

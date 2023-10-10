@@ -323,6 +323,13 @@
                     </a>
                 </li>
                 <hr>
+                <li {% if '__offtaker' in active %}class="current_section"{% endif %} title="Supply Request">
+                    <a href="{% url 'product:offtaker_list' %}">
+                        <span class="menu_icon"><i class="material-icons">&#xE86F;</i></span>
+                        <span class="menu_title">Off Taker</span>
+                    </a>
+                </li>
+                <hr>
 
                 <!--<li {% if '_coop_supply_request' in active %}class="current_section"{% endif %} title="Supply Request">
                     <a href="{% url 'coop:request_list' %}">
