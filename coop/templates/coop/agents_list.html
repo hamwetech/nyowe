@@ -12,7 +12,7 @@
             {% if request.user.profile.is_union or request.user.profile.is_cooperative %}
                  <a href="{% url 'coop:agent_create' %}" class="md-btn md-btn-primary ">Add Agent</a>
                  <a href="{% url 'coop:agent_upload' %}" class="md-btn md-btn-primary ">Add Upload</a>
-                 <a href="{% url 'coop:agent_list' %}?download=true" class="md-btn md-btn-primary ">Download Excel</a>
+                 <a id="download_agent" class="md-btn md-btn-primary ">Download Excel</a>
             {% endif %}
         </div>
     </div>
@@ -100,6 +100,15 @@
     <script src="{% static 'assets/js/pages/kendoui.min.js' %}"></script>
 
     <script>
+        $('#download_agent').on('click', function(){
+            var url = window.location.href;
+            sep = "?";
+
+            if (url.indexOf('?') >= 0) {
+                sep = "&";
+            }
+            window.location.href = url+sep+"download=true";
+        });
 
     </script>
 {% endblock %}

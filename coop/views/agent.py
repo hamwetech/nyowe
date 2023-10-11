@@ -43,6 +43,7 @@ class AgentListView(ExtraContext, ListView):
         name = self.request.GET.get('name')
         phone_number = self.request.GET.get('phone_number')
         cooperative = self.request.GET.get('cooperative')
+        farmer_group = self.request.GET.get('farmer_group')
         end_date = self.request.GET.get('end_date')
         start_date = self.request.GET.get('start_date')
         start_time = self.request.GET.get('start_time') if self.request.GET.get('start_time') else "00:00"
@@ -56,6 +57,9 @@ class AgentListView(ExtraContext, ListView):
 
         if name:
             agents = agents.filter(Q(user__first_name__icontains=name) | Q(user__last_name__icontains=name))
+
+        # if farmer_group:
+        #     agents = agents.filter(farmer_group__id__in=farmer_group)
 
         if self.request.user.profile.district.all().count() > 0:
             agents = agents.filter(district__id__in=self.request.user.profile.district.all())
@@ -91,6 +95,10 @@ class AgentListView(ExtraContext, ListView):
         cooperative = self.request.GET.get('cooperative')
         end_date = self.request.GET.get('end_date')
         start_date = self.request.GET.get('start_date')
+        start_time = self.request.GET.get('start_time') if self.request.GET.get('start_time') else "00:00"
+        end_time = self.request.GET.get('end_time') if self.request.GET.get('end_time') else "23:59"
+        filter_start_date = "%s %s" % (start_date, start_time)
+        filter_end_time = "%s %s" % (end_date, end_time)
 
         profile_choices = ['user__id', 'user__first_name', 'user__last_name', 'user__email', 'sex', 'date_of_birth',
                            'date_recruited', 'msisdn', 'nin',  'create_date']
@@ -111,7 +119,7 @@ class AgentListView(ExtraContext, ListView):
         workbook = xlwt.Workbook()
 
         # By using Workbook object, add the sheet with the name of your choice.
-        worksheet = workbook.add_sheet("Members")
+        worksheet = workbook.add_sheet("Agents")
 
         row_num = 0
         style_string = "font: bold on; borders: bottom dashed"
@@ -145,9 +153,18 @@ class AgentListView(ExtraContext, ListView):
                 for x in profile_choices
             ]
             row.append(agent_districts)
-            row.append(CooperativeMember.objects.filter(create_by__id=m['user__id']).count())
 
+            coop_member = CooperativeMember.objects.filter(create_by=m['user__id'])
 
+            if start_date:
+                coop_member = coop_member.filter(create_date__gte=filter_start_date)
+
+            if end_date:
+                coop_member = coop_member.filter(create_date__lte=filter_end_time)
+
+            if cooperative:
+                coop_member = coop_member.filter(cooperative_id=cooperative)
+            row.append(coop_member.count())
 
             for col_num in range(len(row)):
                 worksheet.write(row_num, col_num, row[col_num])
