@@ -18,6 +18,8 @@ urlpatterns = [
      url(r'order/list/$', MemberOrderListView.as_view(), name='order_list'),
      url(r'order/upload/$', OrderUploadView.as_view(), name='order_upload'),
 
+     url(r'order/item/list/$', OrderItemListView.as_view(), name='order_item_list'),
+
      url(r'savings/list/$', SavingsListView.as_view(), name='savings_list'),
      url(r'savings/create/$', SavingsCreateView.as_view(), name='savings_create'),
      url(r'savings/(?P<pk>[\w]+)/$', SavingsUpdateView.as_view(), name='savings_edit'),

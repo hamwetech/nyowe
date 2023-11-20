@@ -14,7 +14,7 @@ from django.db.models import Q
 from django.views.generic import ListView, DetailView, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from payment.forms import MemberPaymentForm, BulkPaymentForm, PaymentFilterForm
+from payment.forms import MemberPaymentForm, BulkPaymentForm, PaymentFilterForm, UploadPaymentForm
 from payment.models import MemberPayment, MemberPaymentTransaction, BulkPaymentRequest, BulkPaymentRequestLog
 from payment.utils import payment_transction
 from coop.AccountTransactions import AccountTransaction
@@ -444,3 +444,122 @@ class DownloadPaymentExcelView(View):
                 mainString = mainString.replace(elem, newString)
         
         return  mainString
+
+
+class UploadPaymentView(View):
+    template_name = 'payment/paymentupload_form.html'
+
+    def get(self, request, *args, **kwargs):
+        form = UploadPaymentForm
+        data = {
+            'form': form
+        }
+        return render(request, self.template_name, data)
+
+    def post(self, request, *args, **kwargs):
+        data = dict()
+        form = UploadPaymentForm(request.POST, request.FILES)
+        payment_method = None
+        cooperative = None
+
+        if form.is_valid():
+            payment_method = form.cleaned_data['payment_method']
+            excel_file = form.cleaned_data['excel_file']
+
+            f = request.FILES['excel_file']
+
+            path = f.temporary_file_path()
+            index = int(form.cleaned_data['sheet']) - 1
+            startrow = int(form.cleaned_data['row']) - 1
+
+            amount_col = int(form.cleaned_data['amount_col'])
+            phone_number_col = int(form.cleaned_data['phone_number_col'])
+            name_col = int(form.cleaned_data['name_col'])
+            transaction_date_col = int(form.cleaned_data['transaction_date_col'])
+
+            book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
+            sheet = book.sheet_by_index(index)
+            rownum = 0
+            data = dict()
+            payment_list = []
+            for i in range(startrow, sheet.nrows):
+                try:
+                    row = sheet.row(i)
+                    rownum = i + 1
+                    try:
+                        phone_number = int(row[phone_number_col].value)
+                    except Exception:
+                        data['errors'] = '"%s" is not a valid Phone number (row %d)' % \
+                                         (phone_number, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+                    # if not re.search('^[0-9]+$', phone_number, re.IGNORECASE):
+                    #     if (i+1) == sheet.nrows: break
+                    #     data['errors'] = '"%s" is not a valid Phone number (row %d)' % \
+                    #     (phone_number, i+1)
+                    #     return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
+                    #
+                    amount = smart_str(row[amount_col].value).strip()
+                    if not re.search('^[0-9\.]+$', amount, re.IGNORECASE):
+                        data['errors'] = '"%s" is not a valid Amount Figure (row %d)' % \
+                                         (amount, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+                    transaction_date = None
+                    if len(row) == 3:
+                        transaction_date = (row[transaction_date_col].value)
+                        if transaction_date:
+                            try:
+                                date_str = datetime(*xlrd.xldate_as_tuple(int(transaction_date), book.datemode))
+                                transaction_date = date_str.strftime("%Y-%m-%d")
+                            except Exception as e:
+                                data['errors'] = '"%s" is not a valid Transaction Date (row %d)' % \
+                                                 (e, i + 1)
+                                return render(request, self.template_name,
+                                              {'active': 'system', 'form': form, 'error': data})
+
+                    name = (row[name_col].value)
+                    if not re.search('^[A-Za-z -]+$', name, re.IGNORECASE):
+                        if (i+1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Name (row %d)' % \
+                        (name, i+1)
+                        return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
+
+                    q = {'name': name,
+                         'amount': amount,
+                         'transaction_date': transaction_date,
+                         'phone_number': phone_number,
+                         }
+                    payment_list.append(q)
+                except Exception as err:
+                    log_error()
+                    return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': err})
+            print(payment_list)
+            if payment_list:
+                with transaction.atomic():
+                    try:
+                        for c in payment_list:
+                            name = c.get('name')
+                            phone_number = c.get('phone_number')
+                            amount = c.get('amount')
+                            transaction_date = c.get('transaction_date') if c.get(
+                                'transaction_date') else datetime.datetime.now().strftime("%Y-%m-%d")
+                            reference = generate_alpanumeric()
+
+                            MemberPaymentTransaction.objects.create(
+                                transaction_reference=reference,
+                                name=name,
+                                amount=amount,
+                                payment_method=payment_method,
+                                phone_number=phone_number,
+                                payment_date=transaction_date,
+                                status='SUCCESSFUL',
+                                creator=request.user
+                            )
+
+                        return redirect('payment:list')
+                    except Exception as err:
+                        log_error()
+                        data['error'] = err
+
+        data['form'] = form
+        return render(request, self.template_name, data)

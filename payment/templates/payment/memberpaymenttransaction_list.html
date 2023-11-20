@@ -29,6 +29,7 @@
         </div>
         <div class="uk-width-medium-1-2 uk-text-right">
             <a href="#" id="download_excel" class="md-btn md-btn-primary ">Download Excel</a>
+            <a href="{% url 'payment:upload' %}" class="md-btn md-btn-info ">Upload Payment</a>
             <a href="{% url 'payment:bulk_list' %}" class="md-btn md-btn-success ">Bulk Payment</a>
             {% if request.user.profile.is_union %}
                  <a href="{% url 'payment:create' %}" class="md-btn md-btn-success ">Add Payment</a>
@@ -84,7 +85,7 @@
                                 <td>{{ item.payment_date| date:"d, M Y H:i:s" }}</td>
                                <td>{{ item.cooperative }}</td>
                                 <td>{{ item.member }}</td>
-                                <td>{{ item.member.phone_number }}</td>
+                                <td>{{ item.member.phone_number|default:item.phone_number }}</td>
                                 <td>{{ item.amount }}</td>
                                 <td>{{ item.transaction_reference }}</td>
                                 <td>{% include 'status_text.html' with field=item.status %}</td>

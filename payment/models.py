@@ -99,6 +99,7 @@ class MemberPaymentTransaction(models.Model):
     cooperative = models.ForeignKey(Cooperative, blank=True, null=True, on_delete=models.CASCADE)
     farmer_group = models.ForeignKey(FarmerGroup, blank=True, null=True, on_delete=models.CASCADE)
     member = models.ForeignKey(CooperativeMember, blank=True, null=True, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255,  blank=True, null=True)
     phone_number = models.CharField(max_length=255, null=True, blank=True)
     payment_date = models.DateTimeField()
     transaction_reference = models.CharField(max_length=255)

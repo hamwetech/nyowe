@@ -16,7 +16,7 @@ from django.views.generic import ListView, DetailView, View
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
 from coop.models import MemberOrder, OrderItem, CooperativeMember
-from coop.forms import OrderItemForm, MemberOrderForm, OrderUploadForm
+from coop.forms import OrderItemForm, MemberOrderForm, OrderUploadForm, OrderSearchForm
 from coop.views.member import save_transaction
 
 from product.models import Item
@@ -51,19 +51,41 @@ class MemberOrderListView(ExtraContext, ListView):
             if not self.request.user.profile.is_partner():
                 cooperative = self.request.user.cooperative_admin.cooperative 
                 queryset = queryset.filter(member__cooperative=cooperative)
+        member = self.request.GET.get('member')
+        cooperative = self.request.GET.get('cooperative')
+        status = self.request.GET.get('status')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+
+        if member:
+            queryset = queryset.filter(member=member)
+        if cooperative:
+            queryset = queryset.filter(cooperative=cooperative)
+        if status:
+            queryset = queryset.filter(status=status)
+        if start_date:
+            queryset = queryset.filter(order_date__gte=start_date)
+            print(start_date)
+            print(queryset.query)
+        if end_date:
+            queryset = queryset.filter(order_date__lte=end_date)
+
         return queryset
     
     def get_context_data(self, **kwargs):
         context = super(MemberOrderListView, self).get_context_data(**kwargs)
+        context['form'] = OrderSearchForm(self.request.GET)
         return context
 
     def download_file(self, *args, **kwargs):
 
         _value = []
         columns = []
-        name = self.request.GET.get('name')
+        member = self.request.GET.get('member')
         coop = self.request.GET.get('cooperative')
-        create_by = self.request.GET.get('create_by')
+        status = self.request.GET.get('status')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
 
         profile_choices = ['order_reference', 'cooperative__name', 'member__surname', 'member__first_name', 'order_price', 'status', 'order_date', 'created_by__username']
 
@@ -100,8 +122,14 @@ class MemberOrderListView(ExtraContext, ListView):
             _members = _members.filter(Q(surname__icontains=name) | Q(first_name__icontains=name) | Q(other_name=name))
         if coop:
             _members = _members.filter(cooperative__id=coop)
-        if create_by:
-            _members = _members.filter(create_by__profile__id=create_by)
+        if member:
+            _members = _members.filter(member__id=member)
+        if status:
+            _members = _members.filter(status=status)
+        if start_date:
+            _members = _members.filter(order_date__gte=start_date)
+        if end_date:
+            _members = _members.filter(order_date__lte=end_date)
 
         for m in _members:
 
@@ -384,4 +412,124 @@ class OrderUploadView(View):
                     log_error()
                     return render(request, self.template_name,
                                   {'active': 'setting', 'form': form, 'error': e})
+
+
+class OrderItemListView(ExtraContext, ListView):
+    model = OrderItem
+    ordering = ['-create_date']
+    extra_context = {'active': ['_order']}
+
+    def dispatch(self, *args, **kwargs):
+        if self.request.GET.get('download'):
+            return self.download_file()
+        return super(OrderItemListView, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super(OrderItemListView, self).get_queryset()
+
+        if not self.request.user.profile.is_union():
+            if not self.request.user.profile.is_partner():
+                cooperative = self.request.user.cooperative_admin.cooperative
+                queryset = queryset.filter(member__cooperative=cooperative)
+        member = self.request.GET.get('member')
+        cooperative = self.request.GET.get('cooperative')
+        status = self.request.GET.get('status')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+
+        if member:
+            queryset = queryset.filter(member=member)
+        if cooperative:
+            queryset = queryset.filter(cooperative=cooperative)
+        if status:
+            queryset = queryset.filter(status=status)
+        if start_date:
+            queryset = queryset.filter(order_date__gte=start_date)
+            print(start_date)
+            print(queryset.query)
+        if end_date:
+            queryset = queryset.filter(order_date__lte=end_date)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(OrderItemListView, self).get_context_data(**kwargs)
+        context['form'] = OrderSearchForm(self.request.GET)
+        return context
+
+    def download_file(self, *args, **kwargs):
+
+        _value = []
+        columns = []
+        member = self.request.GET.get('member')
+        coop = self.request.GET.get('cooperative')
+        status = self.request.GET.get('status')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+
+        profile_choices = ['order__order_reference', 'order__cooperative__name', 'order__member__surname', 'order__member__first_name',
+                           'item__name', 'quantity', 'unit_price', 'price', 'order__order_date', 'order__created_by__username']
+
+        columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
+        # Gather the Information Found
+        # Create the HttpResponse object with Excel header.This tells browsers that
+        # the document is a Excel file.
+        response = HttpResponse(content_type='application/ms-excel')
+
+        # The response also has additional Content-Disposition header, which contains
+        # the name of the Excel file.
+        response['Content-Disposition'] = 'attachment; filename=MemberOrders_%s.xls' % datetime.datetime.now().strftime(
+            '%Y%m%d%H%M%S')
+
+        # Create object for the Workbook which is under xlwt library.
+        workbook = xlwt.Workbook()
+
+        # By using Workbook object, add the sheet with the name of your choice.
+        worksheet = workbook.add_sheet("Members")
+
+        row_num = 0
+        style_string = "font: bold on; borders: bottom dashed"
+        style = xlwt.easyxf(style_string)
+
+        for col_num in range(len(columns)):
+            # For each cell in your Excel Sheet, call write function by passing row number,
+            # column number and cell data.
+            worksheet.write(row_num, col_num, columns[col_num], style=style)
+
+        _members = OrderItem.objects.values(*profile_choices).all()
+
+
+        if coop:
+            _members = _members.filter(cooperative__id=coop)
+        if member:
+            _members = _members.filter(member__id=member)
+        if status:
+            _members = _members.filter(status=status)
+        if start_date:
+            _members = _members.filter(order_date__gte=start_date)
+        if end_date:
+            _members = _members.filter(order_date__lte=end_date)
+
+        for m in _members:
+
+            row_num += 1
+            ##print profile_choices
+            row = [
+                m['%s' % x] if 'order_date' not in x else m['%s' % x].strftime('%d-%m-%Y') if m.get('%s' % x) else ""
+                for x in profile_choices]
+
+            for col_num in range(len(row)):
+                worksheet.write(row_num, col_num, row[col_num])
+        workbook.save(response)
+        return response
+
+    def replaceMultiple(self, mainString, toBeReplaces, newString):
+        # Iterate over the strings to be replaced
+        for elem in toBeReplaces:
+            # Check if string is in the main string
+            if elem in mainString:
+                # Replace the string
+                mainString = mainString.replace(elem, newString)
+
+        return mainString
 

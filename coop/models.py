@@ -782,11 +782,23 @@ class MemberTransaction(models.Model):
     
 
 class MemberOrder(models.Model):
+    orderstatus = (
+        ('', '---------------------'),
+        ('PENDING', 'PENDING'),
+        ('ACCEPT', 'ACCEPT'),
+        ('REJECT', 'REJECT'),
+        ('SHIP', 'SHIP'),
+        ('DELIVERED', 'DELIVERED'),
+        ('FAILED', 'FAILED'),
+        ('ACCEPT_DELIVERY', 'ACCEPT_DELIVERY')
+    )
+
+
     cooperative = models.ForeignKey(Cooperative, on_delete=models.CASCADE)
     member = models.ForeignKey(CooperativeMember, on_delete=models.CASCADE)
     order_reference = models.CharField(max_length=255, blank=True)
     order_price = models.DecimalField(max_digits=20, decimal_places=2, default=0, blank=True)
-    status = models.CharField(max_length=255, default='PENDING')
+    status = models.CharField(max_length=255, default='PENDING', choices=orderstatus)
     order_date = models.DateTimeField()
     accept_date = models.DateTimeField(null=True, blank=True)
     reject_date = models.DateTimeField(null=True, blank=True)
@@ -853,9 +865,3 @@ class Agent(Profile):
             if f.farmer_group:
                 fgs += "%s <br>" % f.farmer_group.name
         return fgs
-
-
-
-    
-    
-

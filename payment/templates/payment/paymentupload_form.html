@@ -15,9 +15,10 @@
     
 {% endblock %}
 {% block page_content %}
-    <h3 class="heading_b uk-margin-bottom">Payment Form</h3>
+    <h3 class="heading_b uk-margin-bottom">{{ title|default:"Payment Form" }}</h3>
     <div class="md-card">
         <div class="md-card-content">
+            {{ help_text|default:"Upload excel file of member payment" }} <br><br><br>
             <form method="POST" class="new-event-form" role="role" enctype="multipart/form-data">
                {% csrf_token %}
                {% if error %}<div class="uk-alert uk-alert-danger" data-uk-alert="">{{ error.errors }}<div>{{ error }}</div> </div>{% endif %}

@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'messaging',
     'activity',
     'payment',
+    'credit',
     'account',
 ]
 

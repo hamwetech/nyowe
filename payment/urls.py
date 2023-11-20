@@ -11,6 +11,7 @@ urlpatterns = [
     url(r'bulk/upload/$', BulkPaymentView.as_view(), name='upload'),
     url(r'edit/(?P<pk>[\w]+)/$', PaymentMethodUpateView.as_view(), name='update'),
     url(r'detail/(?P<pk>[\w]+)/$', PaymentTransactionDetail.as_view(), name='detail'),
+    url(r'upload/$', UploadPaymentView.as_view(), name='upload'),
     url(r'dowload/$', DownloadPaymentExcelView.as_view(), name='download'),
     url(r'list/$', PaymentMethodListView.as_view(), name='list'),
     url(r'create/$', PaymentTransactionCreateView.as_view(), name='create')

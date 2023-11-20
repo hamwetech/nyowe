@@ -155,7 +155,6 @@ class MemberUpdateView(ExtraContext, UpdateView):
     
     
 def save_transaction(params):
-
         amount = params.get('amount')
         member = params.get('member')
         transaction_reference = params.get('transaction_reference')

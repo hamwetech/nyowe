@@ -98,6 +98,59 @@ class PaymentFilterForm(forms.Form):
         choices.extend([[c.id, c.name] for c in Cooperative.objects.all()])
         self.fields['cooperative'].choices = choices
 
+
+class UploadPaymentForm(forms.Form):
+    sheetChoice = (
+        ('1', 'sheet1'),
+        ('2', 'sheet2'),
+        ('3', 'sheet3'),
+        ('4', 'sheet4'),
+        ('5', 'sheet5'),
+    )
+
+    rowchoices = (
+        ('1', 'Row 1'),
+        ('2', 'Row 2'),
+        ('3', 'Row 3'),
+        ('4', 'Row 4'),
+        ('5', 'Row 5')
+    )
+
+    choices = list()
+    for i in range(65, 91):
+        choices.append([i - 65, chr(i)])
+
+    excel_file = forms.FileField()
+    payment_method = forms.ChoiceField(widget=forms.Select(), choices=(('', '------------'), ('CASH', 'CASH'), ('BANK', 'BANK'), ('MOBILE MONEY', 'MOBILE MONEY')))
+    sheet = forms.ChoiceField(label="Sheet", choices=sheetChoice, widget=forms.Select(attrs={'class': 'form-control'}))
+    row = forms.ChoiceField(label="Row", choices=rowchoices, widget=forms.Select(attrs={'class': 'form-control'}))
+    amount_col = forms.ChoiceField(label='Amount Column', initial=0, choices=choices,
+                                   widget=forms.Select(attrs={'class': 'form-control'}),
+                                   help_text='The column containing the Transaction Amount')
+    phone_number_col = forms.ChoiceField(label='Phone Number Column', initial=1, choices=choices,
+                                         widget=forms.Select(attrs={'class': 'form-control'}),
+                                         help_text='The column containing the Members Phone Number')
+    name_col = forms.ChoiceField(label='Name Column', initial=2, choices=choices,
+                                   widget=forms.Select(attrs={'class': 'form-control'}),
+                                   help_text='The column containing the Transaction Amount')
+    transaction_date_col = forms.ChoiceField(label='Transaction Date Column', initial=3, choices=choices,
+                                             required=False, widget=forms.Select(attrs={'class': 'form-control'}),
+                                             help_text='The column containing the Transaction Date')
+
+    def __init__(self, *args, **kwargs):
+        super(UploadPaymentForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        data = self.cleaned_data
+        f = data.get('excel_file', None)
+        ext = splitext(f.name)[1][1:].lower()
+        if not ext in ["xlsx", "xls"]:
+            raise forms.ValidationError(("The File type is not accepted"))
+        return data
+
+
+bootstrapify(UploadPaymentForm)
+bootstrapify(MemberPaymentForm)
 bootstrapify(MemberPaymentForm)
 bootstrapify(BulkPaymentForm)
 bootstrapify(PaymentFilterForm)

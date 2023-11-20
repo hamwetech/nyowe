@@ -165,7 +165,7 @@ class MemberProfileSearchForm(forms.Form):
         
     name = forms.CharField(max_length=150, required=False)
     phone_number = forms.CharField(max_length=150, required=False)
-    cooperative = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
+    f = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
     role = forms.ChoiceField(widget=forms.Select(), choices=choices, required=False)
     district = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
     create_by = forms.ModelChoiceField(queryset=None, required=False)
@@ -936,7 +936,26 @@ class AgentUploadForm(forms.Form):
         return data
 
 
+class OrderSearchForm(forms.ModelForm):
+    start_date = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'id': 'uk_dp_start',
+                                                                                               'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
+                                                                                               'autocomplete': "off"}))
+    end_date = forms.CharField(max_length=150, required=False,
+                               widget=forms.TextInput(attrs={'class': 'some_class', 'id': 'uk_dp_end',
+                                                             'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
+                                                             'autocomplete': "off"}))
+    class Meta:
+        model = MemberOrder
+        fields = ['member', 'cooperative', 'status']
 
+    def __init__(self, *args, **kwargs):
+        super(OrderSearchForm, self).__init__(*args, **kwargs)
+        self.fields['member'].required = False
+        self.fields['cooperative'].required = False
+        self.fields['status'].required = False
+
+
+bootstrapify(OrderSearchForm)
 bootstrapify(AgentSearchForm)
 bootstrapify(SavingsForm)
 bootstrapify(AgentUploadForm)

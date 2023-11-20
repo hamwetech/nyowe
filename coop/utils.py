@@ -22,3 +22,28 @@ def check_coop_url(str):
     if coop.exists():
         coop = coop[0]
     return coop
+
+
+
+def credit_member_account(params):
+    member = params.get('member')
+    amount = params.get("amount")
+    transaction_category = params.get("transaction_category")
+    balance_before = member.account.balance if member.account else 0
+    new_balance = balance_before + amount
+    params.update({"new_balance": new_balance})
+    member.account.balance = new_balance
+    member.account.save()
+
+    create_transaction(params)
+
+
+def debit_member_account(params):
+    member = params.get('member')
+    amount = params.get("amount")
+    balance_before = member.account.balance if member.account else 0
+    new_balance = balance_before - amount
+    params.update({"new_balance": new_balance})
+    member.account.balance = new_balance
+    member.account.save()
+    create_transaction(params)
