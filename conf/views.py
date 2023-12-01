@@ -293,6 +293,7 @@ class LocationUploadView(ExtraContext, View):
                     
                     q = {'district': district, 'county': county,'sub_county':sub_county, 'parish': parish, 'village': village}
                     locations.append(q)
+
              
                 except Exception as err:
                     log_error()
@@ -367,6 +368,8 @@ class LocationUploadView(ExtraContext, View):
             except Exception as e:
                 log_error()
                 print(e)
+
+        print(form)
                    
         return render(request, self.template_name, {'active': 'settings', 'form':form})
 

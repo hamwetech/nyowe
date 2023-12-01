@@ -166,6 +166,7 @@ class MemberProfileSearchForm(forms.Form):
     name = forms.CharField(max_length=150, required=False)
     phone_number = forms.CharField(max_length=150, required=False)
     f = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
+    cooperative = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
     role = forms.ChoiceField(widget=forms.Select(), choices=choices, required=False)
     district = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
     create_by = forms.ModelChoiceField(queryset=None, required=False)

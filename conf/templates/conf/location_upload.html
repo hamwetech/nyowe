@@ -9,6 +9,7 @@
             <form method="POST" class="new-event-form" role="role" enctype="multipart/form-data">
                {% csrf_token %}
                {% include "error_template.html" with form=form %}
+                {{ error }}
                 <div class="uk-grid" data-uk-grid-margin>
                     {% for field in form %}
                     <div class="uk-width-medium-1-1">
