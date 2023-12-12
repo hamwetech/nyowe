@@ -241,14 +241,14 @@ def get_orders_per_month(request):
     # Iterate through records and count per day
     for member in all_members:
         # Extract the date part of create_date
-        print(member.create_date.date())
         # day = datetime(member.create_date.year, member.create_date.month, member.create_date.day).date()
-        month = member.create_date.strftime('%m')  # '%B' gives the full month name
-        # Update the count for the day
-        if month in daily_counts:
-            daily_counts[month] += 1
-        else:
-            daily_counts[month] = 1
+        if member:
+            month = member.create_date.strftime('%m')  # '%B' gives the full month name
+            # Update the count for the day
+            if month in daily_counts:
+                daily_counts[month] += 1
+            else:
+                daily_counts[month] = 1
     result_list = ["Months"]
     # Convert the dictionary to a list of dictionaries
     for key, value in daily_counts.items():
