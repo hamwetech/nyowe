@@ -223,6 +223,12 @@
                         <span class="menu_title">Dashboard</span>
                     </a>
                 </li>
+                <li {% if '_adashboard' in active %}class="current_section"{% endif %} title="Dashboard">
+                    <a href="{% url 'a_dashboard' %}">
+                        <span class="menu_icon"><i class="material-icons">&#xE871;</i></span>
+                        <span class="menu_title">A Dashboard</span>
+                    </a>
+                </li>
                 <hr>
                 <li {% if '_agent' in active %}class="current_section"{% endif %} title="Agents">
                     <a href="{% url 'coop:agent_list' %}">

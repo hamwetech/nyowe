@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'bower_components/c3js-chart/c3.min.css' %}" media="all">
+{% endblock %}
+
+{% block page_content %}
+
+<div class="uk-grid uk-grid-width-large-1-1 uk-grid-width-medium-1-2 uk-grid-medium " >
+    <div class="uk-width-medium-1-1">
+        <div class="md-card">
+            <div class="md-card-content">
+                <h4 class="heading_c uk-margin-bottom">Monthly Profile Statistics
+                    <select class="" id="month_filter_id">
+                        <option value="">------</option>
+                        {% for month_number, month_name in months_choices %}
+                            <option value="{{ month_number }}" {% if month_number == current_month %} selected="selected" {% endif %}>{{ month_name }}</option>
+                        {% endfor %}
+                    </select>
+                </h4>
+                <div id="c3_chart_bar_stacked_days" class="c3chart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="uk-grid uk-grid-width-large-1-2 uk-grid-width-medium-1-2 uk-grid-medium " >
+        <div>
+            <div class="md-card">
+                <div class="md-card-content">
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
+                    <span class="uk-text-muted uk-text-small">Gender Distribution</span>
+                    <h2 class="uk-margin-remove">{{ members }}</h2>
+                    <div id="c3_doughnut_chat" class="c3chart"></div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="md-card">
+                <div class="md-card-content">
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
+                    <span class="uk-text-muted uk-text-small">Order distribution</span>
+                    <div id="c3_doughnut_chat_orders" class="c3chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div class="uk-grid uk-grid-width-large-1-1 uk-grid-width-medium-1-2 uk-grid-medium " >
+    <div class="uk-width-medium-1-1">
+        <div class="md-card">
+            <div class="md-card-content">
+                <h4 class="heading_c uk-margin-bottom">Monthly Profile Statistics
+                    <select class="" id="month_filter_id2">
+                        <option value="">------</option>
+                        {% for month_number, month_name in months_choices %}
+                            <option value="{{ month_number }}" {% if month_number == current_month %} selected="selected" {% endif %}>{{ month_name }}</option>
+                        {% endfor %}
+                    </select>
+                </h4>
+                <div id="c3_chart_bar_stacked_orders" class="c3chart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block page_specific_scripts %}
+    <!-- page specific plugins -->
+        <!-- d3 -->
+        <script src="{% static 'bower_components/d3/d3.min.js' %}"></script>
+        <script src="{% static 'bower_components/c3js-chart/c3.min.js' %}"></script>
+<!--        <script src="{% static 'assets/js/pages/plugins_charts.min.js' %}"></script>-->
+        <!-- metrics graphics (charts) -->
+        <!--<script src="{% static 'bower_components/metrics-graphics/dist/metricsgraphics.min.js' %}"></script>-->
+        <!-- chartist (charts) -->
+        <!--<script src="{% static 'bower_components/chartist/dist/chartist.min.js' %}"></script>-->
+        <!-- maplace (google maps) -->
+       <!-- <script src="http://maps.google.com/maps/api/js?sensor=true"></script>-->
+        <!--<script src="{% static 'bower_components/maplace-js/dist/maplace.min.js' %}"></script>-->
+        <!-- peity (small charts) -->
+        <!--<script src="{% static 'bower_components/peity/jquery.peity.min.js' %}"></script>-->
+        <!-- easy-pie-chart (circular statistics) -->
+        <!--<script src="{% static 'bower_components/jquery.easy-pie-chart/dist/jquery.easypiechart.min.js' %}"></script>-->
+        <!-- countUp -->
+        <script src="{% static 'bower_components/countUp.js/countUp.min.js' %}"></script>
+        <!-- handlebars.js -->
+        <!--<script src="{% static 'bower_components/handlebars/handlebars.min.js' %}"></script>-->
+        <!--<script src="{% static 'assets/js/custom/handlebars_helpers.min.js' %}"></script>-->
+        <!-- CLNDR -->
+        <!--<script src="{% static 'bower_components/clndr/src/clndr.js' %}"></script>-->
+        <!-- fitvids -->
+        <!--<script src="{% static 'bower_components/fitvids/jquery.fitvids.js' %}"></script>-->
+
+        <!--  dashbord functions -->
+
+
+
+   <script>
+       var month_filter_id = $('#month_filter_id').val()
+       console.log("sdsds"+month_filter_id)
+
+       $('#month_filter_id').on('change', function(){
+            var month_filter_id = $('#month_filter_id').val()
+            get_daily(month_filter_id)
+
+       })
+
+       get_daily(month_filter_id)
+       function get_daily(month_filter_id){
+            $.ajax({
+                url: '{% url 'get_members_per_month' %}',
+                method: 'GET',
+                data: {month: month_filter_id},
+                dataType: 'json',
+                success: function(data) {
+                    console.log('Data received:', data.months);
+                    // Chart Data
+                    var chart = c3.generate({
+                    bindto: '#c3_chart_bar_stacked_days',
+                    data: {
+                      columns: [
+                        data.months,
+                      ],
+                      axes: {
+                        data1: 'y'
+                      },
+                      types: {
+                        Months: 'bar',
+                      }
+                    },
+                    axis: {
+                      y: {
+                        label: {
+                          text: 'Profiled Farmers',
+                          position: 'outer-middle'
+                        },
+                        tick: {
+                          format: d3.format("") // ADD
+                        }
+                      },
+                      x: {
+                            type: 'category', // Specify that x-axis is category type
+                            categories: data.keys,
+                            label: {
+                                text: 'Months',
+                                position: 'outer-middle'
+                            }
+                        },
+
+                    }
+                });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', status, error);
+                }
+            });
+       }
+
+      $.ajax({
+        url: '{% url 'gender_distribution' %}',
+        method: 'GET',
+        data: {month: month_filter_id},
+        dataType: 'json',
+        success: function(data) {
+            console.log(data)
+               var chart = c3.generate({
+                    bindto: '#c3_doughnut_chat',
+                    data: {
+                        // iris data from R
+                        columns: [
+                            ['Male', data.male],
+                            ['Female', data.female],
+                        ],
+                        type : 'donut',
+                        onclick: function (d, i) { console.log("onclick", d, i); },
+                        onmouseover: function (d, i) { console.log("onmouseover", d, i); },
+                        onmouseout: function (d, i) { console.log("onmouseout", d, i); }
+                    }
+                });
+        }
+       });
+
+
+       $.ajax({
+                url: '{% url 'order_distribution' %}',
+                method: 'GET',
+                data: {month: month_filter_id},
+                dataType: 'json',
+                success: function(data) {
+
+                    columns = []
+                    $.each(data.data, function(index, item) {
+                        var columnName = item.item_id;
+                        var totalQuantity = parseFloat(item.total_quantity);
+                        columns.push([columnName, totalQuantity]);
+                    });
+                   var chart = c3.generate({
+                        bindto: '#c3_doughnut_chat_orders',
+                        data: {
+                            // iris data from R
+                            columns,
+                            type : 'pie',
+                            onclick: function (d, i) { console.log("onclick", d, i); },
+                            onmouseover: function (d, i) { console.log("onmouseover", d, i); },
+                            onmouseout: function (d, i) { console.log("onmouseout", d, i); }
+                        }
+                    });
+                }
+       });
+
+       $.ajax({
+                url: '{% url 'get_orders_per_month' %}',
+                method: 'GET',
+                data: {month: month_filter_id},
+                dataType: 'json',
+                success: function(data) {
+                    console.log('Data received:', data.months);
+                    // Chart Data
+                    var chart = c3.generate({
+                    bindto: '#c3_chart_bar_stacked_orders',
+                    data: {
+                      columns: [
+                        data.months,
+                      ],
+                      axes: {
+                        data1: 'y'
+                      },
+                      types: {
+                        Months: 'bar',
+                      }
+                    },
+                    axis: {
+                      y: {
+                        label: {
+                          text: 'Profiled Farmers',
+                          position: 'outer-middle'
+                        },
+                        tick: {
+                          format: d3.format("") // ADD
+                        }
+                      },
+                      x: {
+                            type: 'category', // Specify that x-axis is category type
+                            categories: data.keys,
+                            label: {
+                                text: 'Months',
+                                position: 'outer-middle'
+                            }
+                        },
+
+                    }
+                });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', status, error);
+                }
+            });
+
+
+    </script>
+    {% endblock %}-->

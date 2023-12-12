@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
+import datetime
 from django.shortcuts import render
-from django.db.models import Sum
+from django.db.models import Sum, Count
+from django.http import JsonResponse
+
 from django.views.generic import TemplateView
-from django.db.models import Q, CharField, Max, Value as V
-from django.db.models.functions import Concat
+from django.db.models import Q, CharField, Max, Sum, Value as V
+from django.db.models.functions import Concat, TruncMonth
 from coop.models import *
 from activity.models import *
 from payment.models import *
@@ -156,7 +158,101 @@ class DashboardView(TemplateView):
         context['sms'] = messages.filter(status='SENT').count()
         # context['supply_requests'] = supply_requests[:5]
         return context
-    
-    
 
 
+class AnalyticalDashboard(TemplateView):
+    template_name = "analytical_dashboard.html"
+
+
+def get_members_per_month(request):
+    # Fetch all records
+    month = request.GET.get('month')
+    print(month)
+    agents = Profile.objects.values_list('user__id', flat=True).filter(access_level__name="AGENT")
+    # all_members = CooperativeMember.objects.filter(create_by__in=agents).order_by("id")
+    all_members = CooperativeMember.objects.all().order_by("create_date")
+    current_month = datetime.datetime.now().month
+    # if month:
+    #     all_members = CooperativeMember.objects.filter(create_date__month=month).order_by("-create_date")
+    # Initialize a dictionary to store counts per day
+    daily_counts = {}
+
+    # Iterate through records and count per day
+    for member in all_members:
+        # Extract the date part of create_date
+        print(member.create_date.date())
+        # day = datetime(member.create_date.year, member.create_date.month, member.create_date.day).date()
+        month = member.create_date.strftime('%m')  # '%B' gives the full month name
+        # Update the count for the day
+        if month in daily_counts:
+            daily_counts[month] += 1
+        else:
+            daily_counts[month] = 1
+    result_list = ["Months"]
+    # Convert the dictionary to a list of dictionaries
+    for key, value in daily_counts.items():
+        result_list.append(value)
+    result_key_list = [key for key, value in daily_counts.items()]
+
+    return JsonResponse({"months": result_list, "keys": result_key_list})
+
+def gender_distribution(request):
+    all_members = CooperativeMember.objects.all().order_by("create_date")
+    male = all_members.filter(gender__iexact='male')
+    female = all_members.filter(gender__iexact='female')
+    return JsonResponse({"male": male.count(), "female": female.count()})
+
+
+def order_distribution(request):
+    # Group by Item and calculate total quantity and price
+    item_totals = OrderItem.objects.values('item__name').annotate(
+        total_quantity=Sum('quantity'),
+        total_price=Sum('price')
+    )
+
+    result_list = []
+    # Access the results
+    for item_total in item_totals:
+        item_id = item_total['item__name']
+        total_quantity = item_total['total_quantity']
+        total_price = item_total['total_price']
+        result_list.append({
+            'item_id': item_id,
+            'total_quantity': total_quantity,
+            'total_price': total_price,
+        })
+
+
+    return JsonResponse({"data": result_list})
+
+
+def get_orders_per_month(request):
+    # Fetch all records
+    month = request.GET.get('month')
+    print(month)
+
+    all_members = MemberOrder.objects.all().order_by("create_date")
+    current_month = datetime.datetime.now().month
+    # if month:
+    #     all_members = CooperativeMember.objects.filter(create_date__month=month).order_by("-create_date")
+    # Initialize a dictionary to store counts per day
+    daily_counts = {}
+
+    # Iterate through records and count per day
+    for member in all_members:
+        # Extract the date part of create_date
+        print(member.create_date.date())
+        # day = datetime(member.create_date.year, member.create_date.month, member.create_date.day).date()
+        month = member.create_date.strftime('%m')  # '%B' gives the full month name
+        # Update the count for the day
+        if month in daily_counts:
+            daily_counts[month] += 1
+        else:
+            daily_counts[month] = 1
+    result_list = ["Months"]
+    # Convert the dictionary to a list of dictionaries
+    for key, value in daily_counts.items():
+        result_list.append(value)
+    result_key_list = [key for key, value in daily_counts.items()]
+
+    return JsonResponse({"months": result_list, "keys": result_key_list})

@@ -30,7 +30,7 @@ from payment import urls as pay_urls
 from credit import urls as credit_urls
 from account import urls as account_urls
 
-from dashboard.views import DashboardView
+from dashboard.views import *
 from userprofile.views.authentication import LoginView, LogoutView
 from conf.views import Handle404, Handle403
 
@@ -53,6 +53,11 @@ urlpatterns = [
     url(r'^account/', include(account_urls, namespace='account')),
     url(r'^login/$', LoginView.as_view(), name='login'),
     url(r'^logout/$', LogoutView.as_view(), name='logout'),
+    url(r'^a_dashboard/$', AnalyticalDashboard.as_view(), name='a_dashboard'),
+    url(r'^a_dashboard/get_members_per_month/$', get_members_per_month, name='get_members_per_month'),
+    url(r'^a_dashboard/gender_distribution/$', gender_distribution, name='gender_distribution'),
+    url(r'^a_dashboard/order_distribution/$', order_distribution, name='order_distribution'),
+    url(r'^a_dashboard/get_orders_per_month/$', get_orders_per_month, name='get_orders_per_month'),
     url(r'^$', DashboardView.as_view(), name='dashboard'),
 ]
 if settings.DEBUG:
