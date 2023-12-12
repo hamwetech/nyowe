@@ -231,7 +231,7 @@ def get_orders_per_month(request):
     month = request.GET.get('month')
     print(month)
 
-    all_members = MemberOrder.objects.all().order_by("create_date")
+    all_members = MemberOrder.objects.all().order_by("order_date")
     current_month = datetime.datetime.now().month
     # if month:
     #     all_members = CooperativeMember.objects.filter(create_date__month=month).order_by("-create_date")
@@ -243,7 +243,7 @@ def get_orders_per_month(request):
         # Extract the date part of create_date
         # day = datetime(member.create_date.year, member.create_date.month, member.create_date.day).date()
         if member:
-            month = member.create_date.strftime('%m')  # '%B' gives the full month name
+            month = member.order_date.strftime('%m')  # '%B' gives the full month name
             # Update the count for the day
             if month in daily_counts:
                 daily_counts[month] += 1
