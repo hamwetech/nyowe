@@ -5,4 +5,5 @@ from messaging.views import *
 urlpatterns = [
         url(r'message/list/$', OutGoingMessageListView.as_view(), name='message_list'),
         url(r'message/send/$', SendMessageView.as_view(), name='message_send'),
+        url(r'message/upload/$', MessageLogUploadView.as_view(), name='message_upload'),
     ]

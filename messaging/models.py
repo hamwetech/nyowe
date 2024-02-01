@@ -7,11 +7,12 @@ class OutgoingMessages(models.Model):
     message = models.TextField()
     sent_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
     remark = models.CharField(max_length=160, null=True, blank=True)
-    sent_date = models.DateTimeField(auto_now=True)
+    sent_date = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=12, default='PENDING')
     response = models.TextField(null=True, blank=True)
+    create_date = models.DateTimeField(auto_now=True)
     update_date = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         db_table = "outgoing_message"
     

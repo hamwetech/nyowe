@@ -42,4 +42,42 @@ class SendMessageForm(forms.Form):
             raise forms.ValidationError(
                 'Please Provide Phone Numbers by file or by typing in the Msisdn box or Select a list from the Phonebook')
 
+class MessageLogUploadForm(forms.Form):
+    sheetno_choices = [['1', 'Sheet 1'], ['2', 'Sheet 2'], ['3', 'Sheet 3'], ['4', 'Sheet 4']]
+    startrow_choices = [['1', 'Row 1'], ['2', 'Row 2'], ['3', 'Row 3'], ['4', 'Row 4'], ['5', 'Row 5']]
+
+    choices = list()
+    for i in range(65, 91):
+        choices.append([i - 65, chr(i)])
+    msisdn_file = forms.FileField(required=False)
+    sheetno = forms.ChoiceField(required=False, label='Sheet Number', choices=sheetno_choices,
+                                widget=forms.Select(attrs={'class': ' form-control '}), help_text='')
+    startrow = forms.ChoiceField(required=False, label='Record Start Row', choices=startrow_choices,
+                                 widget=forms.Select(attrs={'class': ' form-control '}), help_text='')
+    contact_col = forms.ChoiceField(required=False, initial=0, choices=choices,
+                                   widget=forms.Select(attrs={'class': ' form-control '}))
+    message_col = forms.ChoiceField(required=False, initial=1, choices=choices,
+                                 widget=forms.Select(attrs={'class': ' form-control '}))
+    status_col = forms.ChoiceField(required=False, initial=2, choices=choices,
+                                   widget=forms.Select(attrs={'class': ' form-control '}))
+    date_col = forms.ChoiceField(required=False, initial=3, choices=choices,
+                                   widget=forms.Select(attrs={'class': ' form-control '}))
+
+    def __init__(self, *args, **kwargs):
+        super(MessageLogUploadForm, self).__init__(*args, **kwargs)
+
+
+class MessageSearchForm(forms.Form):
+    search = forms.CharField(required=False)
+    start_date = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'id': 'uk_dp_start',
+                                                                                               'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
+                                                                                               'autocomplete': "off"}))
+    end_date = forms.CharField(max_length=150, required=False,
+                               widget=forms.TextInput(attrs={'class': 'some_class', 'id': 'uk_dp_end',
+                                                             'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
+                                                             'autocomplete': "off"}))
+
+
 bootstrapify(SendMessageForm)
+bootstrapify(MessageLogUploadForm)
+bootstrapify(MessageSearchForm)
