@@ -10,7 +10,7 @@ class Command(BaseCommand):  # pragma: no cover
     def handle(self, *args, **options):
 
         model = CooperativeMember
-        fields = ['first_name', 'surname', 'other_name', 'phone_number']
+        fields = ['first_name', 'surname', 'other_name', 'phone_number', 'date_of_birth', 'village']
         """
         Removes records from `model` duplicated on `fields`
         while leaving the most recent one (biggest `id`).
@@ -33,6 +33,6 @@ class Command(BaseCommand):  # pragma: no cover
             print(to_delete)
 
             # leave out the latest duplicated record
-            to_delete = to_delete.exclude(id=duplicate["max_id"])
+            # to_delete = to_delete.exclude(id=duplicate["max_id"])
 
-            to_delete.delete()
+            # to_delete.delete()
