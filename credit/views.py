@@ -1,9 +1,14 @@
 from __future__ import unicode_literals
 import json
+import xlrd
+import xlwt
 import datetime
+
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect
 from django.urls import reverse_lazy
+from django.utils.encoding import smart_str
 from django.forms.formsets import formset_factory, BaseFormSet
 from django.views.generic import ListView, DetailView, View
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -11,7 +16,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from userprofile.models import Profile, AccessLevel
 from credit.utils import create_loan_transaction
 from credit.models import CreditManager, LoanRequest, CreditManagerAdmin, LoanTransaction
-from credit.forms import CreditManagerForm, CreditManagerUserForm
+from credit.forms import CreditManagerForm, CreditManagerUserForm, LoanUploadForm
 
 from coop.utils import credit_member_account, debit_member_account
 from coop.models import MemberOrder, CooperativeMember, OrderItem
@@ -218,3 +223,62 @@ class LoanTransactionListView(ExtraContext, ListView):
     model=LoanTransaction
     extra_context = {'active': ['_credit', '__loan_transaction']}
     ordering = ('-id')
+
+
+class LoanRequestUploadView(ExtraContext, View):
+    template_name = "credit/loan_upload_view.html"
+
+    def get(self, request, **kwargs):
+        context = dict()
+        form = LoanUploadForm
+        context['form'] = form
+        return render(request, self.template_name, context)
+
+    def post(self, request, **kwargs):
+        context = dict()
+        form = LoanUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            f = request.FILES['excel_file']
+
+            path = f.temporary_file_path()
+            index = int(form.cleaned_data['sheet']) - 1
+            startrow = int(form.cleaned_data['row']) - 1
+
+            last_name_col = int(form.cleaned_data['last_name_col'])
+            first_name_col = int(form.cleaned_data['first_name_col'])
+            phone_number_col = int(form.cleaned_data['phone_number_col'])
+            village_col = int(form.cleaned_data['village_col'])
+            district_col = int(form.cleaned_data['district_col'])
+            loan_amount_col = int(form.cleaned_data['loan_amount_col'])
+
+            book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
+            sheet = book.sheet_by_index(index)
+            rownum = 0
+            data = dict()
+            order_list = []
+            member = None
+
+            for i in range(startrow, sheet.nrows):
+                try:
+                    row = sheet.row(i)
+                    rownum = i + 1
+
+                    last_name = smart_str(row[last_name_col].value).strip()
+                    first_name = smart_str(row[first_name_col].value).strip()
+                    phone_number = smart_str(row[phone_number_col].value).strip()
+                    village = smart_str(row[village_col].value).strip()
+                    district = smart_str(row[district_col].value).strip()
+                    loan_amount = smart_str(row[loan_amount_col].value).strip()
+
+                    member = CooperativeMember.objects.filter(
+                        surname=last_name,
+                        first_name=first_name
+                    )
+                    print(last_name)
+
+                except Exception as err:
+                    log_error()
+                    return render(request, self.template_name, {'active': 'setting', 'form':form, 'error': err})
+
+
+        return render(request, self.template_name, context)
