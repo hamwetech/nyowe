@@ -3,7 +3,21 @@ from __future__ import unicode_literals
 
 from django.db import models
 
+
+class Region(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    create_date = models.DateTimeField(auto_now=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'region'
+
+    def __unicode__(self):
+        return self.name
+
+
 class District(models.Model):
+    region = models.ForeignKey(Region, null=True, blank=True)
     name = models.CharField(max_length=50, unique=True)
     create_date = models.DateTimeField(auto_now=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -92,9 +106,9 @@ class SystemSettings(models.Model):
     
 
 class MessageTemplates(models.Model):
-    collection =  models.TextField(null=True, blank=True)
+    collection = models.TextField(null=True, blank=True)
     coop_share_purchase = models.TextField(null=True, blank=True)
-    member_share_purchase  = models.TextField(null=True, blank=True)
+    member_share_purchase = models.TextField(null=True, blank=True)
     member_registration = models.TextField(null=True, blank=True)
     purchase_confirmation = models.TextField(null=True, blank=True)
     payment_confirmation = models.TextField(null=True, blank=True)

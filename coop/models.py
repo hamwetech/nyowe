@@ -306,6 +306,7 @@ class CooperativeMember(models.Model):
     other_phone_number = models.CharField(max_length=12, null=True, blank=True)
     own_phone = models.BooleanField(default=False)
     has_mobile_money = models.BooleanField(default=False)
+    verified_record = models.BooleanField(default=False)
     email = models.EmailField(max_length=254, null=True, blank=True)
     district = models.ForeignKey(District, null=True, blank=True, on_delete=models.SET_NULL)
     county = models.ForeignKey(County, null=True, blank=True, on_delete=models.SET_NULL)
@@ -792,7 +793,6 @@ class MemberOrder(models.Model):
         ('FAILED', 'FAILED'),
         ('ACCEPT_DELIVERY', 'ACCEPT_DELIVERY')
     )
-
 
     cooperative = models.ForeignKey(Cooperative, on_delete=models.CASCADE)
     member = models.ForeignKey(CooperativeMember, on_delete=models.CASCADE)

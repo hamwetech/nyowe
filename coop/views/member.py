@@ -10,6 +10,7 @@ import time
 from datetime import datetime
 import json
 from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse_lazy
 from django.db import transaction
 from django.http import JsonResponse, HttpResponse
@@ -223,7 +224,7 @@ class MemberUploadExcel(ExtraContext, View):
     
     def get(self, request, *args, **kwargs):
         data = dict()
-        data['form'] =  MemberUploadForm
+        data['form'] = MemberUploadForm
         return render(request, self.template_name, data)
     
     def post(self, request, *args, **kwargs):
@@ -233,9 +234,9 @@ class MemberUploadExcel(ExtraContext, View):
             f = request.FILES['excel_file']
             
             path = f.temporary_file_path()
+
             index = int(form.cleaned_data['sheet'])-1
             startrow = int(form.cleaned_data['row'])-1
-            
             farmer_name_col = int(form.cleaned_data['farmer_name_col'])
             identification_col = int(form.cleaned_data['identification_col'])
             gender_col = int(form.cleaned_data['gender'])
@@ -255,6 +256,12 @@ class MemberUploadExcel(ExtraContext, View):
             
             book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
             sheet = book.sheet_by_index(index)
+
+            # check if RECORDID column exists
+            column_row = [str(sheet.cell_value(0, col)) for col in range(sheet.ncols)]  # Header
+            record_id_col = column_row.index('RecordID') if 'RecordID' in column_row else None
+            verified_record_col = column_row.index('VERIFIED_RECORD') if 'VERIFIED_RECORD' in column_row else None
+
             rownum = 0
             data = dict()
             member_list = []
@@ -262,7 +269,28 @@ class MemberUploadExcel(ExtraContext, View):
                 try:
                     row = sheet.row(i)
                     rownum = i+1
-                    
+
+                    # get record ID if any
+                    record_id = re.sub("[^0-9]", "", row[record_id_col].value) if record_id_col else None
+                    try:
+                        if record_id is not None:
+                            record_id = int(record_id)
+                    except ValueError:
+                        data['errors'] = '"%s" is not a valid RecordID (row %d)' % (row[record_id_col].value, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+                    # get verified_value ID if any
+                    verified_record = re.sub("[^0-9]", "", row[verified_record_col].value) if record_id_col else 0
+                    try:
+                        if verified_record is not None:
+                            if int(verified_record) in [0, 1]:
+                                verified_record = int(verified_record)
+                            else:
+                                raise ValueError
+                    except ValueError:
+                        data['errors'] = '"%s" is not a valid value!, VERIFIED_RECORD column inputs must be either 1(for true/verified records) or 0(for false/unverified records) or blank(for unclassified records).  see (row %d).' % (row[verified_record_col].value, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
                     farmer_name = smart_str(row[farmer_name_col].value).strip()
                     if not re.search('^[A-Z\s\(\)\-\.]+$', farmer_name, re.IGNORECASE):
                         if (i+1) == sheet.nrows: break
@@ -293,34 +321,28 @@ class MemberUploadExcel(ExtraContext, View):
                             data['errors'] = '"%s" is not a valid Date of Birth (row %d): %s' % \
                             (date_of_birth, i+1, e)
                             return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
-                   
-                    
+
                     phone_number = (row[phone_number_col].value)
                     if phone_number:
                         try:
                             phone_number = int(phone_number)
                         except Exception as e:
-                            ##print e
                             phone_number = None
 
                         if phone_number:
                             if not re.search('^[0-9]+$', str(phone_number), re.IGNORECASE):
-                                data['errors'] = '"%s" is not a valid Phone Number (row %d)' % \
-                                (phone_number, i+1)
+                                data['errors'] = '"%s" is not a valid Phone Number (row %d)' % (phone_number, i+1)
                                 return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
-                
-                    
+
                     role = smart_str(row[role_col].value).strip()
                     if role:
                         if not re.search('^[A-Z\s\(\)\-\.]+$', role, re.IGNORECASE):
-                            data['errors'] = '"%s" is not a valid Role (row %d)' % \
-                            (role, i+1)
+                            data['errors'] = '"%s" is not a valid Role (row %d)' % (role, i+1)
                             return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
                     
                     acreage = smart_str(row[acreage_col].value).strip()
                     if not re.search('^[0-9\.]+$', acreage, re.IGNORECASE):
-                        data['errors'] = '"%s" is not a valid Acreage (row %d)' % \
-                        (cotton, i+1)
+                        data['errors'] = '"%s" is not a valid Acreage (row %d)' % (acreage, i+1)
                         return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
                     
                     # soya = smart_str(row[soya_col].value).strip()
@@ -334,86 +356,74 @@ class MemberUploadExcel(ExtraContext, View):
                     #     data['errors'] = '"%s" is not a valid Soghum Acreage (row %d)' % \
                     #     (soya, i+1)
                     #     return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
-        
-                    
+
                     cooperative = smart_str(row[cooperative_col].value).strip()
                     if not re.search('^[A-Z\s\(\)\-\.]+$', cooperative, re.IGNORECASE):
-                        data['errors'] = '"%s" is not a valid Cooperative (row %d)' % \
-                        (cooperative, i+1)
+                        data['errors'] = '"%s" is not a valid Cooperative (row %d)' % (cooperative, i+1)
                         return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
         
                     try:
                         cooperative = Cooperative.objects.get(name=cooperative)
                     except Exception as e:
                         log_error()
-                        data['errors'] = 'Cooperative "%s" Not found (row %d)' % \
-                        (cooperative, i+1)
+                        data['errors'] = 'Cooperative "%s" Not found (row %d)' % (cooperative, i+1)
                         return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
-        
-                    
+
                     district = smart_str(row[district_col].value).strip()
-                    
                     if district:
                         if not re.search('^[A-Z\s\(\)\-\.]+$', district, re.IGNORECASE):
-                            data['errors'] = '"%s" is not a valid District (row %d)' % \
-                            (district, i+1)
+                            data['errors'] = '"%s" is not a valid District (row %d)' % (district, i+1)
                             return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
                     
                     county = smart_str(row[county_col].value).strip()
-                    
                     if county:
                         if not re.search('^[A-Z\s\(\)\-\.]+$', county, re.IGNORECASE):
-                            data['errors'] = '"%s" is not a valid County (row %d)' % \
-                            (county, i+1)
+                            data['errors'] = '"%s" is not a valid County (row %d)' % (county, i+1)
                             return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})    
                     
                     sub_county = smart_str(row[sub_county_col].value).strip()
-                    
                     if sub_county:
                         if not re.search('^[A-Z\s\(\)\-\.]+$', sub_county, re.IGNORECASE):
-                            data['errors'] = '"%s" is not a valid Sub County (row %d)' % \
-                            (sub_county, i+1)
+                            data['errors'] = '"%s" is not a valid Sub County (row %d)' % (sub_county, i+1)
                             return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
                     
                     parish = smart_str(row[parish_col].value).strip()
-                    
                     if parish:
                         if not re.search('^[A-Z\s\(\)\-\.]+$', parish, re.IGNORECASE):
-                            data['errors'] = '"%s" is not a valid Parish (row %d)' % \
-                            (parish, i+1)
+                            data['errors'] = '"%s" is not a valid Parish (row %d)' % (parish, i+1)
                             return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
                    
                     village = smart_str(row[village_col].value).strip()
-                    
                     if village:
                         if not re.search('^[A-Z\s\(\)\-\.]+$', village, re.IGNORECASE):
-                            data['errors'] = '"%s" is not a valid Village (row %d)' % \
-                            (village, i+1)
+                            data['errors'] = '"%s" is not a valid Village (row %d)' % (village, i+1)
                             return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
-                    
-                    
+
                     q = {
-                         'farmer_name': farmer_name,
-                         'identification': identification,
-                         'gender': gender,
-                         'date_of_birth': date_of_birth,
-                         'phone_number': phone_number,
-                         'role': role,
-                         'acreage': acreage,
-                         # 'soya': soya,
-                         # 'soghum': soghum,
-                         'cooperative': cooperative,
-                         'district': district,
-                         'county':county,
-                         'sub_county':sub_county,
-                         'parish': parish,
-                         'village': village
+                        'farmer_name': farmer_name,
+                        'identification': identification,
+                        'gender': gender,
+                        'date_of_birth': date_of_birth,
+                        'phone_number': phone_number,
+                        'role': role,
+                        'acreage': acreage,
+                        # 'soya': soya,
+                        # 'soghum': soghum,
+                        'cooperative': cooperative,
+                        'district': district,
+                        'county': county,
+                        'sub_county': sub_county,
+                        'parish': parish,
+                        'village': village,
+                        'record_id': record_id,
+                        'verified_record': verified_record
                     }
                     member_list.append(q)
                 
                 except Exception as err:
                     log_error()
                     return render(request, self.template_name, {'active': 'setting', 'form':form, 'error': err})
+            not_found_records = []
             if member_list:
                 with transaction.atomic():
                     try:
@@ -424,6 +434,8 @@ class MemberUploadExcel(ExtraContext, View):
                         for c in member_list:
                             name = c.get('farmer_name').split(' ')
                             surname = name[0]
+                            record_id = c.get(record_id)
+                            verified_record = c.get(verified_record)
                             first_name = name[1] if len(name) > 1 else None
                             other_name = name[2] if len(name) > 2 else None
                             identification = c.get('identification')
@@ -445,8 +457,7 @@ class MemberUploadExcel(ExtraContext, View):
                             if district:
                                 dl = [dist for dist in District.objects.filter(name__iexact=district)]
                                 do = dl[0] if len(dl)>0 else None
-                            
-                            
+
                             if county:
                                 cl = [c for c in County.objects.filter(district__name=district, name=county)]
                                 co = cl[0] if len(cl)>0 else None
@@ -458,39 +469,70 @@ class MemberUploadExcel(ExtraContext, View):
                             if parish:
                                 pl = [p for p in Parish.objects.filter(sub_county__name=sub_county, name=parish)]
                                 po = pl[0] if len(pl)>0 else None
-                                
-                            if not CooperativeMember.objects.filter(first_name=first_name, surname=surname, phone_number=phone_number).exists():
+
+                            # check if the object already exists.
+                            if record_id:
+                                try:
+                                    member_obj = CooperativeMember.objects.get(id=record_id)
+                                    member_obj.update(
+                                        cooperative=cooperative,
+                                        surname=surname,
+                                        first_name=first_name,
+                                        other_name=other_name,
+                                        id_number=identification,
+                                        gender=gender,
+                                        date_of_birth=date_of_birth,
+                                        phone_number=phone_number if phone_number != '' else None,
+                                        district=do,
+                                        county=co,
+                                        sub_county=sco,
+                                        parish=po,
+                                        village=village,
+                                        coop_role=role.title(),
+                                        land_acreage=acreage,
+                                        # soya_beans_acreage=soya,
+                                        # soghum_acreage=soghum,
+                                        create_by=request.user,
+                                        verified_record=verified_record
+                                    )
+                                except ObjectDoesNotExist:
+                                    not_found_records.append(record_id)
+
+                            elif not CooperativeMember.objects.filter(first_name=first_name, surname=surname, phone_number=phone_number).exists():
                                 member = CooperativeMember.objects.create(
-                                    cooperative = cooperative,
-                                    surname = surname,
-                                    first_name = first_name,
-                                    other_name = other_name,
-                                    id_number = identification,
-                                    gender = gender,
-                                    member_id = self.generate_member_id(cooperative),
-                                    date_of_birth = date_of_birth,
-                                    phone_number = phone_number if phone_number != '' else None,
-                                    district = do,
-                                    county = co,
-                                    sub_county = sco,
-                                    parish = po,
-                                    village = village,
-                                    coop_role = role.title(),
-                                    land_acreage = acreage,
-                                    # soya_beans_acreage = soya,
-                                    # soghum_acreage = soghum,
-                                    create_by = request.user
+                                    cooperative=cooperative,
+                                    surname=surname,
+                                    first_name=first_name,
+                                    other_name=other_name,
+                                    id_number=identification,
+                                    gender=gender,
+                                    member_id=self.generate_member_id(cooperative),
+                                    date_of_birth=date_of_birth,
+                                    phone_number=phone_number if phone_number != '' else None,
+                                    district=do,
+                                    county=co,
+                                    sub_county=sco,
+                                    parish=po,
+                                    village=village,
+                                    coop_role=role.title(),
+                                    land_acreage=acreage,
+                                    # soya_beans_acreage=soya,
+                                    # soghum_acreage=soghum,
+                                    create_by=request.user
                                 )
                                 
                                 message = message_template().member_registration
-                                #if message:
+                                # if message:
                                 #    if re.search('<NAME>', message):
                                 #        if member.surname:
                                 #            message = message.replace('<NAME>', '%s %s' % (member.surname.title(), member.first_name.title()))
                                 #        message = message.replace('<COOPERATIVE>', member.cooperative.name)
                                 #        message = message.replace('<IDNUMBER>', member.member_id)
                                 #    sendMemberSMS(request, member, message)
-                                                    
+
+                        if not_found_records:
+                            messages.warning(request, "No records with the following IDs ({}) were found.".format(not_found_records))
+
                         return redirect('coop:member_list')
                     except Exception as err:
                         log_error()
@@ -498,8 +540,7 @@ class MemberUploadExcel(ExtraContext, View):
                 
         data['form'] = form
         return render(request, self.template_name, data)
-    
-    
+
     def generate_member_id(self, cooperative):
         member = CooperativeMember.objects.all()
         count = member.count() + 1
@@ -574,7 +615,6 @@ class CooperativeMemberListView(ExtraContext, ListView):
         return context
     
     def download_file(self, *args, **kwargs):
-        
         _value = []
         columns = []
         msisdn = self.request.GET.get('phone_number')
@@ -590,7 +630,6 @@ class CooperativeMemberListView(ExtraContext, ListView):
         filter_start_date = "%s %s" % (start_date, start_time)
         filter_end_time = "%s %s" % (end_date, end_time)
 
-        
         profile_choices = ['id','cooperative__name', 'farmer_group__name', 'member_id', 'surname', 'first_name', 'other_name',
                                'date_of_birth', 'gender', 'id_number','phone_number','email',
                                'district__name','sub_county__name','village','address','gps_coodinates',
@@ -598,7 +637,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
                                'collection_amount','collection_quantity', 'paid_amount', 'create_by__username', 'create_date']
 
         columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
-        #Gather the Information Found
+        # Gather the Information Found
         # Create the HttpResponse object with Excel header.This tells browsers that 
         # the document is a Excel file.
         response = HttpResponse(content_type='application/ms-excel')
@@ -621,8 +660,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
             # For each cell in your Excel Sheet, call write function by passing row number, 
             # column number and cell data.
             worksheet.write(row_num, col_num, columns[col_num], style=style)
-        
-        
+
         _members = CooperativeMember.objects.values(*profile_choices).all()
         
         if msisdn:
@@ -672,7 +710,6 @@ class CooperativeMemberListView(ExtraContext, ListView):
         end_time = self.request.GET.get('end_time') if self.request.GET.get('end_time') else "23:59"
         filter_start_date = "%s %s" % (start_date, start_time)
         filter_end_time = "%s %s" % (end_date, end_time)
-
 
         profile_choices = ['id', 'cooperative__name', 'farmer_group__name', 'member_id', 'surname', 'first_name', 'other_name',
                            'date_of_birth', 'gender', 'id_number', 'phone_number', 'email',
@@ -725,7 +762,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
                 # Replace the string
                 mainString = mainString.replace(elem, newString)
         
-        return  mainString
+        return mainString
 
 
 class ImageQRCodeDownloadView(View):
@@ -734,7 +771,7 @@ class ImageQRCodeDownloadView(View):
             pk = self.kwargs.get('pk')
             qs = CooperativeMember.objects.get(pk=pk)
             image = qs.get_qrcode()
-            ##print image.path
+            # print image.path
             image_buffer = open(image.path, "rb").read()
             content_type = magic.from_buffer(image_buffer, mime=True)
             response = HttpResponse(image_buffer, content_type=content_type);

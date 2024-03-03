@@ -209,11 +209,11 @@ class MemberProfileSearchForm(forms.Form):
 class MemberUploadForm(forms.Form):
     
     sheetChoice = (
-        ('1','sheet1'),
-        ('2','sheet2'),
-        ('3','sheet3'),
-        ('4','sheet4'),
-        ('5','sheet5'),
+        ('1', 'sheet1'),
+        ('2', 'sheet2'),
+        ('3', 'sheet3'),
+        ('4', 'sheet4'),
+        ('5', 'sheet5'),
     )
     
     rowchoices = (
@@ -222,15 +222,15 @@ class MemberUploadForm(forms.Form):
         ('3', 'Row 3'),
         ('4', 'Row 4'),
         ('5', 'Row 5')
-        )
+    )
     
     choices = list()
     for i in range(65, 91):
         choices.append([i-65, chr(i)])
-    
+
     excel_file = forms.FileField()
-    sheet = forms.ChoiceField(label="Sheet", choices=sheetChoice, widget=forms.Select(attrs={'class':'form-control'}))
-    row = forms.ChoiceField(label="Row", choices=rowchoices, widget=forms.Select(attrs={'class':'form-control'}))
+    sheet = forms.ChoiceField(label="Sheet", choices=sheetChoice, widget=forms.Select(attrs={'class': 'form-control'}))
+    row = forms.ChoiceField(label="Row", choices=rowchoices, widget=forms.Select(attrs={'class': 'form-control'}))
     farmer_name_col = forms.ChoiceField(label='Farmer Name Column', initial=0, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Farmers Name')
     identification_col = forms.ChoiceField(label='Identification Number', initial=1, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Countries Identification Number of the Member')
     gender = forms.ChoiceField(label='Gender Column', initial=2, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Gender')
@@ -241,14 +241,13 @@ class MemberUploadForm(forms.Form):
     # soya_col = forms.ChoiceField(label='Soya Acreage Column', initial=6, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Soya Acreage')
     # soghum_col = forms.ChoiceField(label='Soghum Acreage Column', initial=7, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Soghum Acreage')
     cooperative_col = forms.ChoiceField(label='Cooperative Column', initial=7, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Cooperative')
-    district_col = forms.ChoiceField(label='Distric Column', initial=8, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the District')
+    district_col = forms.ChoiceField(label='District Column', initial=8, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the District')
     county_col = forms.ChoiceField(label='County Column', initial=9, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the County')
     sub_county_col = forms.ChoiceField(label='Sub County Column', initial=10, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Sub county')
     parish_col = forms.ChoiceField(label='Parish Column', initial=11, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Parish')
     village_col = forms.ChoiceField(label='Village Column', initial=12, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Village')
     # organisation_col = forms.ChoiceField(label='Organisation Column', initial=14, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Organisation')
-    
-    
+
     def clean(self):
         data = self.cleaned_data
         f = data.get('excel_file', None)

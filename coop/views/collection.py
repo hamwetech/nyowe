@@ -31,6 +31,7 @@ class ExtraContext(object):
         context.update(self.extra_context)
         return context
 
+
 class CollectionListView(ExtraContext, ListView):
     model = Collection
     ordering = ['-create_date']
