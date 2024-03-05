@@ -87,6 +87,7 @@ urlpatterns = [
      url(r'member/qrcode/(?P<pk>[\w]+)/$', ImageQRCodeDownloadView.as_view(), name='member_qrcode'),
      url(r'member/download/$', DownloadExcelMemberView.as_view(), name='member_download'),
      url(r'member/upload/$', MemberUploadExcel.as_view(), name='member_upload'),
+     url(r'member/bulk/$', MemberBulkUpdate.as_view(), name='member_bulk_update'),
      url(r'member/list/$', CooperativeMemberListView.as_view(), name='member_list'),
      url(r'member/create/$', MemberCreateView.as_view(), name='member_create'),
      url(r'member/map/$', MembersMapView.as_view(), name='member_map'),
