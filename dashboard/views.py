@@ -14,6 +14,7 @@ from payment.models import *
 from product.models import ProductVariationPrice
 from messaging.models import OutgoingMessages
 
+
 class DashboardView(TemplateView):
     template_name = "dashboard.html"
     
@@ -77,13 +78,10 @@ class DashboardView(TemplateView):
         agent_female_old_youth = [f for f in female_agent if f.age if f.age >= 25 and f.age <= 50]
         agent_female_midlife = [f for f in female_agent if f.age if f.age > 50]
 
-
         with_phones = members.filter(own_phone=True)
         male_phones = male.filter(own_phone=True)
         female_phones = female.filter(own_phone=True)
         # members_animals = members.aggregate(total_amount=Sum('animal_count'))
-
-
 
         shares = cooperatives.aggregate(total_amount=Sum('shares'))
         m_shares = m_shares.values('cooperative_member',
@@ -136,8 +134,6 @@ class DashboardView(TemplateView):
         context['agent_female_youth'] = len(agent_female_youth)
         context['agent_female_old_youth'] = len(agent_female_old_youth)
         context['agent_female_midlife'] = len(agent_female_midlife)
-
-
 
         context['is_refugee'] = is_refugee.count()
         context['active'] = ['_dashboard', '']
@@ -196,6 +192,7 @@ def get_members_per_month(request):
 
     return JsonResponse({"months": result_list, "keys": result_key_list})
 
+
 def gender_distribution(request):
     all_members = CooperativeMember.objects.all().order_by("create_date")
     male = all_members.filter(gender__iexact='male')
@@ -221,8 +218,6 @@ def order_distribution(request):
             'total_quantity': total_quantity,
             'total_price': total_price,
         })
-
-
     return JsonResponse({"data": result_list})
 
 
@@ -256,3 +251,5 @@ def get_orders_per_month(request):
     result_key_list = [key for key, value in daily_counts.items()]
 
     return JsonResponse({"months": result_list, "keys": result_key_list})
+
+

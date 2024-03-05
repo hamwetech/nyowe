@@ -42,7 +42,7 @@ class Profile(models.Model):
     date_recruited = models.DateField(null=True)
     nin = models.CharField(max_length=255,  null=True, blank=True)
     access_level = models.ForeignKey(AccessLevel, null=True, blank=True, on_delete=models.CASCADE)
-    district = models.ManyToManyField(District, null=True, blank=True)
+    district = models.ManyToManyField(District, blank=True)
     supervisor = models.ForeignKey(User, null=True, blank=True, related_name="supervisor")
     is_locked = models.BooleanField(default=0)
     receive_sms_notifications = models.BooleanField(default=0)
