@@ -68,7 +68,7 @@ class PaymentMethodListView(ExtraContext, ListView):
         return queryset
     
     def get_context_data(self, **kwargs):
-        context = super(PaymentMethodListView,self).get_context_data(**kwargs)
+        context = super(PaymentMethodListView, self).get_context_data(**kwargs)
         context['form'] = PaymentFilterForm(self.request.GET)
         return context
         
