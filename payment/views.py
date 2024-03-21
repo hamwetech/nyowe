@@ -479,6 +479,12 @@ class UploadPaymentView(View):
 
             book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
             sheet = book.sheet_by_index(index)
+
+            # check if RECORDID column exists
+            column_row = [str(sheet.cell_value(0, col)) for col in range(sheet.ncols)]  # Header
+            payment_status_col = column_row.index('PAYMENT_STATUS') if 'PAYMENT_STATUS' in column_row else None
+            payment_reference_col = column_row.index('PAYMENT_REFERENCE') if 'PAYMENT_REFERENCE' in column_row else None
+
             rownum = 0
             data = dict()
             payment_list = []
@@ -486,11 +492,27 @@ class UploadPaymentView(View):
                 try:
                     row = sheet.row(i)
                     rownum = i + 1
+
+                    # get payment_status if any
+                    payment_status = re.sub('^[A-Za-z -]+$', "", row[payment_status_col].value) if payment_status_col else None
                     try:
-                        phone_number = int(row[phone_number_col].value)
-                    except Exception:
-                        data['errors'] = '"%s" is not a valid Phone number (row %d)' % \
-                                         (phone_number, i + 1)
+                        if payment_status is not None:
+                            if payment_status in ['PENDING', 'SUCCESSFUL', 'FAILED']:
+                                payment_status = payment_status.upper()
+                            else:
+                                raise ValueError
+                    except ValueError:
+                        data['errors'] = 'Invalid or missing payment status (row %d)' % (i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+                    # get payment_reference ID if any
+                    payment_reference = row[payment_reference_col].value if payment_reference_col else generate_alpanumeric()
+
+                    phone_number = row[phone_number_col].value
+                    try:
+                        phone_number = int(phone_number)
+                    except TypeError:
+                        data['errors'] = '"%s" is not a valid Phone number (row %d)' % (phone_number, i + 1)
                         return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
                     # if not re.search('^[0-9]+$', phone_number, re.IGNORECASE):
@@ -498,37 +520,41 @@ class UploadPaymentView(View):
                     #     data['errors'] = '"%s" is not a valid Phone number (row %d)' % \
                     #     (phone_number, i+1)
                     #     return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
-                    #
+
                     amount = smart_str(row[amount_col].value).strip()
                     if not re.search('^[0-9\.]+$', amount, re.IGNORECASE):
-                        data['errors'] = '"%s" is not a valid Amount Figure (row %d)' % \
-                                         (amount, i + 1)
+                        data['errors'] = '"%s" is not a valid Amount Figure (row %d)' % (amount, i + 1)
                         return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
                     transaction_date = None
                     if len(row) == 3:
-                        transaction_date = (row[transaction_date_col].value)
+                        transaction_date = row[transaction_date_col].value
                         if transaction_date:
                             try:
                                 date_str = datetime(*xlrd.xldate_as_tuple(int(transaction_date), book.datemode))
                                 transaction_date = date_str.strftime("%Y-%m-%d")
                             except Exception as e:
-                                data['errors'] = '"%s" is not a valid Transaction Date (row %d)' % \
-                                                 (e, i + 1)
-                                return render(request, self.template_name,
-                                              {'active': 'system', 'form': form, 'error': data})
+                                data['errors'] = '"%s" is not a valid Transaction Date (row %d)' % (e, i + 1)
+                                return render(
+                                    request,
+                                    self.template_name,
+                                    {'active': 'system', 'form': form, 'error': data}
+                                )
 
-                    name = (row[name_col].value)
+                    name = row[name_col].value
                     if not re.search('^[A-Za-z -]+$', name, re.IGNORECASE):
                         if (i+1) == sheet.nrows: break
                         data['errors'] = '"%s" is not a valid Name (row %d)' % \
                         (name, i+1)
                         return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
 
-                    q = {'name': name,
-                         'amount': amount,
-                         'transaction_date': transaction_date,
-                         'phone_number': phone_number,
-                         }
+                    q = {
+                        'name': name,
+                        'amount': amount,
+                        'transaction_date': transaction_date,
+                        'phone_number': phone_number,
+                        'payment_reference': payment_reference,
+                        'payment_status': payment_status
+                    }
                     payment_list.append(q)
                 except Exception as err:
                     log_error()
@@ -541,20 +567,38 @@ class UploadPaymentView(View):
                             name = c.get('name')
                             phone_number = c.get('phone_number')
                             amount = c.get('amount')
-                            transaction_date = c.get('transaction_date') if c.get(
-                                'transaction_date') else datetime.datetime.now().strftime("%Y-%m-%d")
-                            reference = generate_alpanumeric()
+                            transaction_date = c.get('transaction_date') if c.get('transaction_date') else datetime.datetime.now().strftime("%Y-%m-%d")
+                            reference = c.get('payment_reference') if c.get('payment_reference') and len(c.get('payment_reference')) > 0 else generate_alpanumeric()
+                            payment_status = c.get('payment_status')
 
-                            MemberPaymentTransaction.objects.create(
-                                transaction_reference=reference,
-                                name=name,
-                                amount=amount,
-                                payment_method=payment_method,
-                                phone_number=phone_number,
-                                payment_date=transaction_date,
-                                status='SUCCESSFUL',
-                                creator=request.user
-                            )
+                            members = CooperativeMember.objects.filter(Q(phone_number=phone_number) | Q(other_phone_number=phone_number))
+                            if members and len(member) == 1:
+                                for member in members:
+                                    MemberPaymentTransaction.objects.create(
+                                        transaction_reference=reference,
+                                        cooperative=member.cooperative,
+                                        member=member,
+                                        name=name,
+                                        amount=amount,
+                                        payment_method=payment_method,
+                                        phone_number=phone_number,
+                                        payment_date=transaction_date,
+                                        transaction_date=transaction_date,
+                                        status=payment_status,
+                                        creator=request.user
+                                    )
+                            else:
+                                MemberPaymentTransaction.objects.create(
+                                    transaction_reference=reference,
+                                    name=name,
+                                    amount=amount,
+                                    payment_method=payment_method,
+                                    phone_number=phone_number,
+                                    payment_date=transaction_date,
+                                    transaction_date=transaction_date,
+                                    status=payment_status,
+                                    creator=request.user
+                                )
 
                         return redirect('payment:list')
                     except Exception as err:
