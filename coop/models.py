@@ -428,7 +428,9 @@ class CooperativeMember(models.Model):
     def get_payments(self):
         try:
             from payment.models import MemberPaymentTransaction
-            return MemberPaymentTransaction.objects.filter(member=self).order_by('-payment_date')
+            return MemberPaymentTransaction.objects.filter(
+                Q(member=self) |
+                Q(phone_number__in=[self.phone_number, self.other_phone_number])).order_by('-payment_date')
         except Exception:
             return None
 
@@ -608,7 +610,6 @@ class CooperativeMemberProduct(models.Model):
     
     def __unicode__(self):
         return self.gender or u''
-    
 
 
 class CooperativeMemberSupply(models.Model):
@@ -666,8 +667,7 @@ class CooperativeMemberSubscriptionLog(models.Model):
     
     def __unicode__(self):
         return u'%s' % self.transaction_id or u''
-        
-        
+
 
 class CooperativeMemberSharesLog(models.Model):
     cooperative_member = models.ForeignKey(CooperativeMember, on_delete=models.CASCADE)
@@ -690,13 +690,13 @@ class CooperativeMemberSharesLog(models.Model):
         return u'%s' % self.transaction_id or u''
 
 
-
 class MemberSupplySchedule(models.Model):
     pass
 
     class Meta:
         db_table = 'cooperative_member_supply_schedule'
-    
+
+
 class MemberSupplyRequest(models.Model):
     cooperative_member = models.ForeignKey(CooperativeMember, on_delete=models.CASCADE)
     transaction_reference = models.CharField(max_length=254, null=True, blank=True)
@@ -720,7 +720,7 @@ class MemberSupplyRequest(models.Model):
         return MemberSupplyRequestVariation.objects.filter(supply_request=self)
     
     def get_sum_total(self):
-        ms =  MemberSupplyRequestVariation.objects.filter(supply_request=self).aggregate(total_amount=Sum('total'))
+        ms = MemberSupplyRequestVariation.objects.filter(supply_request=self).aggregate(total_amount=Sum('total'))
         return ms['total_amount']
     
     def remaining_days(self):
@@ -729,7 +729,6 @@ class MemberSupplyRequest(models.Model):
         delta = d1 - d0
         return delta.days    
     
-        
 
 class MemberSupplyRequestVariation(models.Model):
     supply_request = models.ForeignKey(MemberSupplyRequest, blank=True, null=True, on_delete=models.CASCADE)

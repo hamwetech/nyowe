@@ -445,18 +445,24 @@ class AgentDetailView(ExtraContext, TemplateView):
     template_name = "coop/agent_dashboard.html"
 
     def get_context_data(self, **kwargs):
+        from payment.models import MemberPaymentTransaction
+
         profile_pk = self.kwargs.get('pk')
         agent = Agent.objects.get(pk=profile_pk)
         context = super(AgentDetailView, self).get_context_data(**kwargs)
         farmers_profiled = CooperativeMember.objects.filter(create_by=agent.user)
         unique_group_count = CooperativeMember.objects.values('farmer_group').filter(create_by=agent.user).distinct().count()
         collection_count = Collection.objects.filter(created_by=agent.user).count()
+        payments = MemberPaymentTransaction.objects.filter(phone_number=agent.msisdn).order_by('-payment_date')
         context['farmer_count'] = farmers_profiled.count()
         context['unique_group_count'] = unique_group_count
         context['collection_count'] = collection_count
         context['order_count'] = MemberOrder.objects.filter(created_by=agent.user).count()
         context['training_done'] = TrainingAttendance.objects.filter(created_by=agent.user).count()
         context['training_module'] = TrainingModule.objects.filter(created_by=agent.user).count()
+        context['payments'] = payments
+        context['payment_value'] = sum([p.amount for p in payments])
         return context
+
 
 
