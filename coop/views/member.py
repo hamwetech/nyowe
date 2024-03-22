@@ -37,6 +37,7 @@ from account.models import Account, AccountTransaction
 
 from payment.HamwePay import HamwePay
 
+
 class ExtraContext(object):
     extra_context = {}
 

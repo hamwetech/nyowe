@@ -340,15 +340,13 @@ class CooperativeMember(models.Model):
     
     class Meta:
         db_table = 'cooperative_member'
-        
-    
+
     def __unicode__(self):
         return "{} {}".format(self.surname, self.first_name)
     
     def get_name(self):
         return "%s %s" % (self.surname, self.first_name)
-    
-    
+
     def get_absolute_url(self):
         return reverse('events.views.details', args=[str(self.id)])
 
@@ -360,7 +358,6 @@ class CooperativeMember(models.Model):
     def age_(self):
         m = date.today() - self.date_of_birth
         return m.days / 365
-
 
     def generate_qrcode(self):
         qr = qrcode.QRCode(
@@ -377,8 +374,7 @@ class CooperativeMember(models.Model):
         buffer = StringIO.StringIO()
         img.save(buffer)
         filename = '%s-%s_%s.png' % (self.member_id, self.surname, self.first_name)
-        filebuffer = InMemoryUploadedFile(
-            buffer, None, filename, 'image/png', buffer.len, None)
+        filebuffer = InMemoryUploadedFile(buffer, None, filename, 'image/png', buffer.len, None)
         self.qrcode.save(filename, filebuffer)
     
     def get_qrcode(self):
@@ -429,6 +425,15 @@ class CooperativeMember(models.Model):
         except Exception:
             return None
 
+    def get_payments(self):
+        try:
+            from payment.models import MemberPaymentTransaction
+            return MemberPaymentTransaction.objects.filter(
+                Q(member=self) |
+                Q(phone_number__in=[self.phone_number, self.other_phone_number])).order_by('-payment_date')
+        except Exception:
+            return None
+
     # def get_total_product(self):
     #     q = CooperativeMemberProductQuantity.objects.filter(cooperative_member=self)
     #     tp = q.annotate(total_product=F('adult')+F('heifer')+F('bullock')+F('calves'))
@@ -437,6 +442,7 @@ class CooperativeMember(models.Model):
     #     for x in tp:
     #         total = x.total_product
     #     return total
+
 
 @receiver(post_save, sender=CooperativeMember)
 def create_user_profile(sender, instance, created, **kwargs):
@@ -604,7 +610,6 @@ class CooperativeMemberProduct(models.Model):
     
     def __unicode__(self):
         return self.gender or u''
-    
 
 
 class CooperativeMemberSupply(models.Model):
@@ -662,8 +667,7 @@ class CooperativeMemberSubscriptionLog(models.Model):
     
     def __unicode__(self):
         return u'%s' % self.transaction_id or u''
-        
-        
+
 
 class CooperativeMemberSharesLog(models.Model):
     cooperative_member = models.ForeignKey(CooperativeMember, on_delete=models.CASCADE)
@@ -686,13 +690,13 @@ class CooperativeMemberSharesLog(models.Model):
         return u'%s' % self.transaction_id or u''
 
 
-
 class MemberSupplySchedule(models.Model):
     pass
 
     class Meta:
         db_table = 'cooperative_member_supply_schedule'
-    
+
+
 class MemberSupplyRequest(models.Model):
     cooperative_member = models.ForeignKey(CooperativeMember, on_delete=models.CASCADE)
     transaction_reference = models.CharField(max_length=254, null=True, blank=True)
@@ -716,7 +720,7 @@ class MemberSupplyRequest(models.Model):
         return MemberSupplyRequestVariation.objects.filter(supply_request=self)
     
     def get_sum_total(self):
-        ms =  MemberSupplyRequestVariation.objects.filter(supply_request=self).aggregate(total_amount=Sum('total'))
+        ms = MemberSupplyRequestVariation.objects.filter(supply_request=self).aggregate(total_amount=Sum('total'))
         return ms['total_amount']
     
     def remaining_days(self):
@@ -725,7 +729,6 @@ class MemberSupplyRequest(models.Model):
         delta = d1 - d0
         return delta.days    
     
-        
 
 class MemberSupplyRequestVariation(models.Model):
     supply_request = models.ForeignKey(MemberSupplyRequest, blank=True, null=True, on_delete=models.CASCADE)

@@ -67,6 +67,7 @@
                         <th>Payment Date</th>
                         <th>Coop</th>
                         <th>Member</th>
+                        <th>Recipient Name</th>
                         <th>Number</th>
                         <th>Amount</th>
                         <th>Reference</th>
@@ -85,6 +86,7 @@
                                 <td>{{ item.payment_date| date:"d, M Y H:i:s" }}</td>
                                <td>{{ item.cooperative }}</td>
                                 <td>{{ item.member }}</td>
+                                <td>{{ item.name }}</td>
                                 <td>{{ item.member.phone_number|default:item.phone_number }}</td>
                                 <td>{{ item.amount }}</td>
                                 <td>{{ item.transaction_reference }}</td>

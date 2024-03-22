@@ -38,7 +38,7 @@
                 <li class="uk-active" aria-expanded="true"><a href="#">Member Profile</a></li>
                 <li aria-expanded="false"><a href="#">Collection</a></li>
                 <li aria-expanded="false"><a href="#">Orders</a></li>
-<!--                <li aria-expanded="false"><a href="#">Shares</a></li>-->
+                <li aria-expanded="false"><a href="#">Payments/earning</a></li>
             <li class="uk-tab-responsive uk-active uk-hidden" aria-haspopup="true" aria-expanded="false"><a>Basic</a><div class="uk-dropdown uk-dropdown-small"><ul class="uk-nav uk-nav-dropdown"></ul><div></div></div></li></ul>
             <ul id="user_edit_tabs_content" class="uk-switcher uk-margin">
                 <li aria-hidden="false" class="uk-active">
@@ -48,56 +48,62 @@
                         </h3>-->
                         <ul class="md-list">
                             <li>
-                                <div class="md-list-content">
-                                    <span class="uk-text-muted uk-text-small">Name</span>
-                                    <span class="md-list-heading">{{ object.surname }} {{ object.first_name }} {{ object.other_name|default:'' }} </span>
-                                </div>
-                            </li>
-                            <li>
-                                 <div class="md-list-content">
-                                    <span class="uk-text-muted uk-text-small">Date of Birth</span>
-                                    <span class="md-list-heading">{{ object.date_of_birth }} </span>
-                                </div>
-                            </li>
-                            <li>
-                                 <div class="uk-grid">
-                                    <div class="uk-width-medium-1-4 parsley-row">
+                                <div class="uk-grid">
+                                    <div class="uk-width-medium-1-3 parsley-row">
+                                        <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Name</span>
+                                            <div class="md-list-heading">{{ object.surname }} {{ object.first_name }} {{ object.other_name|default:'' }} </div>
+                                        </div>
+                                    </div>
+                                    <div class="uk-width-medium-1-3 parsley-row">
+                                        <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Date of Birth</span>
+                                            <div class="md-list-heading">{{ object.date_of_birth }} </div>
+                                        </div>
+                                    </div>
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                          <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Gender</span>
                                             <div class="md-list-heading">{{ object.gender }}</div>
                                         </div>
                                     </div>
-
-                                     <div class="uk-width-medium-1-4 parsley-row">
-                                         <div class="md-list-content">
-                                            <span class="uk-text-muted uk-text-small">Is Refugess</span>
-                                            <div class="md-list-heading">{{ object.is_refugee }}</div>
-                                        </div>
-                                    </div>
-                                     <div class="uk-width-medium-1-4 parsley-row">
-                                         <div class="md-list-content">
-                                            <span class="uk-text-muted uk-text-small">Is Handicup</span>
-                                            <div class="md-list-heading">{{ object.is_handicap }}</div>
-                                        </div>
-                                    </div>
-                                 </div>
-
-                            </li>
-                            <li>
-                                 <div class="md-list-content">
-                                    <span class="uk-text-muted uk-text-small">Maritual Status</span>
-                                    <span class="md-list-heading">{{ object.maritual_status }}</span>
-                                </div>
-                            </li>
-                             <li>
-                                 <div class="md-list-content">
-                                    <span class="uk-text-muted uk-text-small">ID Number</span>
-                                    <span class="md-list-heading">{{ object.id_number }}</span>
                                 </div>
                             </li>
                             <li>
                                  <div class="uk-grid">
-                                    <div class="uk-width-medium-1-4 parsley-row">
+                                     <div class="uk-width-medium-1-3 parsley-row">
+                                         <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Maritual Status</span>
+                                            <div class="md-list-heading">{{ object.maritual_status }}</div>
+                                        </div>
+                                     </div>
+                                     <div class="uk-width-medium-1-3 parsley-row">
+                                         <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Is Refugee</span>
+                                            <div class="md-list-heading">{{ object.is_refugee }}</div>
+                                        </div>
+                                     </div>
+                                     <div class="uk-width-medium-1-3 parsley-row">
+                                         <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Is Handicap</span>
+                                            <div class="md-list-heading">{{ object.is_handicap }}</div>
+                                        </div>
+                                    </div>
+                                 </div>
+                            </li>
+                             <li>
+                                 <div class="uk-grid">
+                                     <div class="uk-width-medium-1-3 parsley-row">
+                                         <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">ID Number</span>
+                                             <div class="md-list-heading">{{ object.id_number }}</div>
+                                        </div>
+                                     </div>
+                                 </div>
+                            </li>
+                            <li>
+                                 <div class="uk-grid">
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Phone number</span>
                                             <div>
@@ -105,7 +111,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="uk-width-medium-1-4 parsley-row">
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Other Number</span>
                                             <div>
@@ -113,7 +119,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="uk-width-medium-1-4 parsley-row">
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Email Address</span>
                                             <div>
@@ -124,14 +130,8 @@
                                 </div>
                             </li>
                             <li>
-                                 <div class="md-list-content">
-                                    <span class="uk-text-muted uk-text-small">Address</span>
-                                    <span class="md-list-heading">{{ object.address }}</span>
-                                </div>
-                            </li>
-                            <li>
                                 <div class="uk-grid">
-                                    <div class="uk-width-medium-1-4 parsley-row">
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">District</span>
                                             <div>
@@ -155,7 +155,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                     <div class="uk-width-medium-1-3 parsley-row">
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Village</span>
                                             <div>
@@ -171,12 +171,20 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="uk-width-medium-1-3 parsley-row">
+                                        <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Address</span>
+                                            <div>
+                                                <span class="md-list-heading">{{ object.address }} </span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </li>
                             
                             <li>
                                 <div class="uk-grid">
-                                    <div class="uk-width-medium-1-4 parsley-row">
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Role in Cooperative</span>
                                             <div>
@@ -184,27 +192,28 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="uk-width-medium-1-4 parsley-row">
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Land Acreage</span>
                                             <div>
                                                 <span class="md-list-heading">{{ object.land_acreage }} </span>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Shea Trees</span>
                                             <div>
                                                 <span class="md-list-heading">{{ object.chia_trees }} </span>
                                             </div>
                                         </div>
-
                                     </div>
                                     
                                 </div>
                             </li>
                             <li>
                                  <div class="uk-grid">
-                                    <div class="uk-width-medium-1-4 parsley-row">
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">App ID</span>
                                             <div>
@@ -212,7 +221,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="uk-width-medium-1-4 parsley-row">
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Savings</span>
                                             <div>
@@ -225,7 +234,7 @@
                             </li>
                             <li>
                                  <div class="uk-grid">
-                                    <div class="uk-width-medium-1-4 parsley-row">
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="ruk-text-muted uk-text-small">Created By</span>
                                             <div>
@@ -233,7 +242,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="uk-width-medium-1-4 parsley-row">
+                                    <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Create Date</span>
                                             <div>
@@ -308,6 +317,44 @@
                                 </div>
                             </li>
                            
+                        </ul>
+                    </div>
+                </li>
+                <li aria-hidden="true">
+                    <div class="uk-margin-top">
+                        <ul class="md-list">
+                            <li>
+                                <span class="uk-text-muted uk-text-small">Payments {{ object.get_payments.count }}</span>
+                                <div class="md-list-content uk-overflow-container">
+                                    <span class="md-list-heading">
+                                        <table class="uk-table uk-table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Payment Date</th>
+                                                    <th>Number</th>
+                                                    <th>Amount</th>
+                                                    <th>Reference</th>
+                                                    <th>Status</th>
+                                                    <th>Payment Method</th>
+                                                    <th>Transaction Date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for payment in object.get_payments %}
+                                                <tr>
+                                                    <td>{{ payment.payment_date|date:'M. d, Y' }}</td>
+                                                    <td>{{ payment.phone_number }}</td>
+                                                    <td>{{ payment.amount }}</td>
+                                                    <td>{{ payment.transaction_reference }}</td>
+                                                    <td>{{ payment.status }}</td>
+                                                    <td>{{ payment.payment_method }}</td>
+                                                    <td>{{ payment.transaction_date|date:'M. d, Y' }}</td>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </span>
+                                </div>
+                            </li>
                         </ul>
                     </div>
                 </li>
