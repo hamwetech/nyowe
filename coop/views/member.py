@@ -272,6 +272,7 @@ class MemberUploadExcel(ExtraContext, View):
                     rownum = i+1
 
                     # get record ID if any
+                    print(row[record_id_col].value)
                     record_id = re.sub("[^0-9]", "", row[record_id_col].value) if record_id_col else None
                     try:
                         if record_id is not None:
@@ -425,6 +426,7 @@ class MemberUploadExcel(ExtraContext, View):
                     log_error()
                     return render(request, self.template_name, {'active': 'setting', 'form':form, 'error': err})
             not_found_records = []
+            print(member_list)
             if member_list:
                 with transaction.atomic():
                     try:
@@ -435,8 +437,8 @@ class MemberUploadExcel(ExtraContext, View):
                         for c in member_list:
                             name = c.get('farmer_name').split(' ')
                             surname = name[0]
-                            record_id = c.get(record_id)
-                            verified_record = c.get(verified_record)
+                            record_id = c.get('record_id')
+                            verified_record = c.get('verified_record')
                             first_name = name[1] if len(name) > 1 else None
                             other_name = name[2] if len(name) > 2 else None
                             identification = c.get('identification')
@@ -472,15 +474,16 @@ class MemberUploadExcel(ExtraContext, View):
                                 po = pl[0] if len(pl)>0 else None
 
                             # check if the object already exists.
+                            print("Updating check %s " % record_id)
                             if record_id:
                                 try:
                                     member_obj = CooperativeMember.objects.get(id=record_id)
-                                    member_obj.update(
+                                    CooperativeMember.objects.filter(id=record_id).update(
                                         cooperative=cooperative,
                                         surname=surname,
                                         first_name=first_name,
                                         other_name=other_name,
-                                        id_number=identification,
+                                        # id_number=identification,
                                         gender=gender,
                                         date_of_birth=date_of_birth,
                                         phone_number=phone_number if phone_number != '' else None,
@@ -498,38 +501,38 @@ class MemberUploadExcel(ExtraContext, View):
                                     )
                                 except ObjectDoesNotExist:
                                     not_found_records.append(record_id)
+                            else:
+                                if not CooperativeMember.objects.filter(first_name=first_name, surname=surname, phone_number=phone_number).exists():
+                                    member = CooperativeMember.objects.create(
+                                        cooperative=cooperative,
+                                        surname=surname,
+                                        first_name=first_name,
+                                        other_name=other_name,
+                                        id_number=identification,
+                                        gender=gender,
+                                        member_id=self.generate_member_id(cooperative),
+                                        date_of_birth=date_of_birth,
+                                        phone_number=phone_number if phone_number != '' else None,
+                                        district=do,
+                                        county=co,
+                                        sub_county=sco,
+                                        parish=po,
+                                        village=village,
+                                        coop_role=role.title(),
+                                        land_acreage=acreage,
+                                        # soya_beans_acreage=soya,
+                                        # soghum_acreage=soghum,
+                                        create_by=request.user
+                                    )
 
-                            elif not CooperativeMember.objects.filter(first_name=first_name, surname=surname, phone_number=phone_number).exists():
-                                member = CooperativeMember.objects.create(
-                                    cooperative=cooperative,
-                                    surname=surname,
-                                    first_name=first_name,
-                                    other_name=other_name,
-                                    id_number=identification,
-                                    gender=gender,
-                                    member_id=self.generate_member_id(cooperative),
-                                    date_of_birth=date_of_birth,
-                                    phone_number=phone_number if phone_number != '' else None,
-                                    district=do,
-                                    county=co,
-                                    sub_county=sco,
-                                    parish=po,
-                                    village=village,
-                                    coop_role=role.title(),
-                                    land_acreage=acreage,
-                                    # soya_beans_acreage=soya,
-                                    # soghum_acreage=soghum,
-                                    create_by=request.user
-                                )
-                                
-                                message = message_template().member_registration
-                                # if message:
-                                #    if re.search('<NAME>', message):
-                                #        if member.surname:
-                                #            message = message.replace('<NAME>', '%s %s' % (member.surname.title(), member.first_name.title()))
-                                #        message = message.replace('<COOPERATIVE>', member.cooperative.name)
-                                #        message = message.replace('<IDNUMBER>', member.member_id)
-                                #    sendMemberSMS(request, member, message)
+                                    message = message_template().member_registration
+                                    # if message:
+                                    #    if re.search('<NAME>', message):
+                                    #        if member.surname:
+                                    #            message = message.replace('<NAME>', '%s %s' % (member.surname.title(), member.first_name.title()))
+                                    #        message = message.replace('<COOPERATIVE>', member.cooperative.name)
+                                    #        message = message.replace('<IDNUMBER>', member.member_id)
+                                    #    sendMemberSMS(request, member, message)
 
                         if not_found_records:
                             messages.warning(request, "No records with the following IDs ({}) were found.".format(not_found_records))
@@ -621,6 +624,7 @@ class MemberBulkUpdate(ExtraContext, View):
                 except Exception as err:
                     log_error()
                     return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': err})
+            print(member_list)
             if member_list:
                 with transaction.atomic():
                     try:
@@ -739,6 +743,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
         role = self.request.GET.get('role')
         district = self.request.GET.get('district')
         create_by = self.request.GET.get('create_by')
+        verified = self.request.GET.get('verified')
         end_date = self.request.GET.get('end_date')
         start_date = self.request.GET.get('start_date')
         start_time = self.request.GET.get('start_time') if self.request.GET.get('start_time') else "00:00"
@@ -759,6 +764,8 @@ class CooperativeMemberListView(ExtraContext, ListView):
             queryset = queryset.filter(cooperative__id=coop)
         if role:
             queryset = queryset.filter(coop_role=role)
+        if verified:
+            queryset = queryset.filter(verified_record=True)
         if district:
             queryset = queryset.filter(district__id=district)
         if create_by:
@@ -786,6 +793,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
         name = self.request.GET.get('name')
         coop = self.request.GET.get('cooperative')
         role = self.request.GET.get('role')
+        verified = self.request.GET.get('verified')
         district = self.request.GET.get('district')
         create_by = self.request.GET.get('create_by')
         end_date = self.request.GET.get('end_date')
@@ -836,6 +844,8 @@ class CooperativeMemberListView(ExtraContext, ListView):
             _members = _members.filter(cooperative__id=coop)
         if role:
             _members = _members.filter(coop_role=role)
+        if verified:
+            _members = _members.filter(verified_record=True)
         if district:
             _members = _members.filter(district__id=district)
         if create_by:

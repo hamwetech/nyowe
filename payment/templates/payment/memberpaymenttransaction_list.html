@@ -83,9 +83,9 @@
                         {% paginate object_list %}{% get_pages %}
                         {% for item in object_list %}
                             <tr>
-                                <td>{{ item.payment_date| date:"d, M Y H:i:s" }}</td>
-                               <td>{{ item.cooperative }}</td>
-                                <td>{{ item.member }}</td>
+                                <td>{{ item.payment_date| date:"d, M Y" }}</td>
+                               <td>{{ item.cooperative|default:"-" }}</td>
+                                <td>{{ item.member|default:"-" }}</td>
                                 <td>{{ item.name }}</td>
                                 <td>{{ item.member.phone_number|default:item.phone_number }}</td>
                                 <td>{{ item.amount }}</td>

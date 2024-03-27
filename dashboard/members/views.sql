@@ -12,7 +12,7 @@ r.id as region_id,
 cm.district_id as district_id
 FROM cooperative_member cm
 LEFT JOIN district d on cm.district_id=d.id
-LEFT JOIN region r on d.region_id=r.id
+LEFT JOIN region r on d.region_id=r.id;
 
 
 /* collection view */
@@ -32,7 +32,7 @@ cm.district_id as district_id
 FROM collection cl
 INNER JOIN cooperative_member cm on cm.id=cl.member_id
 LEFT JOIN district d on cm.district_id=d.id
-LEFT JOIN region r on d.region_id=r.id
+LEFT JOIN region r on d.region_id=r.id;
 
 
 /* member_order view */
@@ -56,4 +56,4 @@ INNER JOIN cooperative_member cm on cm.id=mo.member_id
 LEFT JOIN order_item oi on mo.id=oi.order_id
 LEFT JOIN item it on oi.item_id=it.id
 LEFT JOIN district d on cm.district_id=d.id
-LEFT JOIN region r on d.region_id=r.id
+LEFT JOIN region r on d.region_id=r.id;

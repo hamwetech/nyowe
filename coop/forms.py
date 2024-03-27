@@ -170,6 +170,7 @@ class MemberProfileSearchForm(forms.Form):
     role = forms.ChoiceField(widget=forms.Select(), choices=choices, required=False)
     district = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
     create_by = forms.ModelChoiceField(queryset=None, required=False)
+    verified = forms.BooleanField(required=False)
     start_date = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'id': 'uk_dp_start',
                                                                                                'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
                                                                                                'autocomplete': "off"}))
