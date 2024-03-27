@@ -8,15 +8,20 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-
+from django.views.generic import TemplateView
 from dashboard.members import queries
 from dashboard.members.utils import execute_sql
+
+
+class MemberAnalyticalDashboard(TemplateView):
+    template_name = "member_analytical_dashboard.html"
 
 
 class DashBoardViewSet(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer,)
     model = None
     response = {'details': 'Access Denied'}
+    months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
     def destroy(self, request, *args, **kwargs):
         return Response(self.response, status=status.HTTP_200_OK, headers={})
@@ -70,10 +75,31 @@ class DashBoardViewSet(viewsets.ModelViewSet):
         # execute query and return that to client.
         query_results = execute_sql(queries.member.format(query_clause))
 
-        response = {
-            'members': query_results,
-        }
-        return Response(response, status=status.HTTP_200_OK, headers={})
+        # Initialize dictionaries to hold counts for each gender
+        female_counts = {i: 0 for i in range(0, 13)}
+        male_counts = {i: 0 for i in range(0, 13)}
+
+        # set data names
+        female_counts[0] = "Female"
+        male_counts[0] = "Male"
+
+        # Populate counts for each gender and month
+        for item in query_results:
+            if item['gender'] == 'Female':
+                female_counts[item['month_created']] += item['member_count']
+            elif item['gender'] == 'Male':
+                male_counts[item['month_created']] += item['member_count']
+
+        # Convert counts to lists based on legend order
+        female_list = [female_counts[i] for i in range(0, 13)]
+        male_list = [male_counts[i] for i in range(0, 13)]
+
+        # Define legend
+        legend = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+
+        # Assemble the result
+        result = {'legend': legend, 'female': female_list, 'male': male_list}
+        return Response(result, status=status.HTTP_200_OK, headers={})
 
     @action(detail=False, methods=['get'], url_path='collections-overview')
     def totalCollections(self, request, *args, **kwargs):

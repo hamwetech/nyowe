@@ -8,6 +8,7 @@ cm.farmer_group_id as farmer_group,
 cm.gender as gender,
 cm.coop_role as coop_role,
 YEAR(cm.create_date) as year_created,
+MONTH(cm.create_date) as month_created,
 r.id as region_id,
 cm.district_id as district_id
 FROM cooperative_member cm
@@ -26,7 +27,8 @@ cl.product_id as product_id,
 cl.unit_price as unit_price,
 cl.quantity as quantity,
 (cl.unit_price * cl.quantity) as total_price,
-YEAR(cl.collection_date) as collection_date,
+YEAR(cl.collection_date) as collection_year,
+MONTH(cl.collection_date) as collection_month,
 r.id as region_id,
 cm.district_id as district_id
 FROM collection cl
@@ -47,8 +49,11 @@ oi.unit_price as unit_price,
 (oi.unit_price * oi.quantity) as total_item_cost,
 mo.status as order_status,
 YEAR(mo.order_date) as year_ordered,
+MONTH(mo.order_date) as month_ordered,
 YEAR(mo.accept_date) as year_accepted,
+MONTH(mo.accept_date) as month_accepted,
 YEAR(mo.create_date) as year_created,
+MONTH(mo.create_date) as month_created,
 r.id as region_id,
 cm.district_id as district_id
 FROM member_order mo

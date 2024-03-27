@@ -29,6 +29,8 @@ from activity import urls as act_urls
 from payment import urls as pay_urls
 from credit import urls as credit_urls
 from account import urls as account_urls
+from dashboard.members import urls as member_insights_urls
+from dashboard.members.views import *
 
 from dashboard.views import *
 from userprofile.views.authentication import LoginView, LogoutView
@@ -51,6 +53,7 @@ urlpatterns = [
     url(r'^activity/', include(act_urls, namespace='activity')),
     url(r'^credit/', include(credit_urls, namespace='credit')),
     url(r'^account/', include(account_urls, namespace='account')),
+    url(r'^insights/', include(member_insights_urls, namespace='dashboard')),
     url(r'^login/$', LoginView.as_view(), name='login'),
     url(r'^logout/$', LogoutView.as_view(), name='logout'),
     url(r'^a_dashboard/$', AnalyticalDashboard.as_view(), name='a_dashboard'),
@@ -59,6 +62,9 @@ urlpatterns = [
     url(r'^a_dashboard/order_distribution/$', order_distribution, name='order_distribution'),
     url(r'^a_dashboard/get_orders_per_month/$', get_orders_per_month, name='get_orders_per_month'),
     url(r'^$', DashboardView.as_view(), name='dashboard'),
+    url(r'member-dashboard/$', MemberAnalyticalDashboard.as_view(), name='member_dashboard'),
+
+
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

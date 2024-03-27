@@ -214,7 +214,6 @@ class BulkPaymentView(View):
                         data['errors'] = '"%s" is not a valid Phone number (row %d)' % \
                         (phone_number, i+1)
                         return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
-                    
                         
                     # if not re.search('^[0-9]+$', phone_number, re.IGNORECASE):
                     #     if (i+1) == sheet.nrows: break
@@ -238,8 +237,7 @@ class BulkPaymentView(View):
                                 data['errors'] = '"%s" is not a valid Transaction Date (row %d)' % \
                                 (e, i+1)
                                 return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
-                       
-                        
+
                     # phone_number = (row[phone_number_col].value)
                     # if phone_number:
                     #     try:
@@ -251,8 +249,7 @@ class BulkPaymentView(View):
                     #         (phone_number, i+1)
                     #         return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
                     # 
-                    
-                   
+
                     try:
                         member = CooperativeMember.objects.get(phone_number=phone_number, cooperative__id=cooperative)
                     except Exception as e:

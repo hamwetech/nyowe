@@ -163,7 +163,6 @@ class AnalyticalDashboard(TemplateView):
 def get_members_per_month(request):
     # Fetch all records
     month = request.GET.get('month')
-    print(month)
     agents = Profile.objects.values_list('user__id', flat=True).filter(access_level__name="AGENT")
     # all_members = CooperativeMember.objects.filter(create_by__in=agents).order_by("id")
     all_members = CooperativeMember.objects.all().order_by("create_date")
@@ -175,8 +174,6 @@ def get_members_per_month(request):
 
     # Iterate through records and count per day
     for member in all_members:
-        # Extract the date part of create_date
-        print(member.create_date.date())
         # day = datetime(member.create_date.year, member.create_date.month, member.create_date.day).date()
         month = member.create_date.strftime('%m')  # '%B' gives the full month name
         # Update the count for the day
@@ -224,8 +221,6 @@ def order_distribution(request):
 def get_orders_per_month(request):
     # Fetch all records
     month = request.GET.get('month')
-    print(month)
-
     all_members = MemberOrder.objects.all().order_by("order_date")
     current_month = datetime.datetime.now().month
     # if month:

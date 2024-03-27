@@ -274,6 +274,12 @@
                     <!-- /union user -->
                 {% endif %}
                 {% if request.user.profile.is_union or request.user.profile.is_cooperative  or request.user.profile.is_partner %}
+                    <li {% if '_adashboard' in active %}class="current_section"{% endif %} title="Dashboard">
+                    <a href="{% url 'member_dashboard' %}">
+                        <span class="menu_icon"><i class="material-icons">&#xE871;</i></span>
+                        <span class="menu_title">Dashboard</span>
+                    </a>
+                </li>
                 <li {% if '_coop_member' in active %}class="current_section"{% endif %} title="Coop Member">
                     <a href="{% url 'coop:member_list' %}">
                         <span class="menu_icon"><i class="material-icons">&#xE86F;</i></span>

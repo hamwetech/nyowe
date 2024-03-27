@@ -24,6 +24,6 @@ urlpatterns = [
      url(r'payment/create/$', PaymentModeCreateView.as_view(), name='payment_create'),
      url(r'payment/list/$', PaymentModeListView.as_view(), name='payment_list'),
      url(r'payment/(?P<pk>[\w]+)/$', PaymentModeUpdateView.as_view(), name='payment_edit'),
-     
+
      url(r'upload/location/$', LocationUploadView.as_view(), name='location_upload'),
     ]
