@@ -360,16 +360,17 @@ class MemberUploadExcel(ExtraContext, View):
                     #     return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
 
                     cooperative = smart_str(row[cooperative_col].value).strip()
-                    if not re.search('^[A-Z\s\(\)\-\.]+$', cooperative, re.IGNORECASE):
-                        data['errors'] = '"%s" is not a valid Cooperative (row %d)' % (cooperative, i+1)
-                        return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
-        
-                    try:
-                        cooperative = Cooperative.objects.get(name=cooperative)
-                    except Exception as e:
-                        log_error()
-                        data['errors'] = 'Cooperative "%s" Not found (row %d)' % (cooperative, i+1)
-                        return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
+                    if cooperative:
+                        if not re.search('^[A-Z\s\(\)\-\.]+$', cooperative, re.IGNORECASE):
+                            data['errors'] = '"%s" is not a valid Cooperative (row %d)' % (cooperative, i+1)
+                            return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
+
+                        try:
+                            cooperative = Cooperative.objects.get(name=cooperative)
+                        except Exception as e:
+                            log_error()
+                            data['errors'] = 'Cooperative "%s" Not found (row %d)' % (cooperative, i+1)
+                            return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
 
                     district = smart_str(row[district_col].value).strip()
                     if district:
@@ -496,7 +497,7 @@ class MemberUploadExcel(ExtraContext, View):
                                         land_acreage=acreage,
                                         # soya_beans_acreage=soya,
                                         # soghum_acreage=soghum,
-                                        create_by=request.user,
+                                        # create_by=request.user,
                                         verified_record=verified_record
                                     )
                                 except ObjectDoesNotExist:
