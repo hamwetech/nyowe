@@ -95,9 +95,15 @@
                     <div>
                         <div class="md-card-content">
                             <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
-                            <span class="uk-text-muted uk-text-small">Weights and Amounts</span>
-                            <h2 class="uk-margin-remove">{{ members }}</h2>
-                            <div id="c3_collections_weights_and_amounts_chat" class="c3chart"></div>
+                            <span class="uk-text-muted uk-text-small">Weight (KGs)</span>
+                            <div id="c3_collections_weights_chat" class="c3chart"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="md-card-content">
+                            <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
+                            <span class="uk-text-muted uk-text-small">Amounts (UGX)</span>
+                            <div id="c3_collections_amounts_chat" class="c3chart"></div>
                         </div>
                     </div>
                     <div>
@@ -222,7 +228,8 @@
                     bindto: '#c3_member_chart_bar_stacked_month',
                     data: {
                       columns: [
-                          data.female, data.male
+                          data.female,
+                          data.male
                       ],
                       types: 'bar',
                     },
@@ -259,8 +266,64 @@
         data: {year: year_filter_id},
         dataType: 'json',
         success: function(data) {
-           let chart = c3.generate({
-                bindto: '#c3_collections_weights_and_amounts_chat', // c3_collections_item_distribution_chat_orders
+            let weights_chart = c3.generate({
+                    bindto: '#c3_collections_weights_chat',
+                    data: {
+                      columns: [
+                          data['weight'],
+                      ],
+                      types: 'bar',
+                    },
+                    axis: {
+                        y: {
+                            label: {
+                              text: 'Weight (Kgs)',
+                              position: 'outer-middle'
+                            },
+                            tick: {
+                              format: d3.format("") // ADD
+                            }
+                        },
+                        x: {
+                            type: 'category',
+                            categories: data.legend,
+                            label: {
+                                text: 'Months',
+                                position: 'outer-middle'
+                            }
+                        },
+                    }
+                });
+            let amounts_chart = c3.generate({
+                    bindto: '#c3_collections_amounts_chat',
+                    data: {
+                      columns: [
+                          data['amounts']
+                      ],
+                      types: 'bar',
+                    },
+                    axis: {
+                        y: {
+                            label: {
+                              text: 'Amounts (UGX)',
+                              position: 'outer-middle'
+                            },
+                            tick: {
+                              format: d3.format("") // ADD
+                            }
+                        },
+                        x: {
+                            type: 'category',
+                            categories: data.legend,
+                            label: {
+                                text: 'Months',
+                                position: 'outer-middle'
+                            }
+                        },
+                    }
+                });
+            let pie_chart = c3.generate({
+                bindto: '#c3_collections_item_distribution_chat',
                 data: {
                     // iris data from R
                     columns: [
@@ -275,7 +338,6 @@
             });
         }
        });
-
 
        $.ajax({
             url: '/insights/data/orders-overview/',

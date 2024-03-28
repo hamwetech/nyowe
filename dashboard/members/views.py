@@ -106,19 +106,39 @@ class DashBoardViewSet(viewsets.ModelViewSet):
         _year, _region, _district = DashBoardViewSet.dataFilters(request)
 
         # construct query where clause
-        query_clause = 'WHERE year_created={} '.format(_year)
+        query_clause = 'WHERE collection_year={} '.format(_year)
         if _region:
             query_clause += 'region_id={} '.format(_region)
         if _district:
             query_clause += 'district_id={} '.format(_district)
 
         # execute query and return that to client.
-        query_results = execute_sql(queries.member.format(query_clause))
+        query_results = execute_sql(queries.collection.format(query_clause))
 
-        response = {
-            'members': query_results,
-        }
-        return Response(response, status=status.HTTP_200_OK, headers={})
+        # Initialize dictionaries to hold Weights for each Amounts
+        weights_sum = {i: 0 for i in range(0, 13)}
+        amount_sum = {i: 0 for i in range(0, 13)}
+
+        # set data names
+        weights_sum[0] = "Weight"
+        amount_sum[0] = "Amounts"
+
+        # Populate counts for each Weight and Amounts
+        for item in query_results:
+            weights_sum[item['collection_month']] += item['weights_sum']
+            amount_sum[item['collection_month']] += item['amount_sum']
+
+        # Convert counts to lists based on legend order
+        weights_list = [weights_sum[i] for i in range(0, 13)]
+        amount_list = [amount_sum[i] for i in range(0, 13)]
+
+        # Define legend
+        legend = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+
+        # Assemble the result
+        result = {'legend': legend, 'weight': weights_list, 'amounts': amount_list}
+
+        return Response(result, status=status.HTTP_200_OK, headers={})
 
     @action(detail=False, methods=['get'], url_path='orders-overview')
     def totalOrders(self, request, *args, **kwargs):
