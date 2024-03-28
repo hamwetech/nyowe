@@ -31,6 +31,7 @@
             <a href="{% url 'coop:member_create' %}" class="md-btn md-btn-success uk-float-right">Add Member</a>
             
 <!--            <a href="{% url 'coop:registration_list' %}" class="md-btn md-btn-success uk-float-right">Registration Fee</a>-->
+            <a href="{% url 'coop:member_bulk_update' %}" class="md-btn md-btn-success uk-float-right">Bulk Update</a>
             <a href="{% url 'coop:member_upload' %}" class="md-btn md-btn-success uk-float-right">Upload Excel</a>
             <a  id="download_file" class="md-btn md-btn-primary uk-float-right">Download Excel</a>
             <a  id="download_file_csv" class="md-btn md-btn-primary uk-float-right">Download CSV</a>
@@ -115,7 +116,7 @@
                         {% for item in object_list %}
                             <tr>
                                 <td class="uk-text-center"><img class="md-user-image"  src="{{ MEDIA_URL }}{{ item.image }}" alt=""/></td>
-                                <td>{{ item.first_name|default:'' }} {{ item.surname|default:'' }} {{ item.other_name|default:'' }}</td>
+                                <td>{{ item.first_name|default:'' }} {{ item.surname|default:'' }} {{ item.other_name|default:'' }} {% include 'verified.html' with field=item.verified_record %}</td>
                                 <td>{{ item.member_id }}</td>
                                 <td>{{ item.phone_number }}</td>
                                 <td>{{ item.gender }}</td>

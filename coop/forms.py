@@ -170,6 +170,7 @@ class MemberProfileSearchForm(forms.Form):
     role = forms.ChoiceField(widget=forms.Select(), choices=choices, required=False)
     district = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
     create_by = forms.ModelChoiceField(queryset=None, required=False)
+    verified = forms.BooleanField(required=False)
     start_date = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'id': 'uk_dp_start',
                                                                                                'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
                                                                                                'autocomplete': "off"}))
@@ -255,6 +256,51 @@ class MemberUploadForm(forms.Form):
         if not ext in ["xlsx", "xls"]:
             raise forms.ValidationError(("The File type is not accepted"))
         return data
+
+
+class MemberUploadUpdateForm(forms.Form):
+    sheetChoice = (
+        ('1', 'sheet1'),
+        ('2', 'sheet2'),
+        ('3', 'sheet3'),
+        ('4', 'sheet4'),
+        ('5', 'sheet5'),
+    )
+
+    rowchoices = (
+        ('1', 'Row 1'),
+        ('2', 'Row 2'),
+        ('3', 'Row 3'),
+        ('4', 'Row 4'),
+        ('5', 'Row 5')
+    )
+
+    choices = list()
+    for i in range(65, 91):
+        choices.append([i - 65, chr(i)])
+
+    excel_file = forms.FileField()
+    sheet = forms.ChoiceField(label="Sheet", choices=sheetChoice, widget=forms.Select(attrs={'class': 'form-control'}))
+    row = forms.ChoiceField(label="Row", choices=rowchoices, widget=forms.Select(attrs={'class': 'form-control'}))
+    id_col = forms.ChoiceField(label='Farmer Name Column', initial=0, choices=choices,
+                                        widget=forms.Select(attrs={'class': 'form-control'}),
+                                        help_text='The column containing the ID')
+    member_id_col = forms.ChoiceField(label='Identification Number', initial=1, choices=choices,
+                                           widget=forms.Select(attrs={'class': 'form-control'}),
+                                           help_text='The column containing the Member ID')
+    land_acreage_check = forms.BooleanField(label='Select to update Land Acreage')
+    land_acreage_col = forms.ChoiceField(label='LAnd Acreage Column', initial=0, choices=choices,
+                                           widget=forms.Select(attrs={'class': 'form-control'}),
+                                           help_text='The column containing the Member ID')
+    shea_trees_check = forms.BooleanField(label='Select to update Shea Trees')
+    shea_trees_col = forms.ChoiceField(label='Shea Tree Column', initial=0, choices=choices,
+                                         widget=forms.Select(attrs={'class': 'form-control'}),
+                                         help_text='The column containing the Member ID')
+    nin_check = forms.BooleanField(label='Select to update Land Acreage')
+    nin_col = forms.ChoiceField(label='National ID Column', initial=0, choices=choices,
+                                         widget=forms.Select(attrs={'class': 'form-control'}),
+                                         help_text='The column containing the Member ID')
+
 
 
 class CooperativeMemberBusinessForm(forms.ModelForm):
@@ -955,6 +1001,7 @@ class OrderSearchForm(forms.ModelForm):
         self.fields['status'].required = False
 
 
+bootstrapify(MemberUploadUpdateForm)
 bootstrapify(OrderSearchForm)
 bootstrapify(AgentSearchForm)
 bootstrapify(SavingsForm)

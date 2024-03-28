@@ -272,6 +272,7 @@ class MemberUploadExcel(ExtraContext, View):
                     rownum = i+1
 
                     # get record ID if any
+                    print(row[record_id_col].value)
                     record_id = re.sub("[^0-9]", "", row[record_id_col].value) if record_id_col else None
                     try:
                         if record_id is not None:
@@ -359,16 +360,17 @@ class MemberUploadExcel(ExtraContext, View):
                     #     return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
 
                     cooperative = smart_str(row[cooperative_col].value).strip()
-                    if not re.search('^[A-Z\s\(\)\-\.]+$', cooperative, re.IGNORECASE):
-                        data['errors'] = '"%s" is not a valid Cooperative (row %d)' % (cooperative, i+1)
-                        return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
-        
-                    try:
-                        cooperative = Cooperative.objects.get(name=cooperative)
-                    except Exception as e:
-                        log_error()
-                        data['errors'] = 'Cooperative "%s" Not found (row %d)' % (cooperative, i+1)
-                        return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
+                    if cooperative:
+                        if not re.search('^[A-Z\s\(\)\-\.\/'']+$', cooperative, re.IGNORECASE):
+                            data['errors'] = '"%s" is not a valid Cooperative (row %d)' % (cooperative, i+1)
+                            return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
+
+                        try:
+                            cooperative = Cooperative.objects.get(name=cooperative)
+                        except Exception as e:
+                            log_error()
+                            data['errors'] = 'Cooperative "%s" Not found (row %d)' % (cooperative, i+1)
+                            return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
 
                     district = smart_str(row[district_col].value).strip()
                     if district:
@@ -396,7 +398,7 @@ class MemberUploadExcel(ExtraContext, View):
                    
                     village = smart_str(row[village_col].value).strip()
                     if village:
-                        if not re.search('^[A-Z\s\(\)\-\.]+$', village, re.IGNORECASE):
+                        if not re.search('^[A-Z0-9\s\(\)\-\.]+$', village, re.IGNORECASE):
                             data['errors'] = '"%s" is not a valid Village (row %d)' % (village, i+1)
                             return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
 
@@ -425,6 +427,7 @@ class MemberUploadExcel(ExtraContext, View):
                     log_error()
                     return render(request, self.template_name, {'active': 'setting', 'form':form, 'error': err})
             not_found_records = []
+            print(member_list)
             if member_list:
                 with transaction.atomic():
                     try:
@@ -435,8 +438,8 @@ class MemberUploadExcel(ExtraContext, View):
                         for c in member_list:
                             name = c.get('farmer_name').split(' ')
                             surname = name[0]
-                            record_id = c.get(record_id)
-                            verified_record = c.get(verified_record)
+                            record_id = c.get('record_id')
+                            verified_record = c.get('verified_record')
                             first_name = name[1] if len(name) > 1 else None
                             other_name = name[2] if len(name) > 2 else None
                             identification = c.get('identification')
@@ -472,15 +475,16 @@ class MemberUploadExcel(ExtraContext, View):
                                 po = pl[0] if len(pl)>0 else None
 
                             # check if the object already exists.
+                            print("Updating check %s " % record_id)
                             if record_id:
                                 try:
                                     member_obj = CooperativeMember.objects.get(id=record_id)
-                                    member_obj.update(
+                                    CooperativeMember.objects.filter(id=record_id).update(
                                         cooperative=cooperative,
                                         surname=surname,
                                         first_name=first_name,
                                         other_name=other_name,
-                                        id_number=identification,
+                                        # id_number=identification,
                                         gender=gender,
                                         date_of_birth=date_of_birth,
                                         phone_number=phone_number if phone_number != '' else None,
@@ -493,43 +497,43 @@ class MemberUploadExcel(ExtraContext, View):
                                         land_acreage=acreage,
                                         # soya_beans_acreage=soya,
                                         # soghum_acreage=soghum,
-                                        create_by=request.user,
+                                        # create_by=request.user,
                                         verified_record=verified_record
                                     )
                                 except ObjectDoesNotExist:
                                     not_found_records.append(record_id)
+                            else:
+                                if not CooperativeMember.objects.filter(first_name=first_name, surname=surname, phone_number=phone_number).exists():
+                                    member = CooperativeMember.objects.create(
+                                        cooperative=cooperative,
+                                        surname=surname,
+                                        first_name=first_name,
+                                        other_name=other_name,
+                                        id_number=identification,
+                                        gender=gender,
+                                        member_id=self.generate_member_id(cooperative),
+                                        date_of_birth=date_of_birth,
+                                        phone_number=phone_number if phone_number != '' else None,
+                                        district=do,
+                                        county=co,
+                                        sub_county=sco,
+                                        parish=po,
+                                        village=village,
+                                        coop_role=role.title(),
+                                        land_acreage=acreage,
+                                        # soya_beans_acreage=soya,
+                                        # soghum_acreage=soghum,
+                                        create_by=request.user
+                                    )
 
-                            elif not CooperativeMember.objects.filter(first_name=first_name, surname=surname, phone_number=phone_number).exists():
-                                member = CooperativeMember.objects.create(
-                                    cooperative=cooperative,
-                                    surname=surname,
-                                    first_name=first_name,
-                                    other_name=other_name,
-                                    id_number=identification,
-                                    gender=gender,
-                                    member_id=self.generate_member_id(cooperative),
-                                    date_of_birth=date_of_birth,
-                                    phone_number=phone_number if phone_number != '' else None,
-                                    district=do,
-                                    county=co,
-                                    sub_county=sco,
-                                    parish=po,
-                                    village=village,
-                                    coop_role=role.title(),
-                                    land_acreage=acreage,
-                                    # soya_beans_acreage=soya,
-                                    # soghum_acreage=soghum,
-                                    create_by=request.user
-                                )
-                                
-                                message = message_template().member_registration
-                                # if message:
-                                #    if re.search('<NAME>', message):
-                                #        if member.surname:
-                                #            message = message.replace('<NAME>', '%s %s' % (member.surname.title(), member.first_name.title()))
-                                #        message = message.replace('<COOPERATIVE>', member.cooperative.name)
-                                #        message = message.replace('<IDNUMBER>', member.member_id)
-                                #    sendMemberSMS(request, member, message)
+                                    message = message_template().member_registration
+                                    # if message:
+                                    #    if re.search('<NAME>', message):
+                                    #        if member.surname:
+                                    #            message = message.replace('<NAME>', '%s %s' % (member.surname.title(), member.first_name.title()))
+                                    #        message = message.replace('<COOPERATIVE>', member.cooperative.name)
+                                    #        message = message.replace('<IDNUMBER>', member.member_id)
+                                    #    sendMemberSMS(request, member, message)
 
                         if not_found_records:
                             messages.warning(request, "No records with the following IDs ({}) were found.".format(not_found_records))
@@ -553,7 +557,172 @@ class MemberUploadExcel(ExtraContext, View):
         idno = str(cooperative.code)+yr+fint
         log_debug("Cooperative %s code is %s" % (cooperative.code, idno))
         return idno
-    
+
+
+class MemberBulkUpdate(ExtraContext, View):
+    template_name = 'coop/collection_upload.html'
+
+    def get(self, request, *args, **kwargs):
+        data = dict()
+        data['form'] = MemberUploadUpdateForm
+        return render(request, self.template_name, data)
+
+    def post(self, request, *args, **kwargs):
+        data = dict()
+        form = MemberUploadUpdateForm(request.POST, request.FILES)
+        if form.is_valid():
+            f = request.FILES['excel_file']
+
+            path = f.temporary_file_path()
+            index = int(form.cleaned_data['sheet']) - 1
+            startrow = int(form.cleaned_data['row']) - 1
+
+            id_col = int(form.cleaned_data['id_col'])
+            member_id_col = int(form.cleaned_data['member_id_col'])
+            land_acreage_col = int(form.cleaned_data['land_acreage_col'])
+            shea_trees_col = int(form.cleaned_data['shea_trees_col'])
+            nin_col = int(form.cleaned_data['nin_col'])
+
+
+            book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
+            sheet = book.sheet_by_index(index)
+            rownum = 0
+            data = dict()
+            member_list = []
+            for i in range(startrow, sheet.nrows):
+                try:
+                    row = sheet.row(i)
+                    rownum = i + 1
+
+                    sys_id = smart_str(row[id_col].value).strip()
+                    member_id = smart_str(row[member_id_col].value).strip()
+                    land_acreage = smart_str(row[land_acreage_col].value).strip()
+                    shea_trees = smart_str(row[shea_trees_col].value).strip()
+                    nin = smart_str(row[nin_col].value).strip()
+
+                    member = CooperativeMember.objects.get(pk=sys_id, member_id=member_id)
+
+
+                    q = {
+                        'farmer_name': farmer_name,
+                        'identification': identification,
+                        'gender': gender,
+                        'date_of_birth': date_of_birth,
+                        'phone_number': phone_number,
+                        'role': role,
+                        'acreage': acreage,
+                        # 'soya': soya,
+                        # 'soghum': soghum,
+                        'cooperative': cooperative,
+                        'district': district,
+                        'county': county,
+                        'sub_county': sub_county,
+                        'parish': parish,
+                        'village': village
+                    }
+                    member_list.append(q)
+
+                except Exception as err:
+                    log_error()
+                    return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': err})
+            print(member_list)
+            if member_list:
+                with transaction.atomic():
+                    try:
+                        do = None
+                        sco = None
+                        co = None
+                        po = None
+                        for c in member_list:
+                            name = c.get('farmer_name').split(' ')
+                            surname = name[0]
+                            first_name = name[1] if len(name) > 1 else None
+                            other_name = name[2] if len(name) > 2 else None
+                            identification = c.get('identification')
+                            cooperative = c.get('cooperative')
+                            district = c.get('district')
+                            sub_county = c.get('sub_county')
+                            county = c.get('county')
+                            parish = c.get('parish')
+                            village = c.get('village')
+                            phone_number = c.get('phone_number')
+                            acreage = c.get('acreage') if c.get('acreage') != '' else 0
+                            # soya = c.get('soya') if c.get('soya') != '' else 0
+                            # soghum = c.get('soghum') if c.get('soghum') != '' else 0
+                            phone_number = c.get('phone_number')
+                            gender = c.get('gender')
+                            role = c.get('role')
+                            date_of_birth = c.get('date_of_birth') if c.get('date_of_birth') != '' else None
+
+                            if district:
+                                dl = [dist for dist in District.objects.filter(name__iexact=district)]
+                                do = dl[0] if len(dl) > 0 else None
+
+                            if county:
+                                cl = [c for c in County.objects.filter(district__name=district, name=county)]
+                                co = cl[0] if len(cl) > 0 else None
+
+                            if sub_county:
+                                scl = [subc for subc in SubCounty.objects.filter(county__name=county, name=sub_county)]
+                                sco = scl[0] if len(scl) > 0 else None
+
+                            if parish:
+                                pl = [p for p in Parish.objects.filter(sub_county__name=sub_county, name=parish)]
+                                po = pl[0] if len(pl) > 0 else None
+
+                            if not CooperativeMember.objects.filter(first_name=first_name, surname=surname,
+                                                                    phone_number=phone_number).exists():
+                                member = CooperativeMember.objects.create(
+                                    cooperative=cooperative,
+                                    surname=surname,
+                                    first_name=first_name,
+                                    other_name=other_name,
+                                    id_number=identification,
+                                    gender=gender,
+                                    member_id=self.generate_member_id(cooperative),
+                                    date_of_birth=date_of_birth,
+                                    phone_number=phone_number if phone_number != '' else None,
+                                    district=do,
+                                    county=co,
+                                    sub_county=sco,
+                                    parish=po,
+                                    village=village,
+                                    coop_role=role.title(),
+                                    land_acreage=acreage,
+                                    # soya_beans_acreage = soya,
+                                    # soghum_acreage = soghum,
+                                    create_by=request.user
+                                )
+
+                                message = message_template().member_registration
+                                # if message:
+                                #    if re.search('<NAME>', message):
+                                #        if member.surname:
+                                #            message = message.replace('<NAME>', '%s %s' % (member.surname.title(), member.first_name.title()))
+                                #        message = message.replace('<COOPERATIVE>', member.cooperative.name)
+                                #        message = message.replace('<IDNUMBER>', member.member_id)
+                                #    sendMemberSMS(request, member, message)
+
+                        return redirect('coop:member_list')
+                    except Exception as err:
+                        log_error()
+                        data['error'] = err
+
+        data['form'] = form
+        return render(request, self.template_name, data)
+
+    def generate_member_id(self, cooperative):
+        member = CooperativeMember.objects.all()
+        count = member.count() + 1
+        today = datetime.today()
+        datem = today.year
+        yr = str(datem)[2:]
+        # idno = generate_numeric(size=4, prefix=str(m.cooperative.code)+yr)
+        fint = "%04d" % count
+        idno = str(cooperative.code) + yr + fint
+        log_debug("Cooperative %s code is %s" % (cooperative.code, idno))
+        return idno
+
 
 class CooperativeMemberListView(ExtraContext, ListView):
     model = CooperativeMember
@@ -575,6 +744,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
         role = self.request.GET.get('role')
         district = self.request.GET.get('district')
         create_by = self.request.GET.get('create_by')
+        verified = self.request.GET.get('verified')
         end_date = self.request.GET.get('end_date')
         start_date = self.request.GET.get('start_date')
         start_time = self.request.GET.get('start_time') if self.request.GET.get('start_time') else "00:00"
@@ -595,6 +765,8 @@ class CooperativeMemberListView(ExtraContext, ListView):
             queryset = queryset.filter(cooperative__id=coop)
         if role:
             queryset = queryset.filter(coop_role=role)
+        if verified:
+            queryset = queryset.filter(verified_record=True)
         if district:
             queryset = queryset.filter(district__id=district)
         if create_by:
@@ -622,6 +794,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
         name = self.request.GET.get('name')
         coop = self.request.GET.get('cooperative')
         role = self.request.GET.get('role')
+        verified = self.request.GET.get('verified')
         district = self.request.GET.get('district')
         create_by = self.request.GET.get('create_by')
         end_date = self.request.GET.get('end_date')
@@ -672,6 +845,8 @@ class CooperativeMemberListView(ExtraContext, ListView):
             _members = _members.filter(cooperative__id=coop)
         if role:
             _members = _members.filter(coop_role=role)
+        if verified:
+            _members = _members.filter(verified_record=True)
         if district:
             _members = _members.filter(district__id=district)
         if create_by:

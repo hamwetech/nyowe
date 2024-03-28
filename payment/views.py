@@ -491,8 +491,11 @@ class UploadPaymentView(View):
                     rownum = i + 1
 
                     # get payment_status if any
-                    payment_status = re.sub('^[A-Za-z -]+$', "", row[payment_status_col].value) if payment_status_col else None
+                    # payment_status = re.sub('^[A-Za-z -]+$', "", row[payment_status_col].value) if payment_status_col else None
+                    payment_status = row[payment_status_col].value if payment_status_col else None
+
                     try:
+
                         if payment_status is not None:
                             if payment_status in ['PENDING', 'SUCCESSFUL', 'FAILED']:
                                 payment_status = payment_status.upper()
@@ -523,11 +526,11 @@ class UploadPaymentView(View):
                         data['errors'] = '"%s" is not a valid Amount Figure (row %d)' % (amount, i + 1)
                         return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
                     transaction_date = None
-                    if len(row) == 3:
+                    if len(row) >= 3:
                         transaction_date = row[transaction_date_col].value
                         if transaction_date:
                             try:
-                                date_str = datetime(*xlrd.xldate_as_tuple(int(transaction_date), book.datemode))
+                                date_str = datetime.datetime(*xlrd.xldate_as_tuple(int(transaction_date), book.datemode))
                                 transaction_date = date_str.strftime("%Y-%m-%d")
                             except Exception as e:
                                 data['errors'] = '"%s" is not a valid Transaction Date (row %d)' % (e, i + 1)
@@ -556,7 +559,7 @@ class UploadPaymentView(View):
                 except Exception as err:
                     log_error()
                     return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': err})
-            print(payment_list)
+
             if payment_list:
                 with transaction.atomic():
                     try:
@@ -569,7 +572,7 @@ class UploadPaymentView(View):
                             payment_status = c.get('payment_status')
 
                             members = CooperativeMember.objects.filter(Q(phone_number=phone_number) | Q(other_phone_number=phone_number))
-                            if members and len(member) == 1:
+                            if members and len(members) == 1:
                                 for member in members:
                                     MemberPaymentTransaction.objects.create(
                                         transaction_reference=reference,
