@@ -361,7 +361,7 @@ class MemberUploadExcel(ExtraContext, View):
 
                     cooperative = smart_str(row[cooperative_col].value).strip()
                     if cooperative:
-                        if not re.search('^[A-Z\s\(\)\-\.]+$', cooperative, re.IGNORECASE):
+                        if not re.search('^[A-Z\s\(\)\-\.\/'']+$', cooperative, re.IGNORECASE):
                             data['errors'] = '"%s" is not a valid Cooperative (row %d)' % (cooperative, i+1)
                             return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
 
