@@ -1,5 +1,6 @@
 /* Database views -> Required to facilitate faster querying of Dashboard data.*/
 /* cooperative_member view */
+DROP VIEW IF EXISTS cooperative_member_view;
 create view cooperative_member_view as
 SELECT
 cm.id as id,
@@ -17,6 +18,7 @@ LEFT JOIN region r on d.region_id=r.id;
 
 
 /* collection view */
+DROP VIEW IF EXISTS collection_view;
 create view collection_view as
 SELECT
 cl.id as id,
@@ -38,6 +40,7 @@ LEFT JOIN region r on d.region_id=r.id;
 
 
 /* member_order view */
+DROP VIEW IF EXISTS member_order_view;
 create view member_order_view as
 SELECT
 mo.id as id,
