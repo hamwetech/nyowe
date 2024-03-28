@@ -109,8 +109,15 @@
                     <div>
                         <div class="md-card-content">
                             <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
-                            <span class="uk-text-muted uk-text-small">Distribution of Collections</span>
-                            <div id="c3_collections_item_distribution_chat_orders" class="c3chart"></div>
+                            <span class="uk-text-muted uk-text-small">Distribution of Collections - Weight (KGs)</span>
+                            <div id="c3_collections_item_distribution_weight_chat" class="c3chart"></div>
+                        </div>
+                    </div>
+                     <div>
+                        <div class="md-card-content">
+                            <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
+                            <span class="uk-text-muted uk-text-small">Distribution of Collections - Amount (KGs)</span>
+                            <div id="c3_collections_item_distribution_amount_chat" class="c3chart"></div>
                         </div>
                     </div>
                 </div>
@@ -270,7 +277,7 @@
                     bindto: '#c3_collections_weights_chat',
                     data: {
                       columns: [
-                          data['weight'],
+                          data['month_weight'],
                       ],
                       types: 'bar',
                     },
@@ -286,7 +293,7 @@
                         },
                         x: {
                             type: 'category',
-                            categories: data.legend,
+                            categories: data['month_legend'],
                             label: {
                                 text: 'Months',
                                 position: 'outer-middle'
@@ -298,7 +305,7 @@
                     bindto: '#c3_collections_amounts_chat',
                     data: {
                       columns: [
-                          data['amounts']
+                          data['month_amounts']
                       ],
                       types: 'bar',
                     },
@@ -314,7 +321,7 @@
                         },
                         x: {
                             type: 'category',
-                            categories: data.legend,
+                            categories: data['month_legend'],
                             label: {
                                 text: 'Months',
                                 position: 'outer-middle'
@@ -322,14 +329,22 @@
                         },
                     }
                 });
-            let pie_chart = c3.generate({
-                bindto: '#c3_collections_item_distribution_chat',
+            let weight_pie_chart = c3.generate({
+                bindto: '#c3_collections_item_distribution_weight_chat',
                 data: {
                     // iris data from R
-                    columns: [
-                        ['Male', data.male],
-                        ['Female', data.female],
-                    ],
+                    columns: data['product_weight'],
+                    type : 'donut',
+                    onclick: function (d, i) { console.log("onclick", d, i); },
+                    onmouseover: function (d, i) { console.log("onmouseover", d, i); },
+                    onmouseout: function (d, i) { console.log("onmouseout", d, i); }
+                }
+            });
+            let amount_pie_chart = c3.generate({
+                bindto: '#c3_collections_item_distribution_amount_chat',
+                data: {
+                    // iris data from R
+                    columns: data['product_amounts'],
                     type : 'donut',
                     onclick: function (d, i) { console.log("onclick", d, i); },
                     onmouseover: function (d, i) { console.log("onmouseover", d, i); },

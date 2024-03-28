@@ -73,7 +73,7 @@ class DashBoardViewSet(viewsets.ModelViewSet):
             query_clause += 'district_id={} '.format(_district)
 
         # execute query and return that to client.
-        query_results = execute_sql(queries.member.format(query_clause))
+        month_query_results = execute_sql(queries.member.format(query_clause))
 
         # Initialize dictionaries to hold counts for each gender
         female_counts = {i: 0 for i in range(0, 13)}
@@ -84,7 +84,7 @@ class DashBoardViewSet(viewsets.ModelViewSet):
         male_counts[0] = "Male"
 
         # Populate counts for each gender and month
-        for item in query_results:
+        for item in month_query_results:
             if item['gender'] == 'Female':
                 female_counts[item['month_created']] += item['member_count']
             elif item['gender'] == 'Male':
@@ -113,31 +113,40 @@ class DashBoardViewSet(viewsets.ModelViewSet):
             query_clause += 'district_id={} '.format(_district)
 
         # execute query and return that to client.
-        query_results = execute_sql(queries.collection.format(query_clause))
+        month_query_results = execute_sql(queries.collection_month.format(query_clause))
+        product_query_results = execute_sql(queries.collection_product.format(query_clause))
 
         # Initialize dictionaries to hold Weights for each Amounts
-        weights_sum = {i: 0 for i in range(0, 13)}
-        amount_sum = {i: 0 for i in range(0, 13)}
+        month_weights_sum = {i: 0 for i in range(0, 13)}
+        month_amount_sum = {i: 0 for i in range(0, 13)}
 
         # set data names
-        weights_sum[0] = "Weight"
-        amount_sum[0] = "Amounts"
+        month_weights_sum[0] = "Weight"
+        month_amount_sum[0] = "Amounts"
 
         # Populate counts for each Weight and Amounts
-        for item in query_results:
-            weights_sum[item['collection_month']] += item['weights_sum']
-            amount_sum[item['collection_month']] += item['amount_sum']
+        for item in month_query_results:
+            month_weights_sum[item['collection_month']] += item['weights_sum']
+            month_amount_sum[item['collection_month']] += item['amount_sum']
 
         # Convert counts to lists based on legend order
-        weights_list = [weights_sum[i] for i in range(0, 13)]
-        amount_list = [amount_sum[i] for i in range(0, 13)]
+        month_weights_list = [month_weights_sum[i] for i in range(0, 13)]
+        month_amount_list = [month_amount_sum[i] for i in range(0, 13)]
+
+        # Initialize dictionaries to hold Weights for each Amounts
+        product_weights_list = [[i['product_name'], i['weights_sum']] for i in product_query_results]
+        product_amount_list = [[i['product_name'], i['amount_sum']] for i in product_query_results]
 
         # Define legend
-        legend = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+        month_legend = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
         # Assemble the result
-        result = {'legend': legend, 'weight': weights_list, 'amounts': amount_list}
-
+        result = {
+            'month_legend': month_legend,
+            'month_weight': month_weights_list,
+            'month_amounts': month_amount_list,
+            'product_weight': product_weights_list,
+            'product_amounts': product_amount_list}
         return Response(result, status=status.HTTP_200_OK, headers={})
 
     @action(detail=False, methods=['get'], url_path='orders-overview')
