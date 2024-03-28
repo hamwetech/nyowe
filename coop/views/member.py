@@ -397,7 +397,7 @@ class MemberUploadExcel(ExtraContext, View):
                    
                     village = smart_str(row[village_col].value).strip()
                     if village:
-                        if not re.search('^[A-Z\s\(\)\-\.]+$', village, re.IGNORECASE):
+                        if not re.search('^[A-Z0-9\s\(\)\-\.]+$', village, re.IGNORECASE):
                             data['errors'] = '"%s" is not a valid Village (row %d)' % (village, i+1)
                             return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
 
