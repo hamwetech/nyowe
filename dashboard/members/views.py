@@ -146,7 +146,8 @@ class DashBoardViewSet(viewsets.ModelViewSet):
             'month_weight': month_weights_list,
             'month_amounts': month_amount_list,
             'product_weight': product_weights_list,
-            'product_amounts': product_amount_list}
+            'product_amounts': product_amount_list
+        }
         return Response(result, status=status.HTTP_200_OK, headers={})
 
     @action(detail=False, methods=['get'], url_path='orders-overview')
@@ -154,16 +155,46 @@ class DashBoardViewSet(viewsets.ModelViewSet):
         _year, _region, _district = DashBoardViewSet.dataFilters(request)
 
         # construct query where clause
-        query_clause = 'WHERE year_created={} '.format(_year)
+        query_clause = 'WHERE year_ordered={} '.format(_year)
         if _region:
             query_clause += 'region_id={} '.format(_region)
         if _district:
             query_clause += 'district_id={} '.format(_district)
 
         # execute query and return that to client.
-        query_results = execute_sql(queries.orders.format(query_clause))
+        month_query_results = execute_sql(queries.orders_month.format(query_clause))
+        item_query_results = execute_sql(queries.orders_items.format(query_clause))
 
-        response = {
-            'members': query_results,
+        # Initialize dictionaries to hold Weights for each Amounts
+        month_counts_sum = {i: 0 for i in range(0, 13)}
+        month_amount_sum = {i: 0 for i in range(0, 13)}
+
+        # set data names
+        month_counts_sum[0] = "Counts"
+        month_amount_sum[0] = "Amounts"
+
+        # Populate counts for each Weight and Amounts
+        for item in month_query_results:
+            month_counts_sum[item['month_ordered']] += item['order_count']
+            month_amount_sum[item['month_ordered']] += item['amount_sum']
+
+        # Convert counts to lists based on legend order
+        month_counts_list = [month_counts_sum[i] for i in range(0, 13)]
+        month_amount_list = [month_amount_sum[i] for i in range(0, 13)]
+
+        # Initialize dictionaries to hold Weights for each Amounts
+        item_counts_list = [[i['item_name'], i['item_count']] for i in item_query_results]
+        item_amount_list = [[i['item_name'], i['amount_sum']] for i in item_query_results]
+
+        # Define legend
+        month_legend = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+
+        # Assemble the result
+        result = {
+            'month_legend': month_legend,
+            'month_counts': month_counts_list,
+            'month_amounts': month_amount_list,
+            'item_counts': item_counts_list,
+            'item_amounts': item_amount_list
         }
-        return Response(response, status=status.HTTP_200_OK, headers={})
+        return Response(result, status=status.HTTP_200_OK, headers={})

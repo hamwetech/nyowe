@@ -47,6 +47,7 @@
                 </table>
                 <hr/>
                 <br/>
+                <span class="uk-text-muted uk-text-small">Members Profiled by Month</span>
                 <div id="c3_member_chart_bar_stacked_month" class="c3chart"></div>
             </div>
         </div>
@@ -95,28 +96,28 @@
                     <div>
                         <div class="md-card-content">
                             <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
-                            <span class="uk-text-muted uk-text-small">Weight (KGs)</span>
+                            <span class="uk-text-muted uk-text-small">Collected Volumes by Month (KGs)</span>
                             <div id="c3_collections_weights_chat" class="c3chart"></div>
                         </div>
                     </div>
                     <div>
                         <div class="md-card-content">
                             <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
-                            <span class="uk-text-muted uk-text-small">Amounts (UGX)</span>
+                            <span class="uk-text-muted uk-text-small">Collection Value by Month (UGX)</span>
                             <div id="c3_collections_amounts_chat" class="c3chart"></div>
                         </div>
                     </div>
                     <div>
                         <div class="md-card-content">
                             <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
-                            <span class="uk-text-muted uk-text-small">Distribution of Collections - Weight (KGs)</span>
+                            <span class="uk-text-muted uk-text-small">Collected Volumes by Product - (KGs)</span>
                             <div id="c3_collections_item_distribution_weight_chat" class="c3chart"></div>
                         </div>
                     </div>
                      <div>
                         <div class="md-card-content">
                             <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
-                            <span class="uk-text-muted uk-text-small">Distribution of Collections - Amount (KGs)</span>
+                            <span class="uk-text-muted uk-text-small">Collection Value by Product - (UGX)</span>
                             <div id="c3_collections_item_distribution_amount_chat" class="c3chart"></div>
                         </div>
                     </div>
@@ -169,16 +170,29 @@
                     <div>
                         <div class="md-card-content">
                             <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
-                            <span class="uk-text-muted uk-text-small">Counts and Amount (UGX)</span>
-                            <h2 class="uk-margin-remove">{{ members }}</h2>
-                            <div id="c3_order_counts_and_amounts_chat" class="c3chart"></div>
+                            <span class="uk-text-muted uk-text-small">Orders Registered by Month</span>
+                            <div id="c3_order_counts_bar_chat" class="c3chart"></div>
                         </div>
                     </div>
                     <div>
                         <div class="md-card-content">
                             <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
-                            <span class="uk-text-muted uk-text-small">Items Purchased</span>
-                            <div id="c3_ordered_items_purchase_chat" class="c3chart"></div>
+                            <span class="uk-text-muted uk-text-small">Value of Orders Registered by Month - (UGX)</span>
+                            <div id="c3_order_amounts_bar_chat" class="c3chart"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="md-card-content">
+                            <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
+                            <span class="uk-text-muted uk-text-small">Orders Registered by Item</span>
+                            <div id="c3_ordered_item_distribution_pie_chat" class="c3chart"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="md-card-content">
+                            <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
+                            <span class="uk-text-muted uk-text-small">Value of Orders Registered by Item - (UGX)</span>
+                            <div id="c3_ordered_amounts_distribution_pie_chat" class="c3chart"></div>
                         </div>
                     </div>
                 </div>
@@ -360,18 +374,77 @@
             data: {year: year_filter_id},
             dataType: 'json',
             success: function(data) {
-                columns = []
-                $.each(data.data, function(index, item) {
-                    let columnName = item.item_id;
-                    let totalQuantity = parseFloat(item.total_quantity);
-                    columns.push([columnName, totalQuantity]);
-                });
-               let chart = c3.generate({
-                    bindto: '#c3_order_counts_and_amounts_chat',  // c3_ordered_items_purchase_chat
+                let order_counts_chart = c3.generate({
+                        bindto: '#c3_order_counts_bar_chat',
+                        data: {
+                          columns: [
+                              data['month_counts'],
+                          ],
+                          types: 'bar',
+                        },
+                        axis: {
+                            y: {
+                                label: {
+                                  text: '# of Orders',
+                                  position: 'outer-middle'
+                                },
+                                tick: {
+                                  format: d3.format("") // ADD
+                                }
+                            },
+                            x: {
+                                type: 'category',
+                                categories: data['month_legend'],
+                                label: {
+                                    text: 'Months',
+                                    position: 'outer-middle'
+                                }
+                            },
+                        }
+                    });
+                let order_amounts_chart = c3.generate({
+                        bindto: '#c3_order_amounts_bar_chat',
+                        data: {
+                          columns: [
+                              data['month_amounts']
+                          ],
+                          types: 'bar',
+                        },
+                        axis: {
+                            y: {
+                                label: {
+                                  text: 'Amounts (UGX)',
+                                  position: 'outer-middle'
+                                },
+                                tick: {
+                                  format: d3.format("") // ADD
+                                }
+                            },
+                            x: {
+                                type: 'category',
+                                categories: data['month_legend'],
+                                label: {
+                                    text: 'Months',
+                                    position: 'outer-middle'
+                                }
+                            },
+                        }
+                    });
+                let order_items_pie_chart = c3.generate({
+                    bindto: '#c3_ordered_item_distribution_pie_chat',
                     data: {
-                        // iris data from R
-                        columns,
-                        type : 'pie',
+                        columns: data['item_counts'],
+                        type : 'donut',
+                        onclick: function (d, i) { console.log("onclick", d, i); },
+                        onmouseover: function (d, i) { console.log("onmouseover", d, i); },
+                        onmouseout: function (d, i) { console.log("onmouseout", d, i); }
+                    }
+                });
+                let order_amounts_pie_chart = c3.generate({
+                    bindto: '#c3_ordered_amounts_distribution_pie_chat',
+                    data: {
+                        columns: data['item_amounts'],
+                        type : 'donut',
                         onclick: function (d, i) { console.log("onclick", d, i); },
                         onmouseover: function (d, i) { console.log("onmouseover", d, i); },
                         onmouseout: function (d, i) { console.log("onmouseout", d, i); }
