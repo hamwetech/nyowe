@@ -26,6 +26,7 @@ cl.cooperative_id as cooperative_id,
 cl.farmer_group_id as farmer_group,
 cl.member_id as member_id,
 cl.product_id as product_id,
+p.name as product_name,
 cl.unit_price as unit_price,
 cl.quantity as quantity,
 (cl.unit_price * cl.quantity) as total_price,
@@ -35,6 +36,7 @@ r.id as region_id,
 cm.district_id as district_id
 FROM collection cl
 INNER JOIN cooperative_member cm on cm.id=cl.member_id
+INNER JOIN product p on p.id=cl.product_id
 LEFT JOIN district d on cm.district_id=d.id
 LEFT JOIN region r on d.region_id=r.id;
 
