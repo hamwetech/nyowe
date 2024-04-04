@@ -18,6 +18,9 @@
     <h3 class="heading_b uk-margin-bottom">{{ title|default:"Payment Form" }}</h3>
     <div class="md-card">
         <div class="md-card-content">
+            <p class="uk-text-warning uk-text-bold uk-margin-remove">
+                    Use the Collection Upload template <a href="{% static 'assets/template_files/payment_template_file.xlsx' %}">Here</a> to upload the Collection data
+                </p>
             {{ help_text|default:"Upload excel file of member payment" }} <br><br><br>
             <form method="POST" class="new-event-form" role="role" enctype="multipart/form-data">
                {% csrf_token %}

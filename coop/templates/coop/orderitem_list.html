@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load material_form %} 
+{% load material_form %}
+{% load el_pagination_tags %}
 {% block style %}
 <style>
     .uk-overflow-container {
@@ -61,6 +62,7 @@
                     </tr>
                     </thead>
                     <tbody>
+                    {% paginate object_list %}{% get_pages %}
                         {% for item in object_list %}
                             <tr>
                                 <td>{{ item.order.order_date| date:"d, M Y" }}</td>
@@ -78,6 +80,13 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+            <div class="row-pagination">
+                Showing entries
+                {{ pages.current_start_index }}-{{ pages.current_end_index }} of
+                {{ pages.total_count }}.
+                {# Just print pages to render the Digg-style pagination. #}
+                {% show_pages %}
             </div>
            
         </div>

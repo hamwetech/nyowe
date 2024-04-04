@@ -254,7 +254,8 @@ class MemberUploadExcel(ExtraContext, View):
             sub_county_col = int(form.cleaned_data['sub_county_col'])
             parish_col = int(form.cleaned_data['parish_col'])
             village_col = int(form.cleaned_data['village_col'])
-            
+            user_id_col = int(form.cleaned_data['user_id_col'])
+
             book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
             sheet = book.sheet_by_index(index)
 
@@ -272,7 +273,7 @@ class MemberUploadExcel(ExtraContext, View):
                     rownum = i+1
 
                     # get record ID if any
-                    print(row[record_id_col].value)
+
                     record_id = re.sub("[^0-9]", "", row[record_id_col].value) if record_id_col else None
                     try:
                         if record_id is not None:
@@ -402,6 +403,13 @@ class MemberUploadExcel(ExtraContext, View):
                             data['errors'] = '"%s" is not a valid Village (row %d)' % (village, i+1)
                             return render(request, self.template_name, {'active': 'system', 'form':form, 'error': data})
 
+                    user_id = smart_str(row[user_id_col].value).strip()
+                    if user_id:
+                        if not re.search('^[A-Z0-9\s\(\)\-\.]+$', village, re.IGNORECASE):
+                            data['errors'] = '"%s" is not a valid USer ID (row %d)' % (village, i + 1)
+                            return render(request, self.template_name,
+                                          {'active': 'system', 'form': form, 'error': data})
+
                     q = {
                         'farmer_name': farmer_name,
                         'identification': identification,
@@ -418,6 +426,7 @@ class MemberUploadExcel(ExtraContext, View):
                         'sub_county': sub_county,
                         'parish': parish,
                         'village': village,
+                        'user_id': user_id,
                         'record_id': record_id,
                         'verified_record': verified_record
                     }
@@ -449,6 +458,7 @@ class MemberUploadExcel(ExtraContext, View):
                             county = c.get('county')
                             parish = c.get('parish')
                             village = c.get('village')
+                            user_id = c.get('user_id')
                             phone_number = c.get('phone_number')
                             acreage = c.get('acreage') if c.get('acreage') != '' else 0
                             # soya = c.get('soya') if c.get('soya') != '' else 0
@@ -498,7 +508,8 @@ class MemberUploadExcel(ExtraContext, View):
                                         # soya_beans_acreage=soya,
                                         # soghum_acreage=soghum,
                                         # create_by=request.user,
-                                        verified_record=verified_record
+                                        verified_record=verified_record,
+                                        user_id=user_id
                                     )
                                 except ObjectDoesNotExist:
                                     not_found_records.append(record_id)
@@ -523,7 +534,9 @@ class MemberUploadExcel(ExtraContext, View):
                                         land_acreage=acreage,
                                         # soya_beans_acreage=soya,
                                         # soghum_acreage=soghum,
-                                        create_by=request.user
+                                        create_by=request.user,
+                                        user_id=user_id
+
                                     )
 
                                     message = message_template().member_registration

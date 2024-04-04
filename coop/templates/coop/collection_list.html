@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load el_pagination_tags %}
 {% load material_form %} 
 
 {% block page_content %}
@@ -73,6 +74,7 @@
                     </tr>
                     </thead>
                     <tbody>
+                        {% paginate object_list %}{% get_pages %}
                         {% for item in object_list %}
                             <tr>
                                 <td>{{ item.collection_date| date:"d, M Y" }}</td>
@@ -88,6 +90,13 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+            <div class="row-pagination">
+                Showing entries
+                {{ pages.current_start_index }}-{{ pages.current_end_index }} of
+                {{ pages.total_count }}.
+                {# Just print pages to render the Digg-style pagination. #}
+                {% show_pages %}
             </div>
            
         </div>

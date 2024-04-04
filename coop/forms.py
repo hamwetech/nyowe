@@ -247,6 +247,7 @@ class MemberUploadForm(forms.Form):
     sub_county_col = forms.ChoiceField(label='Sub County Column', initial=10, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Sub county')
     parish_col = forms.ChoiceField(label='Parish Column', initial=11, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Parish')
     village_col = forms.ChoiceField(label='Village Column', initial=12, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Village')
+    user_id_col = forms.ChoiceField(label='User ID Column', initial=13, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the the USer id given to a farmer')
     # organisation_col = forms.ChoiceField(label='Organisation Column', initial=14, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Organisation')
 
     def clean(self):

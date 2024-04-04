@@ -288,6 +288,7 @@ class CooperativeMember(models.Model):
     cooperative = models.ForeignKey(Cooperative, null=True, blank=True, on_delete=models.CASCADE)
     farmer_group = models.ForeignKey(FarmerGroup, null=True, blank=True, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='member/', null=True, blank=True)
+    user_id = models.CharField(max_length=150, unique=True, null=True, blank=True)
     member_id = models.CharField(max_length=150, unique=True, null=True, blank=True)
     title = models.CharField(max_length=25, choices=title, null=True, blank=True)
     surname = models.CharField(max_length=150)

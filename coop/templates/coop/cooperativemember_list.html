@@ -117,7 +117,8 @@
                             <tr>
                                 <td class="uk-text-center"><img class="md-user-image"  src="{{ MEDIA_URL }}{{ item.image }}" alt=""/></td>
                                 <td>{{ item.first_name|default:'' }} {{ item.surname|default:'' }} {{ item.other_name|default:'' }} {% include 'verified.html' with field=item.verified_record %}</td>
-                                <td>{{ item.member_id }}</td>
+                                <td>{{ item.member_id }} {% if item.user_id %} <small><i><b>User ID: </b>{{ item.user_id|default:'' }}</i>
+                                </small>{% endif %}</td>
                                 <td>{{ item.phone_number }}</td>
                                 <td>{{ item.gender }}</td>
                                 <td>{{ item.cooperative  }}</td>

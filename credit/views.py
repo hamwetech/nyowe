@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import re
 import json
 import xlrd
 import xlwt
@@ -237,6 +238,7 @@ class LoanRequestUploadView(ExtraContext, View):
     def post(self, request, **kwargs):
         context = dict()
         form = LoanUploadForm(request.POST, request.FILES)
+
         if form.is_valid():
             f = request.FILES['excel_file']
 
@@ -255,7 +257,7 @@ class LoanRequestUploadView(ExtraContext, View):
             sheet = book.sheet_by_index(index)
             rownum = 0
             data = dict()
-            order_list = []
+            payment_list = []
             member = None
 
             for i in range(startrow, sheet.nrows):
@@ -270,15 +272,51 @@ class LoanRequestUploadView(ExtraContext, View):
                     district = smart_str(row[district_col].value).strip()
                     loan_amount = smart_str(row[loan_amount_col].value).strip()
 
+                    if not re.search('^[0-9\.]+$', loan_amount, re.IGNORECASE):
+                        data['errors'] = '"%s" is not a valid Amount Figure (row %d)' % (loan_amount, i + 1)
+                        print(data)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
                     member = CooperativeMember.objects.filter(
                         surname=last_name,
-                        first_name=first_name
+                        first_name=first_name,
+                        district__name=district
                     )
                     print(last_name)
 
+                    q = {'member': member,
+                         'loan_amount': loan_amount,
+                         'phone_number': phone_number,
+                         }
+                    payment_list.append(q)
+
+
                 except Exception as err:
                     log_error()
+                    print(err)
                     return render(request, self.template_name, {'active': 'setting', 'form':form, 'error': err})
 
+            print(payment_list)
+            if payment_list:
+                with transaction.atomic():
+                    try:
+                        do = None
 
+                        for c in payment_list:
+                            member = nc.get('member')
+                            requested_amount = nc.get('loan_amount')
+                            request_date = nc.get('request_date') if c.get('date_of_birth') != '' else None
+                            phone_number = nc.get('phone_number')
+
+
+                            LoanRequest.objects.create(
+                                reference=generate_alpanumeric(AMT,9),
+                                member=member,
+                                requested_amount=requested_amount,
+                                request_date=request_date
+                            )
+                        return redirect('credit:loan_list')
+                    except Exception as err:
+                        log_error()
+                        data['error'] = err
         return render(request, self.template_name, context)

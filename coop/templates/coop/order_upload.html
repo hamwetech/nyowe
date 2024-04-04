@@ -12,6 +12,9 @@
 <h3 class="heading_b uk-margin-bottom">Order Upload Form</h3>
    <div class="md-card">
         <div class="md-card-content">
+            <p class="uk-text-warning uk-text-bold uk-margin-remove">
+                    Use the Collection Upload template <a href="{% static 'assets/template_files/order_template_file.xlsx' %}">Here</a> to upload the Collection data
+                </p>
             <form method="POST" class="new-event-form" role="role" enctype="multipart/form-data">
                 {% csrf_token %}
                 {% if error %}<div class="uk-alert uk-alert-danger" data-uk-alert="">{{ error.errors }}<div>{{ error }}</div> </div>{% endif %}
