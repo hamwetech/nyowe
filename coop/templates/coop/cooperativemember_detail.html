@@ -20,7 +20,8 @@
                     Role: <b>{{ object.coop_role|title }}</b> |
                      Quantity Collected: <b>{{ object.collection_quantity|intcomma  }}</b> |
                     Amount Balance: <b>{{ object.collection_amount|intcomma  }}</b> | 
-                    Paid Amount<b> {{ object.paid_amount|intcomma  }}</b></span>
+                    Paid Amount<b> {{ object.paid_amount|intcomma  }}</b>
+                    Sent SMS<b> {{ object.get_sms_sent|intcomma  }}</b></span>
                 </h2>
             </div>
             <div class="md-fab-wrapper">
@@ -52,7 +53,7 @@
                                     <div class="uk-width-medium-1-3 parsley-row">
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Name</span>
-                                            <div class="md-list-heading">{{ object.surname }} {{ object.first_name }} {{ object.other_name|default:'' }} </div>
+                                            <div class="md-list-heading"> {{ object.surname }} {{ object.first_name }} {{ object.other_name|default:'' }} {% include 'verified.html' with field=object.verified_record %}</div>
                                         </div>
                                     </div>
                                     <div class="uk-width-medium-1-3 parsley-row">
@@ -68,6 +69,28 @@
                                         </div>
                                     </div>
                                 </div>
+                            </li>
+                            <li>
+                                 <div class="uk-grid">
+                                     <div class="uk-width-medium-1-3 parsley-row">
+                                         <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Cooperative</span>
+                                            <div class="md-list-heading">{{ object.cooperative }}</div>
+                                        </div>
+                                     </div>
+                                     <div class="uk-width-medium-1-3 parsley-row">
+                                         <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Farmer Group</span>
+                                            <div class="md-list-heading">{{ object.farmer_group }}</div>
+                                        </div>
+                                     </div>
+                                     <div class="uk-width-medium-1-3 parsley-row">
+                                         <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Is Handicap</span>
+                                            <div class="md-list-heading">{{ object.is_handicap }}</div>
+                                        </div>
+                                    </div>
+                                 </div>
                             </li>
                             <li>
                                  <div class="uk-grid">
@@ -135,7 +158,7 @@
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">District</span>
                                             <div>
-                                                <span class="md-list-heading">{{ object.district }} </span>
+                                                <span class="md-list-heading">{{ object.district|default:"-"  }} </span>
                                             </div>
                                         </div>
                                     </div>
@@ -143,7 +166,7 @@
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">County</span>
                                             <div>
-                                                <span class="md-list-heading">{{ object.county }} </span>
+                                                <span class="md-list-heading">{{ object.county|default:"-"  }} </span>
                                             </div>
                                         </div>
                                     </div>
@@ -151,7 +174,15 @@
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Sub County</span>
                                             <div>
-                                                <span class="md-list-heading">{{ object.sub_county }} </span>
+                                                <span class="md-list-heading">{{ object.sub_county|default:"-"  }} </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="uk-width-medium-1-3 parsley-row">
+                                        <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Parish</span>
+                                            <div>
+                                                <span class="md-list-heading">{{ object.parish|default:"-"  }} </span>
                                             </div>
                                         </div>
                                     </div>
@@ -159,7 +190,7 @@
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Village</span>
                                             <div>
-                                                <span class="md-list-heading">{{ object.get_village }} </span>
+                                                <span class="md-list-heading">{{ object.village|default:"-" }} </span>
                                             </div>
                                         </div>
                                     </div>
@@ -167,7 +198,7 @@
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">GPS</span>
                                             <div>
-                                                <span class="md-list-heading">{{ object.gps_coodinates }} </span>
+                                                <span class="md-list-heading">{{ object.gps_coodinates|default:"-"  }} </span>
                                             </div>
                                         </div>
                                     </div>
@@ -204,11 +235,48 @@
                                         <div class="md-list-content">
                                             <span class="uk-text-muted uk-text-small">Shea Trees</span>
                                             <div>
-                                                <span class="md-list-heading">{{ object.chia_trees }} </span>
+                                                <span class="md-list-heading">{{ object.shea_trees }} </span>
                                             </div>
                                         </div>
                                     </div>
                                     
+                                </div>
+                            </li>
+                            <li>
+                                <div class="uk-grid">
+                                    <div class="uk-width-medium-1-3 parsley-row">
+                                        <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Harvested Quantity</span>
+                                            <div>
+                                                <span class="md-list-heading">{{ object.harvested_quantity }} </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="uk-width-medium-1-3 parsley-row">
+                                        <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Sunflower Acreage</span>
+                                            <div>
+                                                <span class="md-list-heading">{{ object.sunflower_acreage }} </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="uk-width-medium-1-3 parsley-row">
+                                        <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Sunflower Planted</span>
+                                            <div>
+                                                <span class="md-list-heading">{{ object.sunflower_planted }} </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="uk-width-medium-1-3 parsley-row">
+                                        <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Sunflower Collected</span>
+                                            <div>
+                                                <span class="md-list-heading">{{ object.sunflower_collected }} </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </li>
                             <li>
@@ -226,6 +294,14 @@
                                             <span class="uk-text-muted uk-text-small">Savings</span>
                                             <div>
                                                 <span class="md-list-heading">{{ object.savings_balance }} </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                     <div class="uk-width-medium-1-3 parsley-row">
+                                        <div class="md-list-content">
+                                            <span class="uk-text-muted uk-text-small">Status</span>
+                                            <div>
+                                                <span class="md-list-heading">{{ object.is_active }} </span>
                                             </div>
                                         </div>
                                     </div>

@@ -7,7 +7,7 @@ import datetime
 
 from django.db import transaction
 from django.db.models import Q
-from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect, HttpResponse
 from django.urls import reverse_lazy
 from django.utils.encoding import smart_str
 from django.forms.formsets import formset_factory, BaseFormSet
@@ -17,11 +17,11 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from userprofile.models import Profile, AccessLevel
 from credit.utils import create_loan_transaction
 from credit.models import CreditManager, LoanRequest, CreditManagerAdmin, LoanTransaction
-from credit.forms import CreditManagerForm, CreditManagerUserForm, LoanUploadForm
+from credit.forms import CreditManagerForm, CreditManagerUserForm, LoanUploadForm, LoanSearchForm
 
 from coop.utils import credit_member_account, debit_member_account
 from coop.models import MemberOrder, CooperativeMember, OrderItem
-from conf.utils import generate_alpanumeric, genetate_uuid4, log_error, log_debug, generate_numeric, float_to_intstring, \
+from conf.utils import generate_alpanumeric, genetate_uuid4, log_error, log_debug, generate_numeric, internationalize_number, float_to_intstring, \
     get_deleted_objects, \
     get_message_template as message_template
 
@@ -65,6 +65,7 @@ class CreditManagerAdminCreateView(CreateView):
     template_name = "credit/cm_user_form.html"
     extra_context = {'active': ['__cm']}
     success_url = reverse_lazy('credit:cm_list')
+
 
     def form_valid(self, form):
         # f = super(SupplierUserCreateView, self).form_valid(form)
@@ -124,6 +125,111 @@ class LoanRequestListView(ExtraContext, ListView):
     extra_context = {'active': ['_credit', '__loan']}
     ordering = ('-id')
 
+    def dispatch(self, *args, **kwargs):
+        if self.request.GET.get('download'):
+            return self.download_file()
+        return super(LoanRequestListView, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self, **kwargs):
+        queryset = super(LoanRequestListView, self).get_queryset(**kwargs)
+        search = self.request.GET.get('search')
+        cooperative = self.request.GET.get('cooperative')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+
+        if search:
+            queryset = queryset.filter(Q(member__surname__icontains=search)|Q(member__first_name__icontains=search)|Q(member__phone_number__icontains=search))
+
+        if cooperative:
+            queryset = queryset.filter(member__cooperative__id=cooperative)
+        if start_date:
+            queryset = queryset.filter(request_date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(request_date__gte=end_date)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(LoanRequestListView, self).get_context_data(**kwargs)
+        context['form'] = LoanSearchForm
+        if self.request.GET:
+            context['form'] = LoanSearchForm(self.request.GET)
+        return context
+
+    def download_file(self, *args, **kwargs):
+
+        _value = []
+        columns = []
+        search = self.request.GET.get('search')
+        cooperative = self.request.GET.get('cooperative')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+
+        profile_choices = ['member__first_name', 'member__surname', 'request_date', 'requested_amount', 'agent', 'status']
+
+        columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
+        # Gather the Information Found
+        # Create the HttpResponse object with Excel header.This tells browsers that
+        # the document is a Excel file.
+        response = HttpResponse(content_type='application/ms-excel')
+
+        # The response also has additional Content-Disposition header, which contains
+        # the name of the Excel file.
+        response['Content-Disposition'] = 'attachment; filename=MemberLoanRequests_%s.xls' % datetime.datetime.now().strftime(
+            '%Y%m%d%H%M%S')
+
+        # Create object for the Workbook which is under xlwt library.
+        workbook = xlwt.Workbook()
+
+        # By using Workbook object, add the sheet with the name of your choice.
+        worksheet = workbook.add_sheet("Members")
+
+        row_num = 0
+        style_string = "font: bold on; borders: bottom dashed"
+        style = xlwt.easyxf(style_string)
+
+        for col_num in range(len(columns)):
+            # For each cell in your Excel Sheet, call write function by passing row number,
+            # column number and cell data.
+            worksheet.write(row_num, col_num, columns[col_num], style=style)
+
+        queryset = LoanRequest.objects.values(*profile_choices).all()
+
+        if search:
+            queryset = queryset.filter(
+                Q(member__surname__icontains=search) | Q(member__first_name__icontains=search) | Q(
+                    member__phone_number__icontains=search))
+
+        if cooperative:
+            queryset = queryset.filter(member__cooperative__id=cooperative)
+        if start_date:
+            queryset = queryset.filter(request_date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(request_date__gte=end_date)
+
+        for m in queryset:
+
+            row_num += 1
+            ##print profile_choices
+            row = [
+                m['%s' % x] if 'request_date' not in x else m['%s' % x].strftime('%d-%m-%Y') if m.get('%s' % x) else ""
+                for x in profile_choices]
+
+            for col_num in range(len(row)):
+                worksheet.write(row_num, col_num, row[col_num])
+        workbook.save(response)
+        return response
+
+    def replaceMultiple(self, mainString, toBeReplaces, newString):
+        # Iterate over the strings to be replaced
+        for elem in toBeReplaces:
+            # Check if string is in the main string
+            if elem in mainString:
+                # Replace the string
+                mainString = mainString.replace(elem, newString)
+
+        return mainString
+
 
 class LoanRequestDetailView(ExtraContext, DetailView):
     model = LoanRequest
@@ -132,6 +238,27 @@ class LoanRequestDetailView(ExtraContext, DetailView):
 
 
 class ApproveLoan(View):
+    def get(self, request, *args, **kwargs):
+        pk = self.kwargs.get('pk')
+        status = self.kwargs.get('status')
+        today = datetime.datetime.today()
+        try:
+            lq = LoanRequest.objects.get(pk=pk)
+            if status == 'APPROVED':
+                lq.confirm_date = today
+            if status == 'REJECTED':
+                lq.confirm_date = today
+            if status == "STATUS":
+                status = lq.status
+            lq.status = status
+            lq.save()
+        except Exception as e:
+            log_error()
+
+        return redirect('credit:loan_detail', pk)
+
+
+class ApproveLoan_dep(View):
     def get(self, request, *args, **kwargs):
         pk = self.kwargs.get('pk')
         status = self.kwargs.get('status')
@@ -226,6 +353,7 @@ class LoanTransactionListView(ExtraContext, ListView):
     ordering = ('-id')
 
 
+
 class LoanRequestUploadView(ExtraContext, View):
     template_name = "credit/loan_upload_view.html"
 
@@ -240,24 +368,27 @@ class LoanRequestUploadView(ExtraContext, View):
         form = LoanUploadForm(request.POST, request.FILES)
 
         if form.is_valid():
+
             f = request.FILES['excel_file']
 
             path = f.temporary_file_path()
             index = int(form.cleaned_data['sheet']) - 1
             startrow = int(form.cleaned_data['row']) - 1
 
-            last_name_col = int(form.cleaned_data['last_name_col'])
-            first_name_col = int(form.cleaned_data['first_name_col'])
+            proceed = form.cleaned_data['proceed']
+            credit_manager = form.cleaned_data['credit_manager']
+            name_col = int(form.cleaned_data['name_col'])
             phone_number_col = int(form.cleaned_data['phone_number_col'])
-            village_col = int(form.cleaned_data['village_col'])
-            district_col = int(form.cleaned_data['district_col'])
+            request_date_col = int(form.cleaned_data['request_date_col'])
             loan_amount_col = int(form.cleaned_data['loan_amount_col'])
+            agent_col = int(form.cleaned_data['agent_col'])
 
             book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
             sheet = book.sheet_by_index(index)
             rownum = 0
             data = dict()
             payment_list = []
+            members_not_found = []
             member = None
 
             for i in range(startrow, sheet.nrows):
@@ -265,36 +396,62 @@ class LoanRequestUploadView(ExtraContext, View):
                     row = sheet.row(i)
                     rownum = i + 1
 
-                    last_name = smart_str(row[last_name_col].value).strip()
-                    first_name = smart_str(row[first_name_col].value).strip()
+                    name = smart_str(row[name_col].value).strip()
                     phone_number = smart_str(row[phone_number_col].value).strip()
-                    village = smart_str(row[village_col].value).strip()
-                    district = smart_str(row[district_col].value).strip()
+                    # request_date = smart_str(row[request_date_col].value).strip()
                     loan_amount = smart_str(row[loan_amount_col].value).strip()
+                    agent = smart_str(row[agent_col].value).strip()
 
-                    if not re.search('^[0-9\.]+$', loan_amount, re.IGNORECASE):
-                        data['errors'] = '"%s" is not a valid Amount Figure (row %d)' % (loan_amount, i + 1)
+                    if not re.search('^[0-9]+$', phone_number, re.IGNORECASE):
+                        data['errors'] = '"%s" is not a valid Phone Number (row %d)' % (phone_number, i + 1)
                         print(data)
                         return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
-                    member = CooperativeMember.objects.filter(
-                        surname=last_name,
-                        first_name=first_name,
-                        district__name=district
-                    )
-                    print(last_name)
+                    if not re.search('^[0-9\.]+$', loan_amount, re.IGNORECASE):
+                        data['errors'] = '"%s" is not a valid Amount Figure (row %d)' % (loan_amount, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+                    request_date = (row[request_date_col].value)
+                    if request_date:
+                        try:
+                            date_str = datetime.datetime(*xlrd.xldate_as_tuple(int(request_date), book.datemode))
+                            # transaction_date = date_str.strftime("%Y-%m-%d")
+                            # date_str = datetime(*xlrd.xldate_as_tuple(request_date, book.datemode))
+                            request_date = date_str.strftime("%Y-%m-%d %H:%M")
+                        except Exception as e:
+                            data['errors'] = '"%s" is not a valid Request Date (row %d): %s' % \
+                                             (request_date, i + 1, e)
+                            return render(request, self.template_name,
+                                          {'active': 'system', 'form': form, 'error': data})
+
+
+                    phn = internationalize_number(phone_number)
+                    # member = CooperativeMember.objects.filter(Q(user_id=phone_number)|Q(member_id=phone_number)|Q(phone_number=phn)|Q(id=phone_number))
+                    member = None
+                    members = CooperativeMember.objects.filter(phone_number=phn)
+                    if members.count() == 1:
+                        member = members[0]
+                    else:
+                        members_not_found.append('"%s" Member record not found (row %d)' % (name, i + 1))
+                        # data['errors'] = '"%s %s" Member record not found (row %d)' % (last_name, first_name, i + 1)
+                        # return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
                     q = {'member': member,
                          'loan_amount': loan_amount,
                          'phone_number': phone_number,
+                         'agent': agent,
+                         'request_date': request_date,
                          }
                     payment_list.append(q)
 
-
                 except Exception as err:
                     log_error()
-                    print(err)
                     return render(request, self.template_name, {'active': 'setting', 'form':form, 'error': err})
+            if not proceed:
+                if len(members_not_found) > 0:
+                    data['missing_members'] = '<br>'.join(members_not_found)
+                    data['missing_members_count'] = len(members_not_found)
+                    return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
             print(payment_list)
             if payment_list:
@@ -302,21 +459,27 @@ class LoanRequestUploadView(ExtraContext, View):
                     try:
                         do = None
 
-                        for c in payment_list:
+                        for nc in payment_list:
                             member = nc.get('member')
                             requested_amount = nc.get('loan_amount')
-                            request_date = nc.get('request_date') if c.get('date_of_birth') != '' else None
+                            request_date = nc.get('request_date') if nc.get('request_date') != '' else None
                             phone_number = nc.get('phone_number')
+                            agent = nc.get('agent')
 
 
-                            LoanRequest.objects.create(
-                                reference=generate_alpanumeric(AMT,9),
-                                member=member,
-                                requested_amount=requested_amount,
-                                request_date=request_date
-                            )
+
+                            if member:
+                                print(member.id)
+                                LoanRequest.objects.create(
+                                    reference=generate_alpanumeric("LR",9),
+                                    credit_manager=credit_manager,
+                                    member=member,
+                                    requested_amount=requested_amount,
+                                    request_date=request_date,
+                                    agent=agent,
+                                )
                         return redirect('credit:loan_list')
                     except Exception as err:
                         log_error()
                         data['error'] = err
-        return render(request, self.template_name, context)
+        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})

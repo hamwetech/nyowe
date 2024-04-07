@@ -15,7 +15,7 @@ from django.views.generic.edit import CreateView, UpdateView
 from conf.utils import log_debug, log_error, get_deleted_objects
 from conf.models import District, County, SubCounty, Parish, Village, PaymentMethod, MessageTemplates
 from conf.forms import DistrictForm, CountyForm, SubCountyForm, VillageForm, PaymentMethodForm, UploadLocation,\
-MessageTemplatesForm
+MessageTemplatesForm, ParishForm
 
 class ExtraContext(object):
     extra_context = {}
@@ -138,15 +138,15 @@ class ParishListView(ExtraContext, ListView):
 class ParishCreateView(ExtraContext, CreateView):
     model = Parish
     template_name = "conf/village_form.html"
-    form_class = VillageForm
+    form_class = ParishForm
     extra_context = {'active': ['_config', '__village']}
     success_url = reverse_lazy('conf:village_list')
 
 
 class ParishUpdateView(ExtraContext, UpdateView):
     model = Parish
-    template_name = "conf/village_form.html"
-    form_class = VillageForm
+    template_name = "conf/parish_form.html"
+    form_class = ParishForm
     extra_context = {'active': ['_config', '__village']}
     success_url = reverse_lazy('conf:village_list')
 

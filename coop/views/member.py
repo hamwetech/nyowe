@@ -255,6 +255,11 @@ class MemberUploadExcel(ExtraContext, View):
             parish_col = int(form.cleaned_data['parish_col'])
             village_col = int(form.cleaned_data['village_col'])
             user_id_col = int(form.cleaned_data['user_id_col'])
+            shea_trees_col = int(form.cleaned_data['shea_trees_col'])
+            harvested_quantity_col = int(form.cleaned_data['harvested_quantity_col'])
+            sunflower_acreage_col = int(form.cleaned_data['sunflower_acreage_col'])
+            sunflower_planted_col = int(form.cleaned_data['sunflower_planted_col'])
+            sunflower_collected_col = int(form.cleaned_data['sunflower_collected_col'])
 
             book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
             sheet = book.sheet_by_index(index)
@@ -295,7 +300,7 @@ class MemberUploadExcel(ExtraContext, View):
                         return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
                     farmer_name = smart_str(row[farmer_name_col].value).strip()
-                    if not re.search('^[A-Z\s\(\)\-\.]+$', farmer_name, re.IGNORECASE):
+                    if not re.search('^[A-Z0-9\s\(\)\-\.\/\']+$', farmer_name, re.IGNORECASE):
                         if (i+1) == sheet.nrows: break
                         data['errors'] = '"%s" is not a valid Farmer (row %d)' % \
                         (farmer_name, i+1)
@@ -405,8 +410,46 @@ class MemberUploadExcel(ExtraContext, View):
 
                     user_id = smart_str(row[user_id_col].value).strip()
                     if user_id:
-                        if not re.search('^[A-Z0-9\s\(\)\-\.]+$', village, re.IGNORECASE):
-                            data['errors'] = '"%s" is not a valid USer ID (row %d)' % (village, i + 1)
+                        if not re.search('^[A-Z0-9\s\(\)\-\.]+$', user_id, re.IGNORECASE):
+                            data['errors'] = '"%s" is not a valid USer ID (row %d)' % (user_id, i + 1)
+                            return render(request, self.template_name,
+                                          {'active': 'system', 'form': form, 'error': data})
+
+                    shea_trees = smart_str(row[shea_trees_col].value).strip()
+                    if shea_trees:
+                        if not re.search('^[0-9\.]+$', shea_trees, re.IGNORECASE):
+                            data['errors'] = '"%s" is not a valid Shea Trees (row %d)' % (shea_trees, i + 1)
+                            return render(request, self.template_name,
+                                          {'active': 'system', 'form': form, 'error': data})
+
+                    harvested_quantity = smart_str(row[harvested_quantity_col].value).strip()
+                    if harvested_quantity:
+                        if not re.search('^[0-9\.]+$', harvested_quantity, re.IGNORECASE):
+                            data['errors'] = '"%s" is not a valid Harvest Quantity (row %d)' % (harvested_quantity, i + 1)
+                            return render(request, self.template_name,
+                                          {'active': 'system', 'form': form, 'error': data})
+
+                    sunflower_acreage = smart_str(row[sunflower_acreage_col].value).strip()
+                    if sunflower_acreage:
+                        if not re.search('^[0-9\.]+$', sunflower_acreage, re.IGNORECASE):
+                            data['errors'] = '"%s" is not a valid Sunflower Acreage (row %d)' % (
+                            sunflower_acreage, i + 1)
+                            return render(request, self.template_name,
+                                          {'active': 'system', 'form': form, 'error': data})
+
+                    sunflower_planted = smart_str(row[sunflower_planted_col].value).strip()
+                    if sunflower_planted:
+                        if not re.search('^[0-9\.]+$', sunflower_planted, re.IGNORECASE):
+                            data['errors'] = '"%s" is not a valid Sunflower Planted (row %d)' % (
+                                sunflower_planted, i + 1)
+                            return render(request, self.template_name,
+                                          {'active': 'system', 'form': form, 'error': data})
+
+                    sunflower_collected = smart_str(row[sunflower_collected_col].value).strip()
+                    if sunflower_collected:
+                        if not re.search('^[0-9\.]+$', sunflower_collected, re.IGNORECASE):
+                            data['errors'] = '"%s" is not a valid Sunflower Collected (row %d)' % (
+                                sunflower_collected, i + 1)
                             return render(request, self.template_name,
                                           {'active': 'system', 'form': form, 'error': data})
 
@@ -427,6 +470,11 @@ class MemberUploadExcel(ExtraContext, View):
                         'parish': parish,
                         'village': village,
                         'user_id': user_id,
+                        'shea_trees': shea_trees,
+                        'harvested_quantity': harvested_quantity,
+                        'sunflower_acreage': sunflower_acreage,
+                        'sunflower_planted': sunflower_planted,
+                        'sunflower_collected': sunflower_collected,
                         'record_id': record_id,
                         'verified_record': verified_record
                     }
@@ -444,6 +492,7 @@ class MemberUploadExcel(ExtraContext, View):
                         sco = None
                         co = None
                         po = None
+                        vo = None
                         for c in member_list:
                             name = c.get('farmer_name').split(' ')
                             surname = name[0]
@@ -459,6 +508,14 @@ class MemberUploadExcel(ExtraContext, View):
                             parish = c.get('parish')
                             village = c.get('village')
                             user_id = c.get('user_id')
+
+                            shea_trees = int(float(c.get('shea_trees') ))if c.get('shea_trees') != '' else None
+                            harvested_quantity = float(c.get('harvested_quantity')) if c.get('harvested_quantity') != '' else None
+                            sunflower_acreage = float(c.get('sunflower_acreage')) if c.get('sunflower_acreage') != '' else None
+                            sunflower_planted = float(c.get('sunflower_planted')) if c.get('sunflower_planted') != '' else None
+                            sunflower_collected = float(c.get('sunflower_collected')) if c.get('sunflower_collected') != '' else None
+
+
                             phone_number = c.get('phone_number')
                             acreage = c.get('acreage') if c.get('acreage') != '' else 0
                             # soya = c.get('soya') if c.get('soya') != '' else 0
@@ -473,16 +530,28 @@ class MemberUploadExcel(ExtraContext, View):
                                 do = dl[0] if len(dl)>0 else None
 
                             if county:
-                                cl = [c for c in County.objects.filter(district__name=district, name=county)]
+                                cl = [c for c in County.objects.filter(name__iexact=county)]
                                 co = cl[0] if len(cl)>0 else None
                             
                             if sub_county:
-                                scl = [subc for subc in SubCounty.objects.filter(county__name=county, name=sub_county)]
+                                scl = [subc for subc in SubCounty.objects.filter(name__iexact=sub_county)]
                                 sco = scl[0] if len(scl)>0 else None
                                 
                             if parish:
-                                pl = [p for p in Parish.objects.filter(sub_county__name=sub_county, name=parish)]
+                                pl = [p for p in Parish.objects.filter(name__iexact=parish)]
                                 po = pl[0] if len(pl)>0 else None
+
+                            if village:
+                                if self.is_numeric(village):
+                                    print("Villahge %s " % int(float(village)))
+                                    vl = [v for v in Village.objects.filter(id= int(float(village)))]
+                                else:
+                                    vl = [v for v in Village.objects.filter(name__iexact=village)]
+                                vo = vl[0] if len(vl) > 0 else None
+
+                            print("County |%s| SubCounty %s Parish %s Village: %s " % (county, sub_county, parish, village))
+                            print("Location %s %s %s %s %s" % (do, co, sco, po, vo))
+                            print("HQ: %s SA: %s SP: %s SC: %s" % (harvested_quantity,sunflower_acreage,sunflower_planted,sunflower_collected))
 
                             # check if the object already exists.
                             print("Updating check %s " % record_id)
@@ -498,18 +567,22 @@ class MemberUploadExcel(ExtraContext, View):
                                         gender=gender,
                                         date_of_birth=date_of_birth,
                                         phone_number=phone_number if phone_number != '' else None,
-                                        district=do,
-                                        county=co,
-                                        sub_county=sco,
-                                        parish=po,
-                                        village=village,
+                                        id_number_alt=identification if identification !='' else None,
+                                        district=do if do else member_obj.district,
+                                        county=co if co else member_obj.county,
+                                        sub_county=sco if sco else member_obj.sub_county,
+                                        parish=po if po else member_obj.parish,
+                                        village=vo.name if vo else member_obj.village,
                                         coop_role=role.title(),
                                         land_acreage=acreage,
-                                        # soya_beans_acreage=soya,
-                                        # soghum_acreage=soghum,
-                                        # create_by=request.user,
                                         verified_record=verified_record,
-                                        user_id=user_id
+                                        user_id=user_id,
+
+                                        shea_trees=shea_trees,
+                                        harvested_quantity=harvested_quantity,
+                                        sunflower_acreage=sunflower_acreage,
+                                        sunflower_planted=sunflower_planted,
+                                        sunflower_collected=sunflower_collected
                                     )
                                 except ObjectDoesNotExist:
                                     not_found_records.append(record_id)
@@ -535,7 +608,13 @@ class MemberUploadExcel(ExtraContext, View):
                                         # soya_beans_acreage=soya,
                                         # soghum_acreage=soghum,
                                         create_by=request.user,
-                                        user_id=user_id
+                                        user_id=user_id,
+
+                                        shea_trees=shea_trees,
+                                        harvested_quantity=harvested_quantity,
+                                        sunflower_acreage=sunflower_acreage,
+                                        sunflower_planted=sunflower_planted,
+                                        sunflower_collected=sunflower_collected,
 
                                     )
 
@@ -570,6 +649,14 @@ class MemberUploadExcel(ExtraContext, View):
         idno = str(cooperative.code)+yr+fint
         log_debug("Cooperative %s code is %s" % (cooperative.code, idno))
         return idno
+
+    def is_numeric(self, n):
+        # return isinstance(n, (int, float))
+        try:
+            float(n)  # Try converting the string to a float
+            return True
+        except ValueError:
+            return False
 
 
 class MemberBulkUpdate(ExtraContext, View):
@@ -751,6 +838,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
     
     def get_queryset(self):
         queryset = super(CooperativeMemberListView, self).get_queryset()
+        search = self.request.GET.get('search')
         msisdn = self.request.GET.get('phone_number')
         name = self.request.GET.get('name')
         coop = self.request.GET.get('cooperative')
@@ -768,8 +856,14 @@ class CooperativeMemberListView(ExtraContext, ListView):
         if not self.request.user.profile.is_union():
             cooperative = self.request.user.cooperative_admin.cooperative 
             queryset = queryset.filter(cooperative=cooperative)
+
+        queryset = queryset.filter(is_active=True)
+
+        if search:
+            queryset = queryset.filter(Q(surname__icontains=search) | Q(first_name__icontains=search) | Q(id__icontains=search)|
+                                       Q(id_number__icontains=search)|Q(user_id__icontains=search))
         if msisdn:
-            queryset = queryset.filter(phone_number='%s' % msisdn)
+            queryset = queryset.filter(phone_number__icontains='%s' % msisdn)
         if name:
             #name=Concat('surname',V(' '),'first_name',V(' '),'other_name')
             queryset = queryset.filter(Q(surname__icontains=name)|Q(first_name__icontains=name)|Q(other_name=name))
@@ -819,9 +913,10 @@ class CooperativeMemberListView(ExtraContext, ListView):
 
         profile_choices = ['id','cooperative__name', 'farmer_group__name', 'member_id', 'surname', 'first_name', 'other_name',
                                'date_of_birth', 'gender', 'id_number','phone_number','email',
-                               'district__name','sub_county__name','village','address','gps_coodinates',
-                               'coop_role','land_acreage', 'chia_trees', 'bee_hives', 'product',
-                               'collection_amount','collection_quantity', 'paid_amount', 'create_by__username', 'create_date']
+                               'district__name', 'county__name', 'sub_county__name', 'parish__name', 'village','address','gps_coodinates',
+                               'coop_role','land_acreage', 'shea_trees', 'bee_hives', 'product',
+                               'collection_amount','collection_quantity', 'paid_amount', 'create_by__username',
+                                'harvested_quantity', 'sunflower_acreage', 'sunflower_planted', 'sunflower_collected', 'app_id', 'create_date']
 
         columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
         # Gather the Information Found
@@ -900,11 +995,14 @@ class CooperativeMemberListView(ExtraContext, ListView):
         filter_start_date = "%s %s" % (start_date, start_time)
         filter_end_time = "%s %s" % (end_date, end_time)
 
-        profile_choices = ['id', 'cooperative__name', 'farmer_group__name', 'member_id', 'surname', 'first_name', 'other_name',
+        profile_choices = ['id', 'cooperative__name', 'farmer_group__name', 'member_id', 'surname', 'first_name',
+                           'other_name',
                            'date_of_birth', 'gender', 'id_number', 'phone_number', 'email',
-                           'district__name', 'sub_county__name', 'village', 'address', 'gps_coodinates',
-                           'coop_role', 'land_acreage', 'chia_trees', 'bee_hives', 'product',
+                           'district__name', 'county__name', 'sub_county__name', 'parish__name', 'village', 'address',
+                           'gps_coodinates',
+                           'coop_role', 'land_acreage', 'shea_trees', 'bee_hives', 'product',
                            'collection_amount', 'collection_quantity', 'paid_amount', 'create_by__username',
+                           'harvested_quantity', 'sunflower_acreage', 'sunflower_planted', 'sunflower_collected',
                            'create_date']
 
         columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]

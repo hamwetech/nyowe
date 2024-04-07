@@ -49,7 +49,7 @@ class DashboardView(TemplateView):
         total_payment = success_payments.aggregate(total_amount=Sum('amount'))
         collection_amt = collections.aggregate(total_amount=Sum('total_price'))
         members_shares = members.aggregate(total_amount=Sum('shares'))
-        shea_trees = members.aggregate(total_amount=Sum('chia_trees'))
+        shea_trees = members.aggregate(total_amount=Sum('shea_trees'))
         hives = members.aggregate(total_amount=Sum('bee_hives'))
         savings_balance = members.aggregate(total_amount=Sum('savings_balance'))
         order_sum = orders.aggregate(total_amount=Sum('order_price'))

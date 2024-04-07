@@ -11,9 +11,9 @@ class Command(BaseCommand):
             if phone_number:
                 try:
                     new_phone_number = internationalize_number(phone_number)
-                    print "Internationalized %s to %s " % (phone_number, new_phone_number)
+                    print ("Internationalized %s to %s " % (phone_number, new_phone_number))
                     m.phone_number = new_phone_number
                     m.save()
                 except Exception as e:
-                    print "ERROR: %s is an invalid number " % phone_number 
+                    print ("ERROR: %s is an invalid number " % phone_number)
         

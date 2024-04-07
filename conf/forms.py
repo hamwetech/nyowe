@@ -19,11 +19,18 @@ class SubCountyForm(forms.ModelForm):
     class Meta:
         model = SubCounty
         fields = ['county', 'name']
-        
-class VillageForm(forms.ModelForm):
+
+
+class ParishForm(forms.ModelForm):
     class Meta:
         model = Parish
         fields = ['name', 'sub_county']
+
+
+class VillageForm(forms.ModelForm):
+    class Meta:
+        model = Village
+        fields = ['name', 'parish']
         
         
 class PaymentMethodForm(forms.ModelForm):
@@ -71,6 +78,7 @@ class MessageTemplatesForm(forms.ModelForm):
         model = MessageTemplates
         exclude = ['create_date', 'update_date']
     
+bootstrapify(ParishForm)
 bootstrapify(DistrictForm)
 bootstrapify(SubCountyForm)
 bootstrapify(VillageForm)

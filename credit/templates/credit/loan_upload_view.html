@@ -13,8 +13,22 @@
    <div class="md-card">
         <div class="md-card-content">
             <form method="POST" class="new-event-form" role="role" enctype="multipart/form-data">
+                <p class="uk-text-warning uk-text-bold uk-margin-remove">
+                    Use the Loan Upload template <a href="{% static 'assets/template_files/loan_template_file.xlsx' %}">Here</a> to upload the Collection data
+                </p>
                 {% csrf_token %}
                 {% include "error_template.html" with form=form %}
+                {% if error %}
+                    <div class="uk-alert uk-alert-danger" data-uk-alert="">
+                        {{ error|safe  }}
+                    </div>
+                {% endif %}
+                {% if error.missing_members %}
+                    <div class="uk-alert uk-alert-danger" data-uk-alert="">
+                        {{ error.missing_members_count }} Members not found.<br>
+                        {{ error.missing_members|safe  }}
+                    </div>
+                {% endif %}
                 <div class="uk-grid" data-uk-grid-margin>
                     <div class="uk-width-medium-1-2">
                         {% for field in form %}

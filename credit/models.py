@@ -52,6 +52,7 @@ class LoanRequest(models.Model):
     response = models.TextField(null=True, blank=True)
     reject_reason = models.TextField(null=True, blank=True)
     loan_request_id = models.CharField(max_length=255, null=True, blank=True)
+    agent = models.CharField(max_length=255, null=True, blank=True)
     create_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
 

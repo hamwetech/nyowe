@@ -259,16 +259,16 @@ class CollectionUploadView(View):
                         return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
                     product = smart_str(row[product_col].value).strip()
-                    if not re.search('^[A-Z\s\(\)\-\.]+$', product, re.IGNORECASE):
+                    if not re.search('^[A-Z0-9\s\(\)\-\.]+$', product, re.IGNORECASE):
                         if (i + 1) == sheet.nrows: break
                         data['errors'] = '"%s" is not a valid Product (row %d)' % \
-                                         (item, i + 1)
+                                         (product, i + 1)
                         return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
                     try:
                         pproduct = ProductVariation.objects.get(name=product)
                     except Exception as e:
-                        data['errors'] = 'Product %s not found. (row %d)' % (product, i + 1)
+                        data['errors'] = 'Product %s not found. (row %d) Error %s' % (product, i + 1,e)
                         return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
                     quantity = smart_str(row[quantity_col].value).strip()

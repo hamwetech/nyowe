@@ -163,6 +163,7 @@ class MemberProfileSearchForm(forms.Form):
     choices=(('', 'Role'), ('Chairman', 'Chairman'), ('Vice Chairman', 'Vice Chairman'), ('Treasurer', 'Treasurer'),
         ('Secretary', 'Secretary'), ('Member', 'Member'),('Secretary Manager', 'Secretary Manager'), ('Patron', 'Patron'))
         
+    search = forms.CharField(max_length=150, required=False)
     name = forms.CharField(max_length=150, required=False)
     phone_number = forms.CharField(max_length=150, required=False)
     f = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
@@ -248,6 +249,12 @@ class MemberUploadForm(forms.Form):
     parish_col = forms.ChoiceField(label='Parish Column', initial=11, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Parish')
     village_col = forms.ChoiceField(label='Village Column', initial=12, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Village')
     user_id_col = forms.ChoiceField(label='User ID Column', initial=13, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the the USer id given to a farmer')
+
+    shea_trees_col = forms.ChoiceField(label='Productive Shea Trees Quantity Column', initial=14, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the the USer id given to a farmer')
+    harvested_quantity_col = forms.ChoiceField(label='Harvested Quantity Column', initial=15, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the the USer id given to a farmer')
+    sunflower_acreage_col = forms.ChoiceField(label='Sunflower Acreage Column', initial=16, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the the USer id given to a farmer')
+    sunflower_planted_col = forms.ChoiceField(label='Sunflower Planted(kg) Column', initial=17, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the the USer id given to a farmer')
+    sunflower_collected_col = forms.ChoiceField(label='Sunflower Collected Column', initial=18, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the the USer id given to a farmer')
     # organisation_col = forms.ChoiceField(label='Organisation Column', initial=14, choices=choices, widget=forms.Select(attrs={'class':'form-control'}), help_text='The column containing the Organisation')
 
     def clean(self):

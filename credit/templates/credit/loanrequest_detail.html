@@ -28,7 +28,7 @@
         </div>
         <div class="md-card-content" style="">
             <div class="uk-margin-medium-bottom">
-                <span class="uk-text-muted uk-text-small uk-text-italic">Date:</span> {{object.order_date}}
+                <span class="uk-text-muted uk-text-small uk-text-italic">Date:</span> {{object.request_date|date:"Y M d"  }}
                 <br>
                 <!--<span class="uk-text-muted uk-text-small uk-text-italic">Due Date:</span> 02.01.2019-->
             </div>
@@ -70,13 +70,18 @@
                         <tr>
                             <td>Response</td><td>{{ object.response|safe }}</td>
                             </tr>
+                        <tr>
+                            <td>Agent</td><td>{{ object.agent|safe }}</td>
+                            </tr>
 
                     </table>
                     <div class="buttons uk-text-right">
-                        <a href="{% url 'credit:loan_approve' pk=object.id status='STATUS' %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-success">Check Status</a>
+<!--                        <a href="{% url 'credit:loan_approve' pk=object.id status='STATUS' %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-success">Check Status</a>-->
+                        {% if object.status != "APPROVED" %}
+                            <a href="{% url 'credit:loan_approve' pk=object.id status='APPROVED' %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-success">APPROVE</a>
+                            <a href="{% url 'credit:loan_approve' pk=object.id status='REJECTED' %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-danger">REJECT</a>
+                        {% endif %}
                         {% if request.user.profile.is_credit_manager %}
-                        <a href="{% url 'credit:loan_approve' pk=object.id status='APPROVED' %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-success">APPROVE</a>
-                        <a href="{% url 'credit:loan_approve' pk=object.id status='REJECTED' %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-danger">REJECT</a>
                         {% endif %}
                     </div>
                 </div>

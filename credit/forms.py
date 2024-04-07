@@ -50,28 +50,50 @@ class LoanUploadForm(forms.Form):
         choices.append([i - 65, chr(i)])
 
     excel_file = forms.FileField()
+    credit_manager = forms.ModelChoiceField(queryset=CreditManager.objects.all())
+    proceed = forms.BooleanField(label='Proceed if farmer is not found', required=False)
     sheet = forms.ChoiceField(label="Sheet", choices=sheetChoice, widget=forms.Select(attrs={'class': 'form-control'}))
     row = forms.ChoiceField(label="Row", choices=rowchoices, widget=forms.Select(attrs={'class': 'form-control'}))
-    last_name_col = forms.ChoiceField(label='Last Name Column', initial=0, choices=choices,
+    name_col = forms.ChoiceField(label='Name Column', initial=0, choices=choices,
                                  widget=forms.Select(attrs={'class': 'form-control'}),
                                  help_text='The column containing the Last Name')
-    first_name_col = forms.ChoiceField(label='First Name Column', initial=1, choices=choices,
-                                      widget=forms.Select(attrs={'class': 'form-control'}),
-                                      help_text='The column containing the First Name')
-    phone_number_col = forms.ChoiceField(label='Phone Number Column', initial=2, choices=choices,
+    phone_number_col = forms.ChoiceField(label='Phone Number Column', initial=1, choices=choices,
                                        widget=forms.Select(attrs={'class': 'form-control'}),
                                        help_text='The column containing the Phone Number Name')
-    village_col = forms.ChoiceField(label='Village Column', initial=3, choices=choices,
+    request_date_col = forms.ChoiceField(label='Request Date Column', initial=2, choices=choices,
                                       widget=forms.Select(attrs={'class': 'form-control'}),
                                       help_text='The column containing the Village')
-    district_col = forms.ChoiceField(label='District Column', initial=4, choices=choices,
-                                    widget=forms.Select(attrs={'class': 'form-control'}),
-                                    help_text='The column containing the District')
-    loan_amount_col = forms.ChoiceField(label='Loan Amount Column', initial=5, choices=choices,
+    agent_col = forms.ChoiceField(label='Agent Column', initial=3, choices=choices,
+                                        widget=forms.Select(attrs={'class': 'form-control'}),
+                                        help_text='The column containing the Loan Agent')
+    loan_amount_col = forms.ChoiceField(label='Loan Amount Column', initial=4, choices=choices,
                                      widget=forms.Select(attrs={'class': 'form-control'}),
                                      help_text='The column containing the Loan Amount')
 
 
+class LoanSearchForm(forms.Form):
+    search = forms.CharField(max_length=150, required=False)
+    cooperative = forms.ChoiceField(widget=forms.Select(), choices=[], required=False)
+    start_date = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'id': 'uk_dp_start',
+                                                                                               'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
+                                                                                               'autocomplete': "off"}))
+    end_date = forms.CharField(max_length=150, required=False,
+                               widget=forms.TextInput(attrs={'class': 'some_class', 'id': 'uk_dp_end',
+                                                             'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
+                                                             'autocomplete': "off"}))
+
+    def __init__(self,  *args, **kwargs):
+        super(LoanSearchForm, self).__init__(*args, **kwargs)
+
+        qs = LoanRequest.objects.values('member__cooperative__id', 'member__cooperative__name').distinct()
+        print(qs)
+        choices = [['', 'Cooperative']]
+        for q in qs:
+            choices.append([q['member__cooperative__id'], q['member__cooperative__name']])
+        self.fields['cooperative'].choices = choices
+
+
+bootstrapify(LoanSearchForm)
 bootstrapify(LoanUploadForm)
 bootstrapify(CreditManagerForm)
 bootstrapify(CreditManagerUserForm)

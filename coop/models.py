@@ -14,7 +14,8 @@ from conf.models import District, County, SubCounty, Village, Parish, PaymentMet
 from product.models import Product, ProductVariation, ProductUnit, Item
 from account.models import Account
 from userprofile.models import Profile
-from conf.utils import generate_numeric
+from messaging.models import OutgoingMessages
+from conf.utils import generate_numeric, internationalize_number
 # from partner.models import PartnerTrainingModule
 
 
@@ -301,6 +302,7 @@ class CooperativeMember(models.Model):
     maritual_status = models.CharField(max_length=10, null=True, blank=True, choices=(('Single', 'Single'), ('Married', 'Married'),
         ('Widowed', 'Widow'), ('Divorced', 'Divorced')))
     id_number = models.CharField(max_length=150, null=True, blank=True, unique=True)
+    id_number_alt = models.CharField(max_length=150, null=True, blank=True, unique=True)
     id_type = models.CharField(max_length=150, null=True, blank=True, choices=(('nin', 'National ID'), ('dl', 'Drivers Lisence'),
         ('pp', 'PassPort'), ('o', 'Other')))
     phone_number = models.CharField(max_length=16, null=True, blank=True)
@@ -322,15 +324,23 @@ class CooperativeMember(models.Model):
     soya_beans_acreage = models.DecimalField(max_digits=10, decimal_places=2, default=0, null=True, blank=True)
     soghum_acreage = models.DecimalField(max_digits=10, decimal_places=2, default=0, null=True, blank=True)
     land_acreage = models.DecimalField(max_digits=10, decimal_places=2, default=0, null=True, blank=True)
-    chia_trees = models.PositiveIntegerField('Shea Trees', default=0, null=True, blank=True)
+    shea_trees = models.PositiveIntegerField('Shea Trees', default=0, null=True, blank=True)
     bee_hives = models.PositiveIntegerField('Bee Hives', default=0, null=True, blank=True)
     product = models.CharField(max_length=255, null=True, blank=True)
+
     shares = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
     share_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
     collection_amount = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
     collection_quantity = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
+
+    harvested_quantity = models.DecimalField(max_digits=32, decimal_places=2, default=0, null=True, blank=True)
+    sunflower_acreage = models.DecimalField(max_digits=32, decimal_places=2, default=0, null=True, blank=True)
+    sunflower_planted = models.DecimalField(max_digits=32, decimal_places=2, default=0, null=True, blank=True)
+    sunflower_collected = models.DecimalField(max_digits=32, decimal_places=2, default=0, null=True, blank=True)
+
     savings_balance = models.DecimalField(max_digits=32, decimal_places=2, default=0, blank=True)
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+
     is_active = models.BooleanField(default=1)
     qrcode = models.ImageField(upload_to='qrcode', blank=True, null=True)
     app_id = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
@@ -344,6 +354,15 @@ class CooperativeMember(models.Model):
 
     def __unicode__(self):
         return "{} {}".format(self.surname, self.first_name)
+
+    def save(self, *args, **kwargs):
+        # Modify the phone number before saving
+        if self.phone_number:
+            try:
+                self.phone_number = internationalize_number(self.phone_number)
+            except Exception as e:
+                pass
+        super(CooperativeMember, self).save(*args, **kwargs)
     
     def get_name(self):
         return "%s %s" % (self.surname, self.first_name)
@@ -434,6 +453,15 @@ class CooperativeMember(models.Model):
                 Q(phone_number__in=[self.phone_number, self.other_phone_number])).order_by('-payment_date')
         except Exception:
             return None
+
+    @property
+    def get_sms_sent(self):
+        messages = OutgoingMessages.objects.filter(msisdn=self.phone_number, status='sent')
+        if messages.exists():
+            return messages.count()
+        return 0
+
+
 
     # def get_total_product(self):
     #     q = CooperativeMemberProductQuantity.objects.filter(cooperative_member=self)
