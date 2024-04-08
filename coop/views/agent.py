@@ -66,7 +66,7 @@ class AgentListView(ExtraContext, ListView):
 
         agent_summary = []
         for a in agents:
-            queryset = CooperativeMember.objects.filter(create_by=a.user)
+            queryset = CooperativeMember.objects.filter(create_by=a.user, is_active=True)
 
             if start_date:
                 queryset = queryset.filter(create_date__gte=filter_start_date)

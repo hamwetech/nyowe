@@ -944,6 +944,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
             worksheet.write(row_num, col_num, columns[col_num], style=style)
 
         _members = CooperativeMember.objects.values(*profile_choices).all()
+        _members = _members.filter(is_active=True)
         
         if msisdn:
             _members = _members.filter(phone_number='%s' % msisdn)
@@ -1014,7 +1015,8 @@ class CooperativeMemberListView(ExtraContext, ListView):
         writer.writerow(columns)  # Add column headers
 
         _members = CooperativeMember.objects.values(*profile_choices).all()  # Modify the queryset based on your needs
-
+        _members = _members.filter(is_active=True)
+        
         if msisdn:
             _members = _members.filter(phone_number='%s' % msisdn)
         if name:
