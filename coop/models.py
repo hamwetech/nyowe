@@ -371,8 +371,10 @@ class CooperativeMember(models.Model):
         return reverse('events.views.details', args=[str(self.id)])
 
     def age(self, obj):
-        m = date.today() - obj.date_of_birth
-        return m.days / 365
+        if obj.date_of_birth:
+            m = date.today() - obj.date_of_birth
+            return m.days / 365
+        return 0
 
     @property
     def age_(self):
