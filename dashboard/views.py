@@ -22,7 +22,7 @@ class DashboardView(TemplateView):
         context = super(DashboardView, self).get_context_data(**kwargs)
         cooperatives = Cooperative.objects.all()
         farmer_group = FarmerGroup.objects.all()
-        members = CooperativeMember.objects.all()
+        members = CooperativeMember.objects.filter(is_active=True)
         agents = Profile.objects.filter(access_level__name='AGENT')
         cooperative_contribution = CooperativeContribution.objects.all().order_by('-update_date')[:5]
         cooperative_shares = CooperativeShareTransaction.objects.all().order_by('-update_date')
@@ -165,7 +165,7 @@ def get_members_per_month(request):
     month = request.GET.get('month')
     agents = Profile.objects.values_list('user__id', flat=True).filter(access_level__name="AGENT")
     # all_members = CooperativeMember.objects.filter(create_by__in=agents).order_by("id")
-    all_members = CooperativeMember.objects.all().order_by("create_date")
+    all_members = CooperativeMember.objects.filter(is_active=True).order_by("create_date")
     current_month = datetime.datetime.now().month
     # if month:
     #     all_members = CooperativeMember.objects.filter(create_date__month=month).order_by("-create_date")
