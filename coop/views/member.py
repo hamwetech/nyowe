@@ -1907,7 +1907,7 @@ class RegisteredSimcardsDeleteView(DeleteView):
 
 class RegisteredSimcardsUploadView(View):
 
-    template_name = 'coop/harvest_upload.html'
+    template_name = 'coop/phone_reg_upload.html'
 
     def get(self, request, *args, **kwargs):
         data = {"title": "Registered Simcards"}
