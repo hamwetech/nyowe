@@ -1003,7 +1003,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
         filter_start_date = "%s %s" % (start_date, start_time)
         filter_end_time = "%s %s" % (end_date, end_time)
 
-        profile_choices = ['id', 'cooperative__name', 'farmer_group__name', 'member_id', 'surname', 'first_name',
+        profile_choices = ['id', 'user_id', 'cooperative__name', 'farmer_group__name', 'member_id', 'surname', 'first_name',
                            'other_name',
                            'date_of_birth', 'gender', 'id_number', 'phone_number', 'email',
                            'district__name', 'county__name', 'sub_county__name', 'parish__name', 'village', 'address',
