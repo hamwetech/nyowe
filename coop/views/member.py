@@ -486,8 +486,9 @@ class MemberUploadExcel(ExtraContext, View):
             not_found_records = []
             print(member_list)
             if member_list:
-                with transaction.atomic():
-                    try:
+                try:
+                    with transaction.atomic():
+
                         do = None
                         sco = None
                         co = None
@@ -551,7 +552,7 @@ class MemberUploadExcel(ExtraContext, View):
 
                             print("County |%s| SubCounty %s Parish %s Village: %s " % (county, sub_county, parish, village))
                             print("Location %s %s %s %s %s" % (do, co, sco, po, vo))
-                            print("HQ: %s SA: %s SP: %s SC: %s" % (harvested_quantity,sunflower_acreage,sunflower_planted,sunflower_collected))
+                            print("ID: %s HQ: %s SA: %s SP: %s SC: %s" % (identification, harvested_quantity,sunflower_acreage,sunflower_planted,sunflower_collected))
 
                             # check if the object already exists.
                             print("Updating check %s " % record_id)
@@ -576,6 +577,7 @@ class MemberUploadExcel(ExtraContext, View):
                                         coop_role=role.title(),
                                         land_acreage=acreage,
                                         verified_record=verified_record,
+                                        is_active=True,
                                         user_id=user_id,
 
                                         shea_trees=shea_trees,
@@ -588,12 +590,13 @@ class MemberUploadExcel(ExtraContext, View):
                                     not_found_records.append(record_id)
                             else:
                                 if not CooperativeMember.objects.filter(first_name=first_name, surname=surname, phone_number=phone_number).exists():
+                                    # if not CooperativeMember.objects.filter(id_number=identification).exists():
                                     member = CooperativeMember.objects.create(
-                                        cooperative=cooperative,
+                                        cooperative=cooperative if cooperative != '' else None,
                                         surname=surname,
                                         first_name=first_name,
                                         other_name=other_name,
-                                        id_number=identification,
+                                        id_number=identification if identification !='' else None,
                                         gender=gender,
                                         member_id=self.generate_member_id(cooperative),
                                         date_of_birth=date_of_birth,
@@ -609,6 +612,8 @@ class MemberUploadExcel(ExtraContext, View):
                                         # soghum_acreage=soghum,
                                         create_by=request.user,
                                         user_id=user_id,
+                                        verified_record=True,
+                                        is_active=True,
 
                                         shea_trees=shea_trees,
                                         harvested_quantity=harvested_quantity,
@@ -631,9 +636,9 @@ class MemberUploadExcel(ExtraContext, View):
                             messages.warning(request, "No records with the following IDs ({}) were found.".format(not_found_records))
 
                         return redirect('coop:member_list')
-                    except Exception as err:
-                        log_error()
-                        data['error'] = err
+                except Exception as err:
+                    log_error()
+                    data['error'] = "%s %s" % (err, identification)
                 
         data['form'] = form
         return render(request, self.template_name, data)
@@ -646,8 +651,10 @@ class MemberUploadExcel(ExtraContext, View):
         yr = str(datem)[2:]
         # idno = generate_numeric(size=4, prefix=str(m.cooperative.code)+yr)
         fint = "%04d"%count
-        idno = str(cooperative.code)+yr+fint
-        log_debug("Cooperative %s code is %s" % (cooperative.code, idno))
+        idno = generate_numeric(4)+yr+fint
+        if cooperative:
+            idno = str(cooperative.code)+yr+fint
+        log_debug("Code is %s" % (idno))
         return idno
 
     def is_numeric(self, n):
@@ -1016,7 +1023,7 @@ class CooperativeMemberListView(ExtraContext, ListView):
 
         _members = CooperativeMember.objects.values(*profile_choices).all()  # Modify the queryset based on your needs
         _members = _members.filter(is_active=True)
-        
+
         if msisdn:
             _members = _members.filter(phone_number='%s' % msisdn)
         if name:

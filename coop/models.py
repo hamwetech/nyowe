@@ -899,3 +899,55 @@ class Agent(Profile):
             if f.farmer_group:
                 fgs += "%s <br>" % f.farmer_group.name
         return fgs
+
+
+class Harvesting(models.Model):
+    member = models.ForeignKey(CooperativeMember, null=True, blank=True, on_delete=models.CASCADE)
+    quantity = models.DecimalField(max_digits=20, decimal_places=2)
+    year = models.PositiveIntegerField(null=True, blank=True)
+    season = models.CharField(max_length=120, null=True, blank=True)
+    created_by = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'harvesting'
+
+
+class SunflowerAcreage(models.Model):
+    member = models.ForeignKey(CooperativeMember, null=True, blank=True, on_delete=models.CASCADE)
+    acreage = models.DecimalField(max_digits=20, decimal_places=2)
+    year = models.PositiveIntegerField(null=True, blank=True)
+    season = models.CharField(max_length=120, null=True, blank=True)
+    created_by = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'sunflower_acreage'
+
+
+class SunflowerPlantedQuantity(models.Model):
+    member = models.ForeignKey(CooperativeMember, null=True, blank=True, on_delete=models.CASCADE)
+    quantity = models.DecimalField(max_digits=20, decimal_places=2)
+    year = models.PositiveIntegerField(null=True, blank=True)
+    season = models.CharField(max_length=120, null=True, blank=True)
+    created_by = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'sunflower_planted_quantity'
+
+
+class SunflowerCollection(models.Model):
+    member = models.ForeignKey(CooperativeMember, null=True, blank=True, on_delete=models.CASCADE)
+    quantity = models.DecimalField(max_digits=20, decimal_places=2)
+    year = models.PositiveIntegerField(null=True, blank=True)
+    season = models.CharField(max_length=120, null=True, blank=True)
+    created_by = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'sunflower_collected'
