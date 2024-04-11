@@ -6,6 +6,7 @@ import re
 import xlrd
 import xlwt
 from datetime import datetime
+from django.db import transaction
 from django.shortcuts import render, HttpResponse, redirect
 from django.urls import reverse_lazy
 from django.utils.encoding import smart_str
@@ -16,7 +17,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from coop.models import *
 from coop.forms import *
 from coop.views.member import save_transaction
-from conf.utils import generate_alpanumeric, genetate_uuid4, log_error, get_message_template as message_template
+from conf.utils import generate_alpanumeric, genetate_uuid4, log_error, get_deleted_objects, get_message_template as message_template
 from coop.utils import sendMemberSMS
 
 from product.models import ProductVariation, ProductVariationPrice
@@ -352,9 +353,11 @@ class HarvestingListView(ExtraContext, ListView):
         return queryset
 
 
-class HarvestingCreateView(CreateView):
+class HarvestingCreateView(ExtraContext, CreateView):
     model = Harvesting
     form_class = HarvestingForm
+    extra_context = {'active': ['_member'], 'title': "Harvest"}
+
     template_name = "coop/general_form.html"
     success_url = reverse_lazy('coop:harvesting_list')
 
@@ -382,6 +385,7 @@ class HarvestingUpdateView(UpdateView):
 
 class HarvestingDeleteView(DeleteView):
     model = Harvesting
+    template_name = "confirm_delete.html"
     success_url = reverse_lazy('coop:harvesting_list')
 
     def get_context_data(self, **kwargs):
@@ -399,19 +403,203 @@ class HarvestingDeleteView(DeleteView):
 
 class HarvestingUploadView(View):
 
-    template_name = 'coop/collection_upload.html'
+    template_name = 'coop/harvest_upload.html'
 
     def get(self, reqeust, *args, **kwargs):
-        data = {}
+        data = {
+            "title": "Harvest"
+        }
         data['form'] = HarvestUploadForm
         return render(reqeust, self.template_name, data)
 
     def post(self, request, *args, **kwargs):
         data = dict()
-        form = HarvestingUploadForm(request.POST, request.FILES)
+        form = HarvestUploadForm(request.POST, request.FILES)
         if form.is_valid():
             f = request.FILES['excel_file']
 
+            path = f.temporary_file_path()
+            index = int(form.cleaned_data['sheet']) - 1
+            startrow = int(form.cleaned_data['row']) - 1
+
+            farmer_reference_col = int(form.cleaned_data['farmer_reference_col'])
+            quantity_col = int(form.cleaned_data['quantity_col'])
+            year_col = int(form.cleaned_data['year_col'])
+            season_col = int(form.cleaned_data['season_col'])
+
+            book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
+            sheet = book.sheet_by_index(index)
+            rownum = 0
+            data = dict()
+            order_list = []
+            member = None
+
+            for i in range(startrow, sheet.nrows):
+                try:
+
+                    row = sheet.row(i)
+                    rownum = i + 1
+
+                    farmer_reference = smart_str(row[farmer_reference_col].value).strip()
+                    # farmer_name = smart_str(row[farmer_name_col].value).strip()
+
+                    if farmer_reference:
+                        member = CooperativeMember.objects.filter(Q(phone_number=farmer_reference)|Q(member_id=farmer_reference)|Q(user_id=farmer_reference))
+                        if member.exists():
+                            member = member[0]
+
+                    # if not member:
+                    #     if farmer_reference:
+                    #         f = farmer_name.split(" ")
+                    #         print(f)
+                    #         last_name = f[0]
+                    #         first_name = f[1]
+                    #         member = CooperativeMember.objects.filter(surname=last_name, first_name=first_name)
+                    #         if member.exists():
+                    #             member = member[0]
+
+                    if not member:
+                        data['errors'] = 'Member "%s" not Found, please provide a valid name, phone number or member id. (row %d)' % (farmer_reference, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+
+                    quantity = smart_str(row[quantity_col].value).strip()
+                    if not re.search('^[0-9\.]+$', quantity, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Quantity (row %d)' % \
+                                         (quantity, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+                    year = smart_str(row[year_col].value).strip()
+                    if not re.search('^[0-9\.]+$', year, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Year (row %d)' % \
+                                         (year, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+                    season = smart_str(row[season_col].value).strip()
+                    if not re.search('^[A-Z0-9\.]+$', season, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Season (row %d)' % \
+                                         (season, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+                    order_list.append({"member": member,
+                                       "year":year,
+                                       "season": season,
+                                       "quantity": quantity
+                                       })
+
+                except Exception as err:
+                    log_error()
+                    return render(request, self.template_name, {'active': 'setting', 'form':form, 'error': err})
+
+            print(order_list)
+            if order_list:
+                try:
+                    with transaction.atomic():
+                        for order_i in order_list:
+                            reference = genetate_uuid4()
+                            member = order_i.get("member")
+                            year = order_i.get("year")
+                            season = order_i.get("season")
+                            quantity = order_i.get("quantity")
+
+                            Harvesting.objects.create(
+                                cooperative=member.cooperative,
+                                member=member,
+                                year=int(float(year)),
+                                season=season,
+                                quantity=quantity,
+                                created_by=self.request.user
+                            )
+
+                            if member:
+                                harvested_quantity = member.harvested_quantity if member.harvested_quantity else 0
+                                harvested_quantity_new = float(harvested_quantity) + float(quantity)
+                                member.harvested_quantity = harvested_quantity_new
+                                member.save()
+
+                        return redirect('coop:harvesting_list')
+                except Exception as e:
+                    log_error()
+                    return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': e})
+        return render(request, self.template_name, {'active': 'setting', 'form': form, 'data': data})
+
+
+# Subflower
+
+class SunflowerPlantedQuantityListView(ListView):
+    model = SunflowerPlantedQuantity
+    ordering = ['-create_date']
+    extra_context = {'active': ['_savings']}
+
+    def dispatch(self, *args, **kwargs):
+        if self.request.GET.get('download'):
+            return self.download_file()
+        return super(SunflowerPlantedQuantityListView, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super(SunflowerPlantedQuantityListView, self).get_queryset()
+        return queryset
+
+
+class SunflowerPlantedQuantityCreateView(CreateView):
+    model = SunflowerPlantedQuantity
+    form_class = SunflowerPlantedForm
+    extra_context = {'active': ['_member'], 'title': "Planted Subflowere in KG"}
+    template_name = "coop/general_form.html"
+    success_url = reverse_lazy('coop:sunflowerplanted_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        if form.instance.member:
+            harvested_quantity = form.instance.member.sunflower_planted if form.instance.member.sunflower_planted else 0
+            harvested_quantity_new = harvested_quantity + form.instance.quantity
+            form.instance.member.sunflower_planted = harvested_quantity_new
+            form.instance.member.save()
+        return super(SunflowerPlantedQuantityCreateView, self).form_valid(form)
+
+
+class SunflowerPlantedQuantityUpdateView(UpdateView):
+    model = SunflowerPlantedQuantity
+    form_class = SunflowerPlantedForm
+    template_name = "coop/general_form.html"
+    success_url = reverse_lazy('coop:sunflowerplanted_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super(SunflowerPlantedQuantityUpdateView, self).form_valid(form)
+
+
+class SunflowerPlantedQuantityDeleteView(DeleteView):
+    model = SunflowerPlantedQuantity
+    template_name = "confirm_delete.html"
+    success_url = reverse_lazy('coop:sunflowerplanted_list')
+
+    def get_context_data(self, **kwargs):
+        context = super(SunflowerPlantedQuantityDeleteView, self).get_context_data(**kwargs)
+        deletable_objects, model_count, protected = get_deleted_objects([self.object])
+        context['deletable_objects'] = deletable_objects
+        context['model_count'] = dict(model_count).items()
+        context['protected'] = protected
+        return context
+
+
+class SunflowerPlantedQuantityUploadView(View):
+
+    template_name = 'coop/harvest_upload.html'
+
+    def get(self, request, *args, **kwargs):
+        data = {"title": "SunFlower Planted"}
+        data['form'] = HarvestUploadForm
+        return render(request, self.template_name, data)
+
+    def post(self, request, *args, **kwargs):
+        data = dict()
+        form = HarvestUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            f = request.FILES['excel_file']
             path = f.temporary_file_path()
             index = int(form.cleaned_data['sheet']) - 1
             startrow = int(form.cleaned_data['row']) - 1
@@ -434,80 +622,424 @@ class HarvestingUploadView(View):
                     rownum = i + 1
 
                     farmer_reference = smart_str(row[farmer_reference_col].value).strip()
-                    farmer_name = smart_str(row[farmer_name_col].value).strip()
 
                     if farmer_reference:
-                        member = CooperativeMember.objects.filter(Q(phone_number=farmer_reference)|Q(member_id=farmer_reference)|Q(user_id=farmer_reference))
+                        member = CooperativeMember.objects.filter(Q(phone_number=farmer_reference) | Q(
+                            member_id=farmer_reference) | Q(user_id=farmer_reference))
                         if member.exists():
                             member = member[0]
 
                     if not member:
-                        if farmer_name:
-                            f = farmer_name.split(" ")
-                            print(f)
-                            last_name = f[0]
-                            first_name = f[1]
-                            member = CooperativeMember.objects.filter(surname=last_name, first_name=first_name)
-                            if member.exists():
-                                member = member[0]
-
-                    if not member:
-                        data['errors'] = 'Member "%s" not Found, please provide a valid name, phone number or member id. (row %d)' % (farmer_name, i + 1)
-                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
-
+                        data['errors'] = 'Member "%s" not Found, please provide a valid name, phone number or member id. (row %d)' % (
+                        farmer_reference, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
 
                     quantity = smart_str(row[quantity_col].value).strip()
                     if not re.search('^[0-9\.]+$', quantity, re.IGNORECASE):
                         if (i + 1) == sheet.nrows: break
                         data['errors'] = '"%s" is not a valid Quantity (row %d)' % \
                                          (quantity, i + 1)
-                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
 
                     year = smart_str(row[year_col].value).strip()
                     if not re.search('^[0-9\.]+$', year, re.IGNORECASE):
                         if (i + 1) == sheet.nrows: break
                         data['errors'] = '"%s" is not a valid Year (row %d)' % \
                                          (year, i + 1)
-                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
 
                     season = smart_str(row[season_col].value).strip()
-                    if not re.search('^[0-9\.]+$', season, re.IGNORECASE):
+                    if not re.search('^[A-Z0-9\.]+$', season, re.IGNORECASE):
                         if (i + 1) == sheet.nrows: break
                         data['errors'] = '"%s" is not a valid Season (row %d)' % \
                                          (season, i + 1)
-                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
 
                     order_list.append({"member": member,
-                                       "year":year,
+                                       "year": year,
                                        "season": season,
                                        "quantity": quantity
                                        })
 
                 except Exception as err:
                     log_error()
-                    return render(request, self.template_name, {'active': 'setting', 'form':form, 'error': err})
+                    return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': err})
 
             print(order_list)
             if order_list:
                 try:
-                    for order_i in order_list:
-                        reference = genetate_uuid4()
-                        member = order_i.get("member")
-                        year = order_i.get("year")
-                        season = order_i.get("season")
-                        quantity = order_i.get("quantity")
+                    with transaction.atomic():
+                        for order_i in order_list:
+                            member = order_i.get("member")
+                            year = order_i.get("year")
+                            season = order_i.get("season")
+                            quantity = order_i.get("quantity")
 
-                        Harvesting.objects.create(
-                            cooperative=member.cooperative,
-                            member=member,
-                            year=year,
-                            season=season,
-                            quantity=quantity,
-                            created_by=self.request.user
-                        )
+                            SunflowerPlantedQuantity.objects.create(
+                                member=member,
+                                year=int(float(year)),
+                                season=season,
+                                quantity=quantity,
+                                created_by=request.user
+                            )
 
-                    return redirect('coop:harvesting_list')
+                            if member:
+                                harvested_quantity = member.sunflower_planted if member.sunflower_planted else 0
+                                harvested_quantity_new = float(harvested_quantity) + float(quantity)
+                                member.sunflower_planted = harvested_quantity_new
+                                member.save()
+
+                        return redirect('coop:sunflowerplanted_list')
                 except Exception as e:
                     log_error()
-                    return render(request, self.template_name,
-                                  {'active': 'setting', 'form': form, 'error': e})
+                    return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': e})
+        return render(request, self.template_name, {'active': 'setting', 'form': form, 'data': data})
+
+
+#Sunflower Collection
+class SunflowerCollectionListView(ListView):
+    model = SunflowerCollection
+    template_name = "coop/sunflowercollection_list.html"
+    ordering = ['-create_date']
+    extra_context = {'active': ['_savings']}
+
+    def dispatch(self, *args, **kwargs):
+        if self.request.GET.get('download'):
+            return self.download_file()
+        return super(SunflowerCollectionListView, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super(SunflowerCollectionListView, self).get_queryset()
+        return queryset
+
+
+class SunflowerCollectionCreateView(CreateView):
+    model = SunflowerCollection
+    form_class = SunflowerCollectionForm
+    extra_context = {'active': ['_member'], 'title': "Planted Sunflower in KG"}
+    template_name = "coop/general_form.html"
+    success_url = reverse_lazy('coop:sunflowercollection_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        if form.instance.member:
+            harvested_quantity = form.instance.member.sunflower_collected if form.instance.member.sunflower_collected else 0
+            harvested_quantity_new = harvested_quantity + form.instance.quantity
+            form.instance.member.sunflower_collected = harvested_quantity_new
+            form.instance.member.save()
+        return super(SunflowerCollectionCreateView, self).form_valid(form)
+
+
+class SunflowerCollectionUpdateView(UpdateView):
+    model = SunflowerCollection
+    form_class = SunflowerCollectionForm
+    template_name = "coop/general_form.html"
+    success_url = reverse_lazy('coop:sunflowercollection_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super(SunflowerCollectionUpdateView, self).form_valid(form)
+
+
+class SunflowerCollectionDeleteView(DeleteView):
+    model = SunflowerCollection
+    template_name = "confirm_delete.html"
+    success_url = reverse_lazy('coop:sunflowercollection_list')
+
+    def get_context_data(self, **kwargs):
+        context = super(SunflowerCollectionDeleteView, self).get_context_data(**kwargs)
+        deletable_objects, model_count, protected = get_deleted_objects([self.object])
+        context['deletable_objects'] = deletable_objects
+        context['model_count'] = dict(model_count).items()
+        context['protected'] = protected
+        return context
+
+
+class SunflowerCollectionUploadView(View):
+
+    template_name = 'coop/harvest_upload.html'
+
+    def get(self, request, *args, **kwargs):
+        data = {"title": "Sunflower Collection"}
+        data['form'] = HarvestUploadForm
+        return render(request, self.template_name, data)
+
+    def post(self, request, *args, **kwargs):
+        data = dict()
+        form = HarvestUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            f = request.FILES['excel_file']
+            path = f.temporary_file_path()
+            index = int(form.cleaned_data['sheet']) - 1
+            startrow = int(form.cleaned_data['row']) - 1
+
+            farmer_reference_col = int(form.cleaned_data['farmer_reference_col'])
+            quantity_col = int(form.cleaned_data['quantity_col'])
+            year_col = int(form.cleaned_data['year_col'])
+            season_col = int(form.cleaned_data['season_col'])
+
+            book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
+            sheet = book.sheet_by_index(index)
+            rownum = 0
+            data = dict()
+            order_list = []
+            member = None
+
+            for i in range(startrow, sheet.nrows):
+                try:
+                    row = sheet.row(i)
+                    rownum = i + 1
+
+                    farmer_reference = smart_str(row[farmer_reference_col].value).strip()
+
+                    if farmer_reference:
+                        member = CooperativeMember.objects.filter(Q(phone_number=farmer_reference) | Q(
+                            member_id=farmer_reference) | Q(user_id=farmer_reference))
+                        if member.exists():
+                            member = member[0]
+
+                    if not member:
+                        data['errors'] = 'Member "%s" not Found, please provide a valid name, phone number or member id. (row %d)' % (
+                        farmer_reference, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
+
+                    quantity = smart_str(row[quantity_col].value).strip()
+                    if not re.search('^[0-9\.]+$', quantity, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Quantity (row %d)' % \
+                                         (quantity, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
+
+                    year = smart_str(row[year_col].value).strip()
+                    if not re.search('^[0-9\.]+$', year, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Year (row %d)' % \
+                                         (year, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
+
+                    season = smart_str(row[season_col].value).strip()
+                    if not re.search('^[A-Z0-9\.]+$', season, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Season (row %d)' % \
+                                         (season, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
+
+                    order_list.append({"member": member,
+                                       "year": year,
+                                       "season": season,
+                                       "quantity": quantity
+                                       })
+
+                except Exception as err:
+                    log_error()
+                    return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': err})
+
+            print(order_list)
+            if order_list:
+                try:
+                    with transaction.atomic():
+                        for order_i in order_list:
+                            member = order_i.get("member")
+                            year = order_i.get("year")
+                            season = order_i.get("season")
+                            quantity = order_i.get("quantity")
+
+                            SunflowerCollection.objects.create(
+                                member=member,
+                                year=int(float(year)),
+                                season=season,
+                                quantity=quantity,
+                                created_by=request.user
+                            )
+
+                            if member:
+                                harvested_quantity = member.sunflower_collected if member.sunflower_collected else 0
+                                harvested_quantity_new = float(harvested_quantity) + float(quantity)
+                                member.sunflower_collected = harvested_quantity_new
+                                member.save()
+
+                        return redirect('coop:sunflowercollection_list')
+                except Exception as e:
+                    log_error()
+                    return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': e})
+        return render(request, self.template_name, {'active': 'setting', 'form': form, 'data': data})
+
+
+#SunflowerAcreage
+class SunflowerAcreageListView(ListView):
+    model = SunflowerAcreage
+    ordering = ['-create_date']
+    extra_context = {'active': ['__coop_phone']}
+
+    def dispatch(self, *args, **kwargs):
+        if self.request.GET.get('download'):
+            return self.download_file()
+        return super(SunflowerAcreageListView, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super(SunflowerAcreageListView, self).get_queryset()
+        return queryset
+
+
+class SunflowerAcreageCreateView(CreateView):
+    model = SunflowerAcreage
+    form_class = SunflowerAcreageForm
+    extra_context = {'active': ['_member'], 'title': "Sunflower Acreage"}
+    template_name = "coop/general_form.html"
+    success_url = reverse_lazy('coop:sunfloweracreage_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        if form.instance.member:
+            harvested_quantity = form.instance.member.sunflower_acreage if form.instance.member.sunflower_acreage else 0
+            harvested_quantity_new = harvested_quantity + form.instance.acreage
+            form.instance.member.sunflower_acreage = harvested_quantity_new
+            form.instance.member.save()
+        return super(SunflowerAcreageCreateView, self).form_valid(form)
+
+
+class SunflowerAcreageUpdateView(UpdateView):
+    model = SunflowerAcreage
+    form_class = SunflowerAcreageForm
+    template_name = "coop/general_form.html"
+    success_url = reverse_lazy('coop:sunfloweracreage_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super(SunflowerAcreageUpdateView, self).form_valid(form)
+
+
+class SunflowerAcreageDeleteView(DeleteView):
+    model = SunflowerAcreage
+    template_name = "confirm_delete.html"
+    success_url = reverse_lazy('coop:sunfloweracreage_list')
+
+    def get_context_data(self, **kwargs):
+        context = super(SunflowerAcreageDeleteView, self).get_context_data(**kwargs)
+        deletable_objects, model_count, protected = get_deleted_objects([self.object])
+        context['deletable_objects'] = deletable_objects
+        context['model_count'] = dict(model_count).items()
+        context['protected'] = protected
+        return context
+
+
+class SunflowerAcreageUploadView(View):
+
+    template_name = 'coop/harvest_upload.html'
+
+    def get(self, request, *args, **kwargs):
+        data = {"title": "Sunflower Acreage"}
+        data['form'] = HarvestUploadForm
+        return render(request, self.template_name, data)
+
+    def post(self, request, *args, **kwargs):
+        data = dict()
+        form = HarvestUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            f = request.FILES['excel_file']
+            path = f.temporary_file_path()
+            index = int(form.cleaned_data['sheet']) - 1
+            startrow = int(form.cleaned_data['row']) - 1
+
+            farmer_reference_col = int(form.cleaned_data['farmer_reference_col'])
+            quantity_col = int(form.cleaned_data['quantity_col'])
+            year_col = int(form.cleaned_data['year_col'])
+            season_col = int(form.cleaned_data['season_col'])
+
+            book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
+            sheet = book.sheet_by_index(index)
+            rownum = 0
+            data = dict()
+            order_list = []
+            member = None
+
+            for i in range(startrow, sheet.nrows):
+                try:
+                    row = sheet.row(i)
+                    rownum = i + 1
+
+                    farmer_reference = smart_str(row[farmer_reference_col].value).strip()
+
+                    if farmer_reference:
+                        member = CooperativeMember.objects.filter(Q(phone_number=farmer_reference) | Q(
+                            member_id=farmer_reference) | Q(user_id=farmer_reference))
+                        if member.exists():
+                            member = member[0]
+
+                    if not member:
+                        data['errors'] = 'Member "%s" not Found, please provide a valid name, phone number or member id. (row %d)' % (
+                        farmer_reference, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
+
+                    quantity = smart_str(row[quantity_col].value).strip()
+                    if not re.search('^[0-9\.]+$', quantity, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Quantity (row %d)' % \
+                                         (quantity, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
+
+                    year = smart_str(row[year_col].value).strip()
+                    if not re.search('^[0-9\.]+$', year, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Year (row %d)' % \
+                                         (year, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
+
+                    season = smart_str(row[season_col].value).strip()
+                    if not re.search('^[A-Z0-9\.]+$', season, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Season (row %d)' % \
+                                         (season, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
+
+                    order_list.append({"member": member,
+                                       "year": year,
+                                       "season": season,
+                                       "quantity": quantity
+                                       })
+
+                except Exception as err:
+                    log_error()
+                    return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': err})
+
+            print(order_list)
+            if order_list:
+                try:
+                    with transaction.atomic():
+                        for order_i in order_list:
+                            member = order_i.get("member")
+                            year = order_i.get("year")
+                            season = order_i.get("season")
+                            quantity = order_i.get("quantity")
+
+                            SunflowerAcreage.objects.create(
+                                member=member,
+                                year=int(float(year)),
+                                season=season,
+                                acreage=quantity,
+                                created_by=request.user
+                            )
+
+                            if member:
+                                harvested_quantity = member.sunflower_acreage if member.sunflower_acreage else 0
+                                harvested_quantity_new = float(harvested_quantity) + float(quantity)
+                                member.sunflower_acreage = harvested_quantity_new
+                                member.save()
+
+                        return redirect('coop:sunfloweracreage_list')
+                except Exception as e:
+                    log_error()
+                    return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': e})
+        return render(request, self.template_name, {'active': 'setting', 'form': form, 'data': data})

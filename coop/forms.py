@@ -1007,6 +1007,12 @@ class OrderSearchForm(forms.ModelForm):
         self.fields['status'].required = False
 
 
+class RegisteredSimcardsForm(forms.ModelForm):
+    class Meta:
+        model = RegisteredSimcards
+        exclude = ['created_by',]
+
+
 class HarvestingForm(forms.ModelForm):
     class Meta:
         model = Harvesting
@@ -1034,17 +1040,65 @@ class SunflowerAcreageForm(forms.ModelForm):
         model = SunflowerAcreage
         exclude = ['created_by',]
 
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(SunflowerAcreageForm, self).__init__(*args, **kwargs)
 
-class SunflowerPlantedQuantityForm(forms.ModelForm):
+        self.fields['member'].queryset = CooperativeMember.objects.none()
+
+        if 'cooperative' in self.data:
+            try:
+                cooperative_id = int(self.data.get('cooperative'))
+                self.fields['member'].queryset = CooperativeMember.objects.filter(cooperative=cooperative_id).order_by('first_name')
+            except Exception as e: #(ValueError, TypeError):
+                pass  # invalid input from the client; ignore and fallback to empty City queryset
+        elif self.instance.pk:
+            if self.instance.cooperative:
+                self.fields['member'].queryset = self.instance.cooperative.member_set.order_by('first_name')
+
+
+class SunflowerPlantedForm(forms.ModelForm):
     class Meta:
         model = SunflowerPlantedQuantity
         exclude = ['created_by',]
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(SunflowerPlantedForm, self).__init__(*args, **kwargs)
+
+        self.fields['member'].queryset = CooperativeMember.objects.none()
+
+        if 'cooperative' in self.data:
+            try:
+                cooperative_id = int(self.data.get('cooperative'))
+                self.fields['member'].queryset = CooperativeMember.objects.filter(cooperative=cooperative_id).order_by('first_name')
+            except Exception as e: #(ValueError, TypeError):
+                pass  # invalid input from the client; ignore and fallback to empty City queryset
+        elif self.instance.pk:
+            if self.instance.cooperative:
+                self.fields['member'].queryset = self.instance.cooperative.member_set.order_by('first_name')
 
 
 class SunflowerCollectionForm(forms.ModelForm):
     class Meta:
         model = SunflowerCollection
         exclude = ['created_by',]
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(SunflowerCollectionForm, self).__init__(*args, **kwargs)
+
+        self.fields['member'].queryset = CooperativeMember.objects.none()
+
+        if 'cooperative' in self.data:
+            try:
+                cooperative_id = int(self.data.get('cooperative'))
+                self.fields['member'].queryset = CooperativeMember.objects.filter(cooperative=cooperative_id).order_by('first_name')
+            except Exception as e: #(ValueError, TypeError):
+                pass  # invalid input from the client; ignore and fallback to empty City queryset
+        elif self.instance.pk:
+            if self.instance.cooperative:
+                self.fields['member'].queryset = self.instance.cooperative.member_set.order_by('first_name')
 
 
 class HarvestUploadForm(forms.Form):
@@ -1080,12 +1134,65 @@ class HarvestUploadForm(forms.Form):
     year_col = forms.ChoiceField(label='Year Column', initial=2, choices=choices,
                                      widget=forms.Select(attrs={'class': 'form-control'}),
                                      help_text='The column containing the Year Column')
-    season_col = forms.ChoiceField(label='Year Column', initial=2, choices=choices,
+    season_col = forms.ChoiceField(label='Season Column', initial=3, choices=choices,
                                      widget=forms.Select(attrs={'class': 'form-control'}),
                                      help_text='The column containing the Season Column')
 
 
+class RegisteredSimcardsUploadForm(forms.Form):
+    sheetChoice = (
+        ('1', 'sheet1'),
+        ('2', 'sheet2'),
+        ('3', 'sheet3'),
+        ('4', 'sheet4'),
+        ('5', 'sheet5'),
+    )
 
+    rowchoices = (
+        ('1', 'Row 1'),
+        ('2', 'Row 2'),
+        ('3', 'Row 3'),
+        ('4', 'Row 4'),
+        ('5', 'Row 5')
+    )
+
+    choices = list()
+    for i in range(65, 91):
+        choices.append([i - 65, chr(i)])
+
+    excel_file = forms.FileField()
+    sheet = forms.ChoiceField(label="Sheet", choices=sheetChoice, widget=forms.Select(attrs={'class': 'form-control'}))
+    row = forms.ChoiceField(label="Row", choices=rowchoices, widget=forms.Select(attrs={'class': 'form-control'}))
+    date_col = forms.ChoiceField(label='Date Column', initial=0, choices=choices,
+                                        widget=forms.Select(attrs={'class': 'form-control'}),
+                                        help_text='The column containing the Farmers SYSTEM ID/Phone Number')
+    farmer_reference_col = forms.ChoiceField(label='Farmer Name Column', initial=1, choices=choices,
+                                        widget=forms.Select(attrs={'class': 'form-control'}),
+                                        help_text='The column containing the Farmers Name')
+    sex_col = forms.ChoiceField(label='Sex Column', initial=2, choices=choices,
+                                 widget=forms.Select(attrs={'class': 'form-control'}),
+                                 help_text='The column containing the Sex')
+    phone_number_col = forms.ChoiceField(label='Phone Number Column', initial=3, choices=choices,
+                                     widget=forms.Select(attrs={'class': 'form-control'}),
+                                     help_text='The column containing the Year Column')
+    district_col = forms.ChoiceField(label='District Column', initial=4, choices=choices,
+                                     widget=forms.Select(attrs={'class': 'form-control'}),
+                                     help_text='The column containing the Season Column')
+
+
+class RegisteredSimcardsFilterForm(forms.Form):
+    search = forms.CharField(max_length=160, required=False)
+    start_date = forms.CharField(max_length=160, required=False,
+                                 widget=forms.TextInput(attrs={"data-uk-datepicker": "{format:'YYYY-MM-DD'}"}))
+    end_date = forms.CharField(max_length=160, required=False,
+                               widget=forms.TextInput(attrs={"data-uk-datepicker": "{format:'YYYY-MM-DD'}"}))
+
+
+bootstrapify(RegisteredSimcardsFilterForm)
+bootstrapify(RegisteredSimcardsForm)
+bootstrapify(RegisteredSimcardsUploadForm)
+bootstrapify(SunflowerCollectionForm)
+bootstrapify(SunflowerPlantedForm)
 bootstrapify(HarvestUploadForm)
 bootstrapify(HarvestingForm)
 bootstrapify(MemberUploadUpdateForm)

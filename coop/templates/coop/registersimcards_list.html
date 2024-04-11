@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+{% load material_form %} 
+
+{% block page_content %}
+    <div class="uk-grid" data-uk-grid-margin>
+        <div class="uk-width-medium-1-2">
+            <h2 class="heading_a uk-margin-bottom">Phone Registration List</h2>
+        </div>
+        <div class="uk-width-medium-1-2">
+            
+           <a href="{% url 'coop:phonenumberregister_create' %}" class="md-btn md-btn-success uk-float-right">Add Phone Number</a>
+            <a href="{% url 'coop:phonenumberregister_upload' %}" class="md-btn md-btn-success uk-float-right">Upload Phone Numbers</a>
+        </div>
+    </div>
+    <div class="md-card uk-margin-medium-bottom">
+
+        <div class="md-card-content">
+            <form class="" method="get">
+            <div class="uk-grid" data-uk-grid-margin>
+                {% for field in form %}
+                    <div class="uk-width-medium-1-5">
+                        {% include 'form/field.html' with field=field %}
+
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="uk-grid" data-uk-grid-margin>
+                <div class="uk-width-medium-5 uk-right">
+                </div>
+                <div class="uk-width-medium-5 uk-float-right">
+                    <button class="md-btn" name="_search" > Search </button>
+                    <a href="." class="md-btn md-btn-small md-btn-flat md-btn-flat-primary  uk-margin-small-left"><i class="material-icons md-24 " title="Delete">refresh</i></a>
+                    <button class="md-btn md-btn-success uk-float-right" name="_download" value="download"> Export CSV </button>
+
+
+                </div>
+             </div>
+            </form>
+            <div class="uk-overflow-container">
+                <table class="uk-table uk-table-striped">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Farmer</th>
+                        <th>Sex</th>
+                        <th>Phone Number</th>
+                        <th>District</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in object_list %}
+                            <tr>
+                                <td>{{ item.registration_date }}</td>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.sex }}</td>
+                                <td>{{ item.phone_number }}</td>
+                                <td>{{ item.district }}</td>
+
+                                <td class="uk-text-nowrap ">
+                                   <a href=""><i class="material-icons md-24 uk-text-primary"  title="Detail">remove_red_eye</i></a>
+                                   
+                                    <a href="{% url 'coop:phonenumberregister_edit' item.id %}"><i class="material-icons md-24" title="Edit">border_color</i></a>
+                                     {% if request.user.is_superuser %}
+                                     {% if item.member_count < 1 %}
+                                         <a href="{% url 'coop:phonenumberregister_delete' item.id %}"><i class="material-icons md-24  uk-text-danger" title="Delete">delete</i></a>
+                                     {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block page_specific_scripts %}
+ <!-- page specific plugins -->
+    
+    <script>
+        $(function() {
+            $(function() {
+            // enable hires images
+            altair_helpers.retina_images();
+            // fastClick (touch devices)
+            if(Modernizr.touch) {
+                FastClick.attach(document.body);
+            }
+        });
+        });
+    </script>
+{% endblock %}

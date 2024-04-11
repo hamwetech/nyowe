@@ -494,6 +494,8 @@ class MemberUploadExcel(ExtraContext, View):
                         co = None
                         po = None
                         vo = None
+                        count_added = 0
+                        count_updated = 0
                         for c in member_list:
                             name = c.get('farmer_name').split(' ')
                             surname = name[0]
@@ -589,52 +591,65 @@ class MemberUploadExcel(ExtraContext, View):
                                 except ObjectDoesNotExist:
                                     not_found_records.append(record_id)
                             else:
-                                if not CooperativeMember.objects.filter(first_name=first_name, surname=surname, phone_number=phone_number).exists():
-                                    # if not CooperativeMember.objects.filter(id_number=identification).exists():
-                                    member = CooperativeMember.objects.create(
-                                        cooperative=cooperative if cooperative != '' else None,
-                                        surname=surname,
-                                        first_name=first_name,
-                                        other_name=other_name,
-                                        id_number=identification if identification !='' else None,
-                                        gender=gender,
-                                        member_id=self.generate_member_id(cooperative),
-                                        date_of_birth=date_of_birth,
-                                        phone_number=phone_number if phone_number != '' else None,
-                                        district=do,
-                                        county=co,
-                                        sub_county=sco,
-                                        parish=po,
-                                        village=village,
-                                        coop_role=role.title(),
-                                        land_acreage=acreage,
-                                        # soya_beans_acreage=soya,
-                                        # soghum_acreage=soghum,
-                                        create_by=request.user,
-                                        user_id=user_id,
-                                        verified_record=True,
-                                        is_active=True,
+                                if not CooperativeMember.objects.filter(id_number=identification).exists():
+                                    if not CooperativeMember.objects.filter(first_name=first_name, surname=surname, phone_number=phone_number, user_id=user_id, village=village).exists():
+                                        # if not CooperativeMember.objects.filter(id_number=identification).exists():
+                                        member = CooperativeMember.objects.create(
+                                            cooperative=cooperative if cooperative != '' else None,
+                                            surname=surname,
+                                            first_name=first_name,
+                                            other_name=other_name,
+                                            id_number=identification if identification !='' else None,
+                                            gender=gender,
+                                            member_id=self.generate_member_id(cooperative),
+                                            date_of_birth=date_of_birth,
+                                            phone_number=phone_number if phone_number != '' else None,
+                                            district=do,
+                                            county=co,
+                                            sub_county=sco,
+                                            parish=po,
+                                            village=village,
+                                            coop_role=role.title(),
+                                            land_acreage=acreage,
+                                            # soya_beans_acreage=soya,
+                                            # soghum_acreage=soghum,
+                                            create_by=request.user,
+                                            user_id=user_id,
+                                            verified_record=True,
+                                            is_active=True,
 
+                                            shea_trees=shea_trees,
+                                            harvested_quantity=harvested_quantity,
+                                            sunflower_acreage=sunflower_acreage,
+                                            sunflower_planted=sunflower_planted,
+                                            sunflower_collected=sunflower_collected,
+
+                                        )
+
+                                        message = message_template().member_registration
+                                        # if message:
+                                        #    if re.search('<NAME>', message):
+                                        #        if member.surname:
+                                        #            message = message.replace('<NAME>', '%s %s' % (member.surname.title(), member.first_name.title()))
+                                        #        message = message.replace('<COOPERATIVE>', member.cooperative.name)
+                                        #        message = message.replace('<IDNUMBER>', member.member_id)
+                                        #    sendMemberSMS(request, member, message)
+                                        count_added += 1
+                                else:
+
+                                    CooperativeMember.objects.filter(id_number=identification).update(
+                                        is_active=True,
+                                        user_id=user_id,
                                         shea_trees=shea_trees,
                                         harvested_quantity=harvested_quantity,
                                         sunflower_acreage=sunflower_acreage,
                                         sunflower_planted=sunflower_planted,
-                                        sunflower_collected=sunflower_collected,
-
+                                        sunflower_collected=sunflower_collected
                                     )
-
-                                    message = message_template().member_registration
-                                    # if message:
-                                    #    if re.search('<NAME>', message):
-                                    #        if member.surname:
-                                    #            message = message.replace('<NAME>', '%s %s' % (member.surname.title(), member.first_name.title()))
-                                    #        message = message.replace('<COOPERATIVE>', member.cooperative.name)
-                                    #        message = message.replace('<IDNUMBER>', member.member_id)
-                                    #    sendMemberSMS(request, member, message)
-
+                                    count_added += 1
                         if not_found_records:
                             messages.warning(request, "No records with the following IDs ({}) were found.".format(not_found_records))
-
+                        messages.success(request, "Records aded %s Updated %s" % (count_added, count_updated))
                         return redirect('coop:member_list')
                 except Exception as err:
                     log_error()
@@ -1813,3 +1828,195 @@ def get_farmer_map(request):
             data.append({"name": f.get_name(), "gps": f.gps_coodinates})
     print(data)
     return JsonResponse(data, safe=False)
+
+
+#Phone number Register
+class RegisteredSimcardsListView(ListView):
+    model = RegisteredSimcards
+    template_name = "coop/registersimcards_list.html"
+    ordering = ['-create_date']
+    extra_context = {'active': ['_savings']}
+
+    def dispatch(self, *args, **kwargs):
+        if self.request.GET.get('download'):
+            return self.download_file()
+        return super(RegisteredSimcardsListView, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super(RegisteredSimcardsListView, self).get_queryset()
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        search = self.request.GET.get('search')
+
+        if search:
+            queryset = queryset.filter(Q(name__icontains=search)|Q(phone_number__icontains=search))
+        if start_date and end_date:
+            queryset = queryset.filter(registration_date__gte = start_date, registration_date__lte = end_date)
+        if start_date:
+            queryset = queryset.filter(registration_date = start_date)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(RegisteredSimcardsListView, self).get_context_data(**kwargs)
+        context['form'] = RegisteredSimcardsFilterForm(self.request.GET)
+        return context
+
+
+
+class RegisteredSimcardsCreateView(CreateView):
+    model = RegisteredSimcards
+    form_class = RegisteredSimcardsForm
+    extra_context = {'active': ['_member'], 'title': "Register Simcards"}
+    template_name = "coop/general_form.html"
+    success_url = reverse_lazy('coop:phonenumberregister_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        # if form.instance.member:
+        #     harvested_quantity = form.instance.member.sunflower_acreage if form.instance.member.sunflower_acreage else 0
+        #     harvested_quantity_new = harvested_quantity + form.instance.acreage
+        #     form.instance.member.sunflower_acreage = harvested_quantity_new
+        #     form.instance.member.save()
+        return super(RegisteredSimcardsCreateView, self).form_valid(form)
+
+
+class RegisteredSimcardsUpdateView(UpdateView):
+    model = RegisteredSimcards
+    form_class = RegisteredSimcardsForm
+    template_name = "coop/general_form.html"
+    success_url = reverse_lazy('coop:phonenumberregister_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super(RegisteredSimcardsUpdateView, self).form_valid(form)
+
+
+class RegisteredSimcardsDeleteView(DeleteView):
+    model = RegisteredSimcards
+    template_name = "confirm_delete.html"
+    success_url = reverse_lazy('coop:phonenumberregister_list')
+
+    def get_context_data(self, **kwargs):
+        context = super(RegisteredSimcardsDeleteView, self).get_context_data(**kwargs)
+        deletable_objects, model_count, protected = get_deleted_objects([self.object])
+        context['deletable_objects'] = deletable_objects
+        context['model_count'] = dict(model_count).items()
+        context['protected'] = protected
+        return context
+
+
+class RegisteredSimcardsUploadView(View):
+
+    template_name = 'coop/harvest_upload.html'
+
+    def get(self, request, *args, **kwargs):
+        data = {"title": "Registered Simcards"}
+        data['form'] = RegisteredSimcardsUploadForm
+        return render(request, self.template_name, data)
+
+    def post(self, request, *args, **kwargs):
+        data = dict()
+        form = RegisteredSimcardsUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            f = request.FILES['excel_file']
+            path = f.temporary_file_path()
+            index = int(form.cleaned_data['sheet']) - 1
+            startrow = int(form.cleaned_data['row']) - 1
+
+            date_col = int(form.cleaned_data['date_col'])
+            farmer_reference_col = int(form.cleaned_data['farmer_reference_col'])
+            sex_col = int(form.cleaned_data['sex_col'])
+            phone_number_col = int(form.cleaned_data['phone_number_col'])
+            district_col = int(form.cleaned_data['district_col'])
+
+            book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
+            sheet = book.sheet_by_index(index)
+            rownum = 0
+            data = dict()
+            order_list = []
+            member = None
+
+            for i in range(startrow, sheet.nrows):
+                try:
+                    row = sheet.row(i)
+                    rownum = i + 1
+
+                    registration_date = (row[date_col].value)
+                    if registration_date:
+                        try:
+                            date_str = datetime(*xlrd.xldate_as_tuple(registration_date, book.datemode))
+                            registration_date = date_str.strftime("%Y-%m-%d")
+                        except Exception as e:
+                            data['errors'] = '"%s" is not a valid Order Date (row %d): %s' % \
+                                             (registration_date, i + 1, e)
+                            return render(request, self.template_name,
+                                          {'active': 'system', 'form': form, 'error': data})
+
+                    farmer_reference = smart_str(row[farmer_reference_col].value).strip()
+                    if not re.search('^[A-Z0-9\s\(\)\-\.\/\']+$', farmer_reference, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Farmer Name (row %d)' % \
+                                         (farmer_reference, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
+
+                    sex = smart_str(row[sex_col].value).strip()
+                    if not re.search('^[A-Z]+$', sex, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Sex(row %d)' % \
+                                         (sex, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
+
+                    phone_number = smart_str(row[phone_number_col].value).strip()
+                    if not re.search('^[0-9\.]+$', phone_number, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Phone Number (row %d)' % \
+                                         (phone_number, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
+
+                    district = smart_str(row[district_col].value).strip()
+                    if not re.search('^[A-Z\.]+$', district, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid District (row %d)' % \
+                                         (district, i + 1)
+                        return render(request, self.template_name,
+                                      {'active': 'system', 'form': form, 'error': data})
+
+                    order_list.append({"registration_date": registration_date,
+                                       "farmer": farmer_reference,
+                                       "sex": sex,
+                                       "phone_number": phone_number,
+                                       "district": district
+                                       })
+
+                except Exception as err:
+                    log_error()
+                    return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': err})
+
+            print(order_list)
+            if order_list:
+                try:
+                    with transaction.atomic():
+                        for order_i in order_list:
+                            registration_date = order_i.get("registration_date")
+                            farmer_reference = order_i.get("farmer")
+                            sex = order_i.get("sex")
+                            phone_number = order_i.get("phone_number")
+                            district = order_i.get("district")
+
+                            RegisteredSimcards.objects.create(
+                                registration_date=registration_date,
+                                name=farmer_reference,
+                                sex=sex,
+                                phone_number=phone_number,
+                                district=district,
+                                created_by=request.user
+                            )
+
+                        return redirect('coop:phonenumberregister_list')
+                except Exception as e:
+                    log_error()
+                    return render(request, self.template_name, {'active': 'setting', 'form': form, 'error': e})
+            return render(request, self.template_name, {'active': 'setting', 'form': form, 'data': data})

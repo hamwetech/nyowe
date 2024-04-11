@@ -28,6 +28,9 @@
         </div>
         <div class="uk-width-medium-1-1">
             <a href="{% url 'coop:harvesting_list' %}" class="md-btn md-btn-success uk-float-left">Add Harvesting Data</a>
+            <a href="{% url 'coop:sunflowerplanted_list' %}" class="md-btn md-btn-success uk-float-left">Add SF Planted</a>
+            <a href="{% url 'coop:sunflowercollection_list' %}" class="md-btn md-btn-success uk-float-left">Add SF Collection</a>
+            <a href="{% url 'coop:sunfloweracreage_list' %}" class="md-btn md-btn-success uk-float-left">Add SF Acreage</a>
             {% if request.user.profile.is_union or request.user.profile.is_cooperative %}
                 <a href="{% url 'coop:member_create' %}" class="md-btn md-btn-success uk-float-right">Add Member</a>
     <!--            <a href="{% url 'coop:registration_list' %}" class="md-btn md-btn-success uk-float-right">Registration Fee</a>-->

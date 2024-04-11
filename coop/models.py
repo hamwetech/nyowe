@@ -916,6 +916,7 @@ class Harvesting(models.Model):
 
 
 class SunflowerAcreage(models.Model):
+    cooperative = models.ForeignKey(Cooperative, null=True, blank=True, on_delete=models.CASCADE)
     member = models.ForeignKey(CooperativeMember, null=True, blank=True, on_delete=models.CASCADE)
     acreage = models.DecimalField(max_digits=20, decimal_places=2)
     year = models.PositiveIntegerField(null=True, blank=True)
@@ -929,6 +930,7 @@ class SunflowerAcreage(models.Model):
 
 
 class SunflowerPlantedQuantity(models.Model):
+    cooperative = models.ForeignKey(Cooperative, null=True, blank=True, on_delete=models.CASCADE)
     member = models.ForeignKey(CooperativeMember, null=True, blank=True, on_delete=models.CASCADE)
     quantity = models.DecimalField(max_digits=20, decimal_places=2)
     year = models.PositiveIntegerField(null=True, blank=True)
@@ -942,6 +944,7 @@ class SunflowerPlantedQuantity(models.Model):
 
 
 class SunflowerCollection(models.Model):
+    cooperative = models.ForeignKey(Cooperative, null=True, blank=True, on_delete=models.CASCADE)
     member = models.ForeignKey(CooperativeMember, null=True, blank=True, on_delete=models.CASCADE)
     quantity = models.DecimalField(max_digits=20, decimal_places=2)
     year = models.PositiveIntegerField(null=True, blank=True)
@@ -952,3 +955,28 @@ class SunflowerCollection(models.Model):
 
     class Meta:
         db_table = 'sunflower_collected'
+
+
+class RegisteredSimcards(models.Model):
+    user_id = models.CharField(max_length=255, null=True)
+    name = models.CharField(max_length=255)
+    registration_date = models.DateField()
+    sex = models.CharField(max_length=10, choices=(("Male","Male"), ("Female", "Female")))
+    phone_number = models.CharField(max_length=255, unique=True)
+    district = models.CharField(max_length=255, null=True, blank=True)
+    created_by = models.ForeignKey(User, blank=True, on_delete=models.CASCADE)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        # Modify the phone number before saving
+        if self.phone_number:
+            try:
+                self.phone_number = internationalize_number(self.phone_number)
+            except Exception as e:
+                pass
+        super(RegisteredSimcards, self).save(*args, **kwargs)
+
+
+    class Meta:
+        db_table = 'registered_phonenumbers'

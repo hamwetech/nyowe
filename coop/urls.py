@@ -43,6 +43,32 @@ urlpatterns = [
      url(r'harvesting/(?P<pk>[\w]+)/$', HarvestingUpdateView.as_view(), name='harvesting_edit'),
      url(r'harvesting/delete/(?P<pk>[\w]+)/$', HarvestingDeleteView.as_view(), name='harvesting_delete'),
 
+     url(r'sunflowerplanted/list/$', SunflowerPlantedQuantityListView.as_view(), name='sunflowerplanted_list'),
+     url(r'sunflowerplanted/create/$', SunflowerPlantedQuantityCreateView.as_view(), name='sunflowerplanted_create'),
+     url(r'sunflowerplanted/upload/$', SunflowerPlantedQuantityUploadView.as_view(), name='sunflowerplanted_upload'),
+     url(r'sunflowerplanted/(?P<pk>[\w]+)/$', SunflowerPlantedQuantityUpdateView.as_view(), name='sunflowerplanted_edit'),
+     url(r'sunflowerplanted/delete/(?P<pk>[\w]+)/$', SunflowerPlantedQuantityDeleteView.as_view(), name='sunflowerplanted_delete'),
+
+     url(r'sunflowercollections/list/$', SunflowerCollectionListView.as_view(), name='sunflowercollection_list'),
+     url(r'sunflowercollections/create/$', SunflowerCollectionCreateView.as_view(), name='sunflowercollection_create'),
+     url(r'sunflowercollections/upload/$', SunflowerCollectionUploadView.as_view(), name='sunflowercollection_upload'),
+     url(r'sunflowercollections/(?P<pk>[\w]+)/$', SunflowerCollectionUpdateView.as_view(), name='sunflowercollection_edit'),
+     url(r'sunflowercollections/delete/(?P<pk>[\w]+)/$', SunflowerCollectionDeleteView.as_view(), name='sunflowercollection_delete'),
+
+     url(r'sunfloweracreage/list/$', SunflowerAcreageListView.as_view(), name='sunfloweracreage_list'),
+     url(r'sunfloweracreage/create/$', SunflowerAcreageCreateView.as_view(), name='sunfloweracreage_create'),
+     url(r'sunfloweracreage/upload/$', SunflowerAcreageUploadView.as_view(), name='sunfloweracreage_upload'),
+     url(r'sunfloweracreage/(?P<pk>[\w]+)/$', SunflowerAcreageUpdateView.as_view(), name='sunfloweracreage_edit'),
+     url(r'sunfloweracreage/delete/(?P<pk>[\w]+)/$', SunflowerAcreageDeleteView.as_view(), name='sunfloweracreage_delete'),
+
+     url(r'phonenumberregister/list/$', RegisteredSimcardsListView.as_view(), name='phonenumberregister_list'),
+     url(r'phonenumberregister/create/$', RegisteredSimcardsCreateView.as_view(), name='phonenumberregister_create'),
+     url(r'phonenumberregister/upload/$', RegisteredSimcardsUploadView.as_view(), name='phonenumberregister_upload'),
+     url(r'phonenumberregister/(?P<pk>[\w]+)/$', RegisteredSimcardsUpdateView.as_view(),
+         name='phonenumberregister_edit'),
+     url(r'phonenumberregister/delete/(?P<pk>[\w]+)/$', RegisteredSimcardsDeleteView.as_view(),
+         name='phonenumberregister_delete'),
+
      url(r'member/shares/$', MemberSharesView.as_view(), name='member_shares'),
      
      url(r'member/shares/list/(?P<member>[\w]+)/$', MemberSharesListView.as_view(), name='member_shares_list'),

@@ -286,6 +286,13 @@
                         <span class="menu_title">Members</span>
                     </a>
                 </li>
+
+                <li {% if '_coop_phone' in active %}class="current_section"{% endif %} title="Coop Member">
+                    <a href="{% url 'coop:phonenumberregister_list' %}">
+                        <span class="menu_icon"><i class="material-icons">&#xE86F;</i></span>
+                        <span class="menu_title">Registered Phone Numbers</span>
+                    </a>
+                </li>
                 <!--<li {% if '_coop_member' in active %}class="current_section"{% endif %} title="Snippets">-->
                 <!--    <a href="{% url 'coop:member_subscription_list' %}">-->
                 <!--        <span class="menu_icon"><i class="material-icons">&#xE86F;</i></span>-->
