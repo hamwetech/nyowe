@@ -37,6 +37,12 @@ urlpatterns = [
      url(r'collection/list/$', CollectionListView.as_view(), name='collection_list'),
      url(r'collection/upload/$', CollectionUploadView.as_view(), name='collection_upload'),
 
+     url(r'harvesting/list/$', HarvestingListView.as_view(), name='harvesting_list'),
+     url(r'harvesting/create/$', HarvestingCreateView.as_view(), name='harvesting_create'),
+     url(r'harvesting/upload/$', HarvestingUploadView.as_view(), name='harvesting_upload'),
+     url(r'harvesting/(?P<pk>[\w]+)/$', HarvestingUpdateView.as_view(), name='harvesting_edit'),
+     url(r'harvesting/delete/(?P<pk>[\w]+)/$', HarvestingDeleteView.as_view(), name='harvesting_delete'),
+
      url(r'member/shares/$', MemberSharesView.as_view(), name='member_shares'),
      
      url(r'member/shares/list/(?P<member>[\w]+)/$', MemberSharesListView.as_view(), name='member_shares_list'),

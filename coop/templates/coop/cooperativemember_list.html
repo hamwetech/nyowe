@@ -27,13 +27,14 @@
             <h2 class="heading_a uk-margin-bottom">Member List</h2>
         </div>
         <div class="uk-width-medium-1-1">
+            <a href="{% url 'coop:harvesting_list' %}" class="md-btn md-btn-success uk-float-left">Add Harvesting Data</a>
             {% if request.user.profile.is_union or request.user.profile.is_cooperative %}
-            <a href="{% url 'coop:member_create' %}" class="md-btn md-btn-success uk-float-right">Add Member</a>
-<!--            <a href="{% url 'coop:registration_list' %}" class="md-btn md-btn-success uk-float-right">Registration Fee</a>-->
-<!--            <a href="{% url 'coop:member_bulk_update' %}" class="md-btn md-btn-success uk-float-right">Bulk Update</a>-->
-            <a href="{% url 'coop:member_upload' %}" class="md-btn md-btn-success uk-float-right">Upload Excel</a>
-            <a  id="download_file" class="md-btn md-btn-primary uk-float-right">Download Excel</a>
-            <a  id="download_file_csv" class="md-btn md-btn-primary uk-float-right">Download CSV</a>
+                <a href="{% url 'coop:member_create' %}" class="md-btn md-btn-success uk-float-right">Add Member</a>
+    <!--            <a href="{% url 'coop:registration_list' %}" class="md-btn md-btn-success uk-float-right">Registration Fee</a>-->
+    <!--            <a href="{% url 'coop:member_bulk_update' %}" class="md-btn md-btn-success uk-float-right">Bulk Update</a>-->
+                <a href="{% url 'coop:member_upload' %}" class="md-btn md-btn-success uk-float-right">Upload Excel</a>
+                <a  id="download_file" class="md-btn md-btn-primary uk-float-right">Download Excel</a>
+                <a  id="download_file_csv" class="md-btn md-btn-primary uk-float-right">Download CSV</a>
             {% endif %}
             <a href="{% url 'coop:member_map' %}" class="md-btn md-btn-default uk-float-right">OPEN MAPS</a>
         </div>

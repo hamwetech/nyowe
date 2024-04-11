@@ -771,7 +771,6 @@ class FarmerGroupForm(forms.ModelForm):
         # self.fields['village'].choices = choices
 
 
-
 class SavingsForm(forms.ModelForm):
     class Meta:
         model = Savings
@@ -858,7 +857,6 @@ class CollectionUploadForm(forms.Form):
     collection_date_col = forms.ChoiceField(label='Collection Date Column', initial=4, choices=choices,
                                      widget=forms.Select(attrs={'class': 'form-control'}),
                                      help_text='The column containing the Collection Date')
-
 
 
 class AgentSearchForm(forms.Form):
@@ -1009,6 +1007,87 @@ class OrderSearchForm(forms.ModelForm):
         self.fields['status'].required = False
 
 
+class HarvestingForm(forms.ModelForm):
+    class Meta:
+        model = Harvesting
+        exclude = ['created_by',]
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(HarvestingForm, self).__init__(*args, **kwargs)
+
+        self.fields['member'].queryset = CooperativeMember.objects.none()
+
+        if 'cooperative' in self.data:
+            try:
+                cooperative_id = int(self.data.get('cooperative'))
+                self.fields['member'].queryset = CooperativeMember.objects.filter(cooperative=cooperative_id).order_by('first_name')
+            except Exception as e: #(ValueError, TypeError):
+                pass  # invalid input from the client; ignore and fallback to empty City queryset
+        elif self.instance.pk:
+            if self.instance.cooperative:
+                self.fields['member'].queryset = self.instance.cooperative.member_set.order_by('first_name')
+
+
+class SunflowerAcreageForm(forms.ModelForm):
+    class Meta:
+        model = SunflowerAcreage
+        exclude = ['created_by',]
+
+
+class SunflowerPlantedQuantityForm(forms.ModelForm):
+    class Meta:
+        model = SunflowerPlantedQuantity
+        exclude = ['created_by',]
+
+
+class SunflowerCollectionForm(forms.ModelForm):
+    class Meta:
+        model = SunflowerCollection
+        exclude = ['created_by',]
+
+
+class HarvestUploadForm(forms.Form):
+    sheetChoice = (
+        ('1', 'sheet1'),
+        ('2', 'sheet2'),
+        ('3', 'sheet3'),
+        ('4', 'sheet4'),
+        ('5', 'sheet5'),
+    )
+
+    rowchoices = (
+        ('1', 'Row 1'),
+        ('2', 'Row 2'),
+        ('3', 'Row 3'),
+        ('4', 'Row 4'),
+        ('5', 'Row 5')
+    )
+
+    choices = list()
+    for i in range(65, 91):
+        choices.append([i - 65, chr(i)])
+
+    excel_file = forms.FileField()
+    sheet = forms.ChoiceField(label="Sheet", choices=sheetChoice, widget=forms.Select(attrs={'class': 'form-control'}))
+    row = forms.ChoiceField(label="Row", choices=rowchoices, widget=forms.Select(attrs={'class': 'form-control'}))
+    farmer_reference_col = forms.ChoiceField(label='Farmer ID / Phone number Column', initial=0, choices=choices,
+                                        widget=forms.Select(attrs={'class': 'form-control'}),
+                                        help_text='The column containing the Farmers SYSTEM ID/Phone Number')
+    quantity_col = forms.ChoiceField(label='Quantity Column', initial=1, choices=choices,
+                                 widget=forms.Select(attrs={'class': 'form-control'}),
+                                 help_text='The column containing the Quantity')
+    year_col = forms.ChoiceField(label='Year Column', initial=2, choices=choices,
+                                     widget=forms.Select(attrs={'class': 'form-control'}),
+                                     help_text='The column containing the Year Column')
+    season_col = forms.ChoiceField(label='Year Column', initial=2, choices=choices,
+                                     widget=forms.Select(attrs={'class': 'form-control'}),
+                                     help_text='The column containing the Season Column')
+
+
+
+bootstrapify(HarvestUploadForm)
+bootstrapify(HarvestingForm)
 bootstrapify(MemberUploadUpdateForm)
 bootstrapify(OrderSearchForm)
 bootstrapify(AgentSearchForm)

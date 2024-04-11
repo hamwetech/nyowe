@@ -902,6 +902,7 @@ class Agent(Profile):
 
 
 class Harvesting(models.Model):
+    cooperative = models.ForeignKey(Cooperative, null=True, blank=True, on_delete=models.CASCADE)
     member = models.ForeignKey(CooperativeMember, null=True, blank=True, on_delete=models.CASCADE)
     quantity = models.DecimalField(max_digits=20, decimal_places=2)
     year = models.PositiveIntegerField(null=True, blank=True)

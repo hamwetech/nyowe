@@ -13,8 +13,8 @@ from django.db.models import Q
 from django.views.generic import ListView, DetailView, View
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
-from coop.models import Collection, CooperativeMember, Cooperative, FarmerGroup
-from coop.forms import CollectionForm, CollectionFilterForm, CollectionUploadForm
+from coop.models import *
+from coop.forms import *
 from coop.views.member import save_transaction
 from conf.utils import generate_alpanumeric, genetate_uuid4, log_error, get_message_template as message_template
 from coop.utils import sendMemberSMS
@@ -334,3 +334,180 @@ def get_farmer_groups(request):
         return JsonResponse(data, safe=False)
     else:
         return JsonResponse([], safe=False)
+
+
+# New Fields
+class HarvestingListView(ExtraContext, ListView):
+    model = Harvesting
+    ordering = ['-create_date']
+    extra_context = {'active': ['_savings']}
+
+    def dispatch(self, *args, **kwargs):
+        if self.request.GET.get('download'):
+            return self.download_file()
+        return super(HarvestingListView, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super(HarvestingListView, self).get_queryset()
+        return queryset
+
+
+class HarvestingCreateView(CreateView):
+    model = Harvesting
+    form_class = HarvestingForm
+    template_name = "coop/general_form.html"
+    success_url = reverse_lazy('coop:harvesting_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        form.instance.reference = generate_alpanumeric(size=16)
+        if form.instance.member:
+            harvested_quantity = form.instance.member.harvested_quantity if form.instance.member.harvested_quantity else 0
+            harvested_quantity_new = harvested_quantity + form.instance.quantity
+            form.instance.member.harvested_quantity = harvested_quantity_new
+            form.instance.member.save()
+        return super(HarvestingCreateView, self).form_valid(form)
+
+
+class HarvestingUpdateView(UpdateView):
+    model = Harvesting
+    form_class = HarvestingForm
+    template_name = "coop/general_form.html"
+    success_url = reverse_lazy('coop:harvesting_list')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super(HarvestingUpdateView, self).form_valid(form)
+
+
+class HarvestingDeleteView(DeleteView):
+    model = Harvesting
+    success_url = reverse_lazy('coop:harvesting_list')
+
+    def get_context_data(self, **kwargs):
+        #
+        context = super(HarvestingDeleteView, self).get_context_data(**kwargs)
+        #
+        deletable_objects, model_count, protected = get_deleted_objects([self.object])
+        #
+        context['deletable_objects'] = deletable_objects
+        context['model_count'] = dict(model_count).items()
+        context['protected'] = protected
+        #
+        return context
+
+
+class HarvestingUploadView(View):
+
+    template_name = 'coop/collection_upload.html'
+
+    def get(self, reqeust, *args, **kwargs):
+        data = {}
+        data['form'] = HarvestUploadForm
+        return render(reqeust, self.template_name, data)
+
+    def post(self, request, *args, **kwargs):
+        data = dict()
+        form = HarvestingUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            f = request.FILES['excel_file']
+
+            path = f.temporary_file_path()
+            index = int(form.cleaned_data['sheet']) - 1
+            startrow = int(form.cleaned_data['row']) - 1
+
+            farmer_reference_col = int(form.cleaned_data['farmer_reference_col'])
+            quantity_col = int(form.cleaned_data['quantity_col'])
+            year_col = int(form.cleaned_data['year_col'])
+            season_col = int(form.cleaned_data['season_col'])
+
+            book = xlrd.open_workbook(filename=path, logfile='/tmp/xls.log')
+            sheet = book.sheet_by_index(index)
+            rownum = 0
+            data = dict()
+            order_list = []
+            member = None
+
+            for i in range(startrow, sheet.nrows):
+                try:
+                    row = sheet.row(i)
+                    rownum = i + 1
+
+                    farmer_reference = smart_str(row[farmer_reference_col].value).strip()
+                    farmer_name = smart_str(row[farmer_name_col].value).strip()
+
+                    if farmer_reference:
+                        member = CooperativeMember.objects.filter(Q(phone_number=farmer_reference)|Q(member_id=farmer_reference)|Q(user_id=farmer_reference))
+                        if member.exists():
+                            member = member[0]
+
+                    if not member:
+                        if farmer_name:
+                            f = farmer_name.split(" ")
+                            print(f)
+                            last_name = f[0]
+                            first_name = f[1]
+                            member = CooperativeMember.objects.filter(surname=last_name, first_name=first_name)
+                            if member.exists():
+                                member = member[0]
+
+                    if not member:
+                        data['errors'] = 'Member "%s" not Found, please provide a valid name, phone number or member id. (row %d)' % (farmer_name, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+
+                    quantity = smart_str(row[quantity_col].value).strip()
+                    if not re.search('^[0-9\.]+$', quantity, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Quantity (row %d)' % \
+                                         (quantity, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+                    year = smart_str(row[year_col].value).strip()
+                    if not re.search('^[0-9\.]+$', year, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Year (row %d)' % \
+                                         (year, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+                    season = smart_str(row[season_col].value).strip()
+                    if not re.search('^[0-9\.]+$', season, re.IGNORECASE):
+                        if (i + 1) == sheet.nrows: break
+                        data['errors'] = '"%s" is not a valid Season (row %d)' % \
+                                         (season, i + 1)
+                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+                    order_list.append({"member": member,
+                                       "year":year,
+                                       "season": season,
+                                       "quantity": quantity
+                                       })
+
+                except Exception as err:
+                    log_error()
+                    return render(request, self.template_name, {'active': 'setting', 'form':form, 'error': err})
+
+            print(order_list)
+            if order_list:
+                try:
+                    for order_i in order_list:
+                        reference = genetate_uuid4()
+                        member = order_i.get("member")
+                        year = order_i.get("year")
+                        season = order_i.get("season")
+                        quantity = order_i.get("quantity")
+
+                        Harvesting.objects.create(
+                            cooperative=member.cooperative,
+                            member=member,
+                            year=year,
+                            season=season,
+                            quantity=quantity,
+                            created_by=self.request.user
+                        )
+
+                    return redirect('coop:harvesting_list')
+                except Exception as e:
+                    log_error()
+                    return render(request, self.template_name,
+                                  {'active': 'setting', 'form': form, 'error': e})
