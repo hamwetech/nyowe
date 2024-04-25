@@ -192,39 +192,77 @@ class MemberEndpoint(APIView):
                         print('Saved  Record %s' % __member.member_id)
                         log_debug('Saved  Record %s' % __member.member_id)
                         if mes:
-                            message = message_template().member_registration
-                            if re.search('<NAME>', message):
-                                if __member.surname:
-                                    message = message.replace('<NAME>', '%s %s' % (__member.surname.title(), __member.first_name.title()))
-                                    # if cooperative:
-                                    #     message = message.replace('<COOPERATIVE>', __member.cooperative.name)
-                                    # if fgs:
-                                    #     message = message.replace('<COOPERATIVE>', __member.farmer_group.name)
-                                    message = message.replace('<IDNUMBER>', __member.member_id)
-                                    sendMemberSMS(request, __member, message)
+                            pass
+                            # message = message_template().member_registration
+                            # if re.search('<NAME>', message):
+                            #     if __member.surname:
+                            #         message = message.replace('<NAME>', '%s %s' % (__member.surname.title(), __member.first_name.title()))
+                            #         # if cooperative:
+                            #         #     message = message.replace('<COOPERATIVE>', __member.cooperative.name)
+                            #         # if fgs:
+                            #         #     message = message.replace('<COOPERATIVE>', __member.farmer_group.name)
+                            #         message = message.replace('<IDNUMBER>', __member.member_id)
+                            #         sendMemberSMS(request, __member, message)
                     else:
                         print("UPDATING..")
                         __member = mem[0]
-                        CooperativeMember.objects.filter(member_id=request.data.get('member_id')).update(
-                        image=request.data.get("image"),
-                        surname=request.data.get("surname"),
-                        first_name=request.data.get("first_name"),
-                        other_name=request.data.get("other_name"),
-                        date_of_birth=request.data.get("date_of_birth"),
-                        gender=request.data.get("gender"),
-                        maritual_status=request.data.get("maritual_status"),
-                        phone_number=request.data.get("phone_number"), 
-                        # own_phone=request.data.get("own_phone"),
-                        # has_mobile_money=request.data.get("has_mobile_money"),
-                        email=request.data.get("email"),
-                        district=request.data.get("district"), 
-                        county=request.data.get("county"), 
-                        sub_county=request.data.get("sub_county"), 
-                        village=request.data.get("village"),
-                        coop_role=request.data.get("coop_role"),
-                        land_acreage=request.data.get("land_acreage"),
-                        product=request.data.get("product")
-                        )
+                        fgs = FarmerGroup.objects.filter(pk=request.data.get("farmer_group"))
+                        d = District.objects.filter(pk=request.data.get("district"))
+                        c = County.objects.filter(pk=request.data.get("county"))
+                        sc = SubCounty.objects.filter(pk=request.data.get("sub_county"))
+                        v = Village.objects.filter(pk=request.data.get("village"))
+
+                        __member.image = request.data.get("image")
+                        __member.surname = request.data.get("surname")
+                        __member.first_name = request.data.get("first_name")
+                        __member.other_name = request.data.get("other_name")
+                        __member.date_of_birth = request.data.get("date_of_birth")
+                        __member.gender = request.data.get("gender")
+                        __member.farmer_group = fgs[0] if fgs.exists() else None
+                        __member.maritual_status = request.data.get("maritual_status")
+                        __member.phone_number = request.data.get("phone_number")
+                        __member.id_number = request.data.get("id_number")
+                        __member.email = request.data.get("email")
+                        __member.create_wallet = bool(request.data.get("own_phone"))
+                        __member.create_wallet = bool(request.data.get("has_mobile_money"))
+                        __member.create_wallet = bool(request.data.get("create_wallet"))
+                        __member.district = d[0] if d.exists() else None
+                        __member.county = c[0] if c.exists() else None
+                        __member.sub_county = sc[0] if sc.exists() else None
+                        __member.village = v[0].name if v.exists() else None
+                        __member.coop_role = request.data.get("coop_role")
+                        __member.land_acreage = request.data.get("land_acreage")
+                        __member.product = request.data.get("product")
+
+                        __member.shea_trees = request.data.get("shea_trees")
+                        __member.harvested_quantity = request.data.get("harvested_quantity")
+                        __member.sunflower_acreage = request.data.get("sunflower_acreage")
+                        __member.sunflower_planted = request.data.get("sunflower_planted")
+                        __member.sunflower_collected = request.data.get("sunflower_collected")
+
+                        __member.image = request.data.get("image")
+                        __member.save()
+
+                        # CooperativeMember.objects.filter(member_id=request.data.get('member_id')).update(
+                        # image=request.data.get("image"),
+                        # surname=request.data.get("surname"),
+                        # first_name=request.data.get("first_name"),
+                        # other_name=request.data.get("other_name"),
+                        # date_of_birth=request.data.get("date_of_birth"),
+                        # gender=request.data.get("gender"),
+                        # maritual_status=request.data.get("maritual_status"),
+                        # phone_number=request.data.get("phone_number"),
+                        # # own_phone=request.data.get("own_phone"),
+                        # # has_mobile_money=request.data.get("has_mobile_money"),
+                        # email=request.data.get("email"),
+                        # district=request.data.get("district"),
+                        # county=request.data.get("county"),
+                        # sub_county=request.data.get("sub_county"),
+                        # village=request.data.get("village"),
+                        # coop_role=request.data.get("coop_role"),
+                        # land_acreage=request.data.get("land_acreage"),
+                        # product=request.data.get("product")
+                        # )
                     return Response(
                         {"status": "OK", "response": "Farmer Profile Saved Successfully", "member_id": __member.member_id},
                         status.HTTP_200_OK)
