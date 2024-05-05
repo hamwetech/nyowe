@@ -136,9 +136,9 @@ class DashboardView(TemplateView):
 
         context['male'] = male.count()
         context['female'] = female.count()
-        context['registered_numbers'] = registered_numbers.count()+125
-        context['rm_male'] = rm_male.count() + 100
-        context['rm_female'] = rm_female.count() + 25
+        context['registered_numbers'] = registered_numbers.count()
+        context['rm_male'] = rm_male.count()
+        context['rm_female'] = rm_female.count()
         context['with_phones'] = with_phones.count()
         context['male_phones'] = male_phones.count()
         context['female_phones'] = female_phones.count()
