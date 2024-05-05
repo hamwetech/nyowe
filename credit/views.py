@@ -402,6 +402,8 @@ class LoanRequestUploadView(ExtraContext, View):
                     loan_amount = smart_str(row[loan_amount_col].value).strip()
                     agent = smart_str(row[agent_col].value).strip()
 
+                    phone_number = "1111" if phone_number == "" else phone_number
+
                     if not re.search('^[0-9]+$', phone_number, re.IGNORECASE):
                         data['errors'] = '"%s" is not a valid Phone Number (row %d)' % (phone_number, i + 1)
                         print(data)
@@ -423,18 +425,26 @@ class LoanRequestUploadView(ExtraContext, View):
                                              (request_date, i + 1, e)
                             return render(request, self.template_name,
                                           {'active': 'system', 'form': form, 'error': data})
-
-
-                    phn = internationalize_number(phone_number)
-                    # member = CooperativeMember.objects.filter(Q(user_id=phone_number)|Q(member_id=phone_number)|Q(phone_number=phn)|Q(id=phone_number))
+                    phn = None
+                    if phone_number or phone_number=="" or phone_number == "1111":
+                        phn = internationalize_number(phone_number)
+                        # member = CooperativeMember.objects.filter(Q(user_id=phone_number)|Q(member_id=phone_number)|Q(phone_number=phn)|Q(id=phone_number))
                     member = None
                     members = CooperativeMember.objects.filter(phone_number=phn)
                     if members.count() == 1:
                         member = members[0]
                     else:
-                        members_not_found.append('"%s" Member record not found (row %d)' % (name, i + 1))
-                        # data['errors'] = '"%s %s" Member record not found (row %d)' % (last_name, first_name, i + 1)
-                        # return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+                        name = name.split(' ')
+                        surname = name[0]
+                        first_name = name[1] if len(name) > 1 else None
+                        other_name = name[2] if len(name) > 2 else None
+                        mbrs = CooperativeMember.objects.filter(first_name=first_name, surname=other_name)
+                        if mbrs.count() > 0:
+                            member = mbrs[0]
+                        else:
+                            members_not_found.append('"%s" Member record not found (row %d)' % (name, i + 1))
+                            # data['errors'] = '"%s %s" Member record not found (row %d)' % (last_name, first_name, i + 1)
+                            # return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
                     q = {'member': member,
                          'loan_amount': loan_amount,
@@ -470,14 +480,16 @@ class LoanRequestUploadView(ExtraContext, View):
 
                             if member:
                                 print(member.id)
-                                LoanRequest.objects.create(
-                                    reference=generate_alpanumeric("LR",9),
-                                    credit_manager=credit_manager,
-                                    member=member,
-                                    requested_amount=requested_amount,
-                                    request_date=request_date,
-                                    agent=agent,
-                                )
+                                lqs = LoanRequest.objects.filter(member=member)
+                                if not lqs.exists():
+                                    LoanRequest.objects.create(
+                                        reference=generate_alpanumeric("LR",9),
+                                        credit_manager=credit_manager,
+                                        member=member,
+                                        requested_amount=requested_amount,
+                                        request_date=request_date,
+                                        agent=agent,
+                                    )
                         return redirect('credit:loan_list')
                     except Exception as err:
                         log_error()

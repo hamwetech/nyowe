@@ -112,6 +112,7 @@ class Supplier(models.Model):
 
 class Item(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    category = models.CharField(max_length=255, null=True, blank=True)
     supplier = models.ForeignKey(Supplier, null=True, blank=True, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=20, decimal_places=2)
     unit = models.ForeignKey(ProductUnit, null=True, blank=True, on_delete=models.SET_NULL)
@@ -123,6 +124,10 @@ class Item(models.Model):
         
     def __unicode__(self):
         return self.name
+
+
+class ItemCategory(models.Model):
+    name = models.CharField(max_length=255)
     
 # @receiver(post_save, sender=ProductVariationPrice)
 # def create_price_log(sender, instance, created, **kwargs):

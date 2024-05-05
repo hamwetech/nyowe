@@ -11,6 +11,7 @@ from django.db.models.functions import Concat, TruncMonth
 from coop.models import *
 from activity.models import *
 from payment.models import *
+from credit.models import *
 from product.models import ProductVariationPrice
 from messaging.models import OutgoingMessages
 
@@ -32,7 +33,10 @@ class DashboardView(TemplateView):
         product_price = ProductVariationPrice.objects.all().order_by('-update_date')
         collections = Collection.objects.all().order_by('-update_date')
         payments = MemberPaymentTransaction.objects.all().order_by('-transaction_date')
+        loans = LoanRequest.objects.all()
         orders = MemberOrder.objects.all().order_by('-update_date')
+        orderitems = OrderItem.objects.values('item__category') \
+            .annotate(total_quantity=Sum('quantity'))
         success_payments = payments.filter(status='SUCCESSFUL')
         training = TrainingSession.objects.all().order_by('-create_date')
         # supply_requests = MemberSupplyRequest.objects.all().order_by('-create_date')
@@ -49,6 +53,8 @@ class DashboardView(TemplateView):
                 m_shares = m_shares.filter(cooperative_member__cooperative = coop_admin)
                 collections = collections.filter(member__cooperative = coop_admin)
         collection_qty = collections.aggregate(total_amount=Sum('quantity'))
+        loan_sum = loans.filter(status='PENDING').aggregate(total_amount=Sum('requested_amount'))
+        loan_taken_sum = loans.filter(status='ACCEPTED').aggregate(total_amount=Sum('requested_amount'))
         total_payment = success_payments.aggregate(total_amount=Sum('amount'))
         collection_amt = collections.aggregate(total_amount=Sum('total_price'))
         members_shares = members.aggregate(total_amount=Sum('shares'))
@@ -109,6 +115,9 @@ class DashboardView(TemplateView):
         context['transactions'] = Cooperative.objects.all().count()
         context['orders'] = orders.count()
         context['order_sum'] = order_sum
+        context['loan_sum'] = loan_sum
+        context['loan_taken_sum'] = loan_taken_sum
+        context['orderitems'] = orderitems
         context['members'] = members.count()
 
         context['male_fifteen'] = len(male_fifteen)
@@ -158,7 +167,7 @@ class DashboardView(TemplateView):
         context['cooperative_shares'] = cooperative_shares[:5]
         context['training'] = training[:5]
         context['product_price'] = product_price
-        context['sms'] = messages.filter(status='SENT').count()
+        context['sms'] = messages.filter(status__iexact='SENT').count()
         # context['supply_requests'] = supply_requests[:5]
         return context
 

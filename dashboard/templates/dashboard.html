@@ -24,6 +24,7 @@
                 </div>
             </div>
         </div>
+<!--        Paymets here-->
         <div>
             <div class="md-card">
                 <div class="md-card-content">
@@ -33,6 +34,7 @@
                 </div>
             </div>
         </div>
+
         <div>
             <div class="md-card">
                 <div class="md-card-content">
@@ -110,19 +112,33 @@
                 </div>
             </div>
         </div>
-        
 
         <div>
             <div class="md-card">
                 <div class="md-card-content">
-                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_live peity_data">5,3,9,6,5,9,7,3,5,2,5,3,9,6,5,9,7,3,5,2</span></div>
-                    <span class="uk-text-muted uk-text-small">Coop Orders</span>
-                    <h2 class="uk-margin-remove" id="peity_live_texts">{{ orders|intcomma }} Kgs</h2>
-                    <span class="uk-text-muted uk-text-small">Order Amount</span>
-                    <h2 class="uk-margin-remove">{{ order_sum.total_amount|intcomma }}</h2>
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_orders peity_data">64/100</span></div>
+                    <span class="uk-text-muted uk-text-small">Loans Offered</span>
+                    <h2 class="uk-margin-remove">{{ loan_sum.total_amount|intcomma }}</h2>
+                    <span class="uk-text-muted uk-text-small">Loans Offered</span>
+                    <h2 class="uk-margin-remove">{{ loan_taken_sum.total_amount|intcomma }}</h2>
                 </div>
             </div>
         </div>
+
+
+
+<!--        <div>-->
+<!--            <div class="md-card">-->
+<!--                <div class="md-card-content">-->
+<!--                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_live peity_data">5,3,9,6,5,9,7,3,5,2,5,3,9,6,5,9,7,3,5,2</span></div>-->
+<!--                    <span class="uk-text-muted uk-text-small">Coop Orders</span>-->
+<!--                    <h2 class="uk-margin-remove" id="peity_live_texts">{{ orders|intcomma }} Kgs</h2>-->
+<!--                    <span class="uk-text-muted uk-text-small">Order Amount</span>-->
+<!--                    <h2 class="uk-margin-remove">{{ order_sum.total_amount|intcomma }}</h2>-->
+<!--                    {{ orderitems }}-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
         <div>
             <div class="md-card">
                 <div class="md-card-content">
@@ -135,15 +151,15 @@
             </div>
         </div>
 
-        <div>
-            <div class="md-card">
-                <div class="md-card-content">
-                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_orders peity_data">64/100</span></div>
-                    <span class="uk-text-muted uk-text-small">Member Savings</span>
-                    <h2 class="uk-margin-remove">{{ savings_balance }}</h2>
-                </div>
-            </div>
-        </div>
+<!--        <div>-->
+<!--            <div class="md-card">-->
+<!--                <div class="md-card-content">-->
+<!--                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_orders peity_data">64/100</span></div>-->
+<!--                    <span class="uk-text-muted uk-text-small">Member Savings</span>-->
+<!--                    <h2 class="uk-margin-remove">{{ savings_balance }}</h2>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
 
     </div>
 
@@ -236,12 +252,15 @@
                 </div>
             </div>
         </div>
+
         <div>
             <div class="md-card">
                 <div class="md-card-content">
                     <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_sale peity_data">5,3,9,6,5,9,7,3,5,2</span></div>
                     <span class="uk-text-muted uk-text-small">Shea Trees</span>
                     <h2 class="uk-margin-remove">{{ shea_trees|intcomma }}</h2>
+                    <span class="uk-text-muted uk-text-small">Hives</span>
+                    <h2 class="uk-margin-remove">{{ hives|intcomma }}</h2>
                 </div>
             </div>
         </div>
@@ -249,7 +268,18 @@
             <div class="md-card">
                 <div class="md-card-content">
                     <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_sale peity_data">5,3,9,6,5,9,7,3,5,2</span></div>
-                    <span class="uk-text-muted uk-text-small">Hives</span>
+                    <span class="uk-text-muted uk-text-small">Collections</span>
+                    <table>
+                        {% for it in orderitems %}
+                            <tr>
+                                <td>{{ it.item__category }}</td>
+                                <td>{{ it.total_quantity|intcomma }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+
+
+
                     <h2 class="uk-margin-remove">{{ hives|intcomma }}</h2>
                 </div>
             </div>
