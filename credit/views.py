@@ -426,7 +426,7 @@ class LoanRequestUploadView(ExtraContext, View):
                             return render(request, self.template_name,
                                           {'active': 'system', 'form': form, 'error': data})
                     phn = None
-                    if phone_number or phone_number=="" or phone_number == "1111":
+                    if phone_number != str(1111):
                         phn = internationalize_number(phone_number)
                         # member = CooperativeMember.objects.filter(Q(user_id=phone_number)|Q(member_id=phone_number)|Q(phone_number=phn)|Q(id=phone_number))
                     member = None
@@ -438,7 +438,7 @@ class LoanRequestUploadView(ExtraContext, View):
                         surname = name[0]
                         first_name = name[1] if len(name) > 1 else None
                         other_name = name[2] if len(name) > 2 else None
-                        mbrs = CooperativeMember.objects.filter(first_name=first_name, surname=other_name)
+                        mbrs = CooperativeMember.objects.filter(first_name__iexact=first_name, surname__iexact=surname)
                         if mbrs.count() > 0:
                             member = mbrs[0]
                         else:

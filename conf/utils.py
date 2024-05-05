@@ -34,7 +34,7 @@ def internationalize_number(number):
         sections = list(match.groups())
         sections[0] = '256'
         return ''.join(sections)
-    raise ValueError("Incorrect phone number.")
+    raise ValueError("Incorrect phone number %s." % number)
 
 def generate_alpanumeric(prefix="", size=16):
     x = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(size))
