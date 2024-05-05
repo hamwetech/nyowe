@@ -36,7 +36,9 @@ class CreditManagerAdmin(models.Model):
 
 class LoanRequest(models.Model):
     reference = models.CharField(max_length=255, unique=True)
-    member = models.ForeignKey(CooperativeMember, on_delete=models.CASCADE)
+    member = models.ForeignKey(CooperativeMember, on_delete=models.CASCADE, null=True, blank=True)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    phone_number = models.CharField(max_length=255, null=True, blank=True)
     credit_manager = models.ForeignKey(CreditManager, null=True, blank=True)
     requested_amount = models.DecimalField(max_digits=12, decimal_places=2)
     request_date = models.DateTimeField()

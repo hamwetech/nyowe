@@ -40,6 +40,7 @@
                     <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Category</th>
                         <th>Supplier</th>
                         <th>Price</th>
                         <th></th>
@@ -49,6 +50,7 @@
                         {% for item in object_list %}
                             <tr>
                                 <td>{{ item.name }}</td>
+                                <td>{{ item.category }}</td>
                                 <td>{{ item.supplier }}</td>
                                 <td>{{ item.price }}</td>
                                 

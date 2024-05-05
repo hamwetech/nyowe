@@ -117,9 +117,12 @@
             <div class="md-card">
                 <div class="md-card-content">
                     <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_orders peity_data">64/100</span></div>
-                    <span class="uk-text-muted uk-text-small">Loans Offered</span>
-                    <h2 class="uk-margin-remove">{{ loan_sum.total_amount|intcomma }}</h2>
-                    <span class="uk-text-muted uk-text-small">Loans Offered</span>
+                    <span class="uk-text-muted uk-text-small">Loan Requests </h2></span>
+                    <small class="uk-margin-remove">: {{ loan_req_cnt|intcomma }}</small>
+                    <h2 class="uk-margin-remove"> {{ loan_sum.total_amount|intcomma }}</h2>
+
+                    <span class="uk-text-muted uk-text-small">Actual Loans Disbursed</span>
+                    <small class="uk-margin-remove">: {{ loan_app_cnt|intcomma }}</small>
                     <h2 class="uk-margin-remove">{{ loan_taken_sum.total_amount|intcomma }}</h2>
                 </div>
             </div>
@@ -171,7 +174,7 @@
                 <div class="md-card-content">
                     <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
                     <span class="uk-text-muted uk-text-small">Farmers with Phones</span>
-                    <h2 class="uk-margin-remove"><span class="uk-text-muted uk-text-small">Profile</span> {{ with_phones }}<br> <span class="uk-text-muted uk-text-small">Registered</span> {{ registered_numbers }}</h2>
+                    <h2 class="uk-margin-remove"><span class="uk-text-muted uk-text-small">Total</span> {{ with_phones }}<br> <span class="uk-text-muted uk-text-small">Acquired Through Project</span> {{ registered_numbers }}</h2>
                     <table class="uk-table">
                         <thead>
                             <tr>
@@ -185,7 +188,7 @@
                                 <td>{{ female_phones|intcomma }}</td>
                             </tr>
                             <tr>
-                                <td colspan="2">Registered</td>
+                                <td colspan="2">Acquired Through Project</td>
                             </tr>
                             <tr>
                                 <td>{{ rm_male|intcomma }}</td>
@@ -268,7 +271,7 @@
             <div class="md-card">
                 <div class="md-card-content">
                     <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_sale peity_data">5,3,9,6,5,9,7,3,5,2</span></div>
-                    <span class="uk-text-muted uk-text-small">Collections</span>
+                    <span class="uk-text-muted uk-text-small">Orders</span>
                     <table>
                         {% for it in orderitems %}
                             <tr>
@@ -277,10 +280,6 @@
                             </tr>
                         {% endfor %}
                     </table>
-
-
-
-                    <h2 class="uk-margin-remove">{{ hives|intcomma }}</h2>
                 </div>
             </div>
         </div>

@@ -53,8 +53,10 @@ class DashboardView(TemplateView):
                 m_shares = m_shares.filter(cooperative_member__cooperative = coop_admin)
                 collections = collections.filter(member__cooperative = coop_admin)
         collection_qty = collections.aggregate(total_amount=Sum('quantity'))
+        loan_req_cnt = loans.filter(status='PENDING')
+        loan_app_cnt = loans.filter(status='APPROVED')
         loan_sum = loans.filter(status='PENDING').aggregate(total_amount=Sum('requested_amount'))
-        loan_taken_sum = loans.filter(status='ACCEPTED').aggregate(total_amount=Sum('requested_amount'))
+        loan_taken_sum = loans.filter(status='APPROVED').aggregate(total_amount=Sum('requested_amount'))
         total_payment = success_payments.aggregate(total_amount=Sum('amount'))
         collection_amt = collections.aggregate(total_amount=Sum('total_price'))
         members_shares = members.aggregate(total_amount=Sum('shares'))
@@ -115,6 +117,8 @@ class DashboardView(TemplateView):
         context['transactions'] = Cooperative.objects.all().count()
         context['orders'] = orders.count()
         context['order_sum'] = order_sum
+        context['loan_req_cnt'] = loan_req_cnt.count()
+        context['loan_app_cnt'] = loan_app_cnt.count()
         context['loan_sum'] = loan_sum
         context['loan_taken_sum'] = loan_taken_sum
         context['orderitems'] = orderitems

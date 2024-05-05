@@ -4,6 +4,7 @@ import json
 import xlrd
 import xlwt
 import datetime
+from django.contrib import messages
 
 from django.db import transaction
 from django.db.models import Q
@@ -447,8 +448,9 @@ class LoanRequestUploadView(ExtraContext, View):
                             # return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
                     q = {'member': member,
+                         'name': name,
                          'loan_amount': loan_amount,
-                         'phone_number': phone_number,
+                         'phone_number': phn,
                          'agent': agent,
                          'request_date': request_date,
                          }
@@ -457,11 +459,15 @@ class LoanRequestUploadView(ExtraContext, View):
                 except Exception as err:
                     log_error()
                     return render(request, self.template_name, {'active': 'setting', 'form':form, 'error': err})
+
+            if len(members_not_found) > 0:
+                data['missing_members'] = '<br>'.join(members_not_found)
+                data['missing_members_count'] = len(members_not_found)
             if not proceed:
-                if len(members_not_found) > 0:
-                    data['missing_members'] = '<br>'.join(members_not_found)
-                    data['missing_members_count'] = len(members_not_found)
-                    return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+                # if len(members_not_found) > 0:
+                #     data['missing_members'] = '<br>'.join(members_not_found)
+                #     data['missing_members_count'] = len(members_not_found)
+                return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
             print(payment_list)
             if payment_list:
@@ -475,21 +481,22 @@ class LoanRequestUploadView(ExtraContext, View):
                             request_date = nc.get('request_date') if nc.get('request_date') != '' else None
                             phone_number = nc.get('phone_number')
                             agent = nc.get('agent')
-
-
+                            name = nc.get('name')
 
                             if member:
-                                print(member.id)
-                                lqs = LoanRequest.objects.filter(member=member)
+                                lqs = LoanRequest.objects.filter(member__phone_number=phone_number)
                                 if not lqs.exists():
                                     LoanRequest.objects.create(
                                         reference=generate_alpanumeric("LR",9),
                                         credit_manager=credit_manager,
                                         member=member,
+                                        name=name,
                                         requested_amount=requested_amount,
                                         request_date=request_date,
                                         agent=agent,
                                     )
+                        if len(members_not_found) > 0:
+                            messages.warning(request, data)
                         return redirect('credit:loan_list')
                     except Exception as err:
                         log_error()

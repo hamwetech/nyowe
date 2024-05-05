@@ -77,7 +77,7 @@
                                 <td>{{ item.member }}</td>
                                 <td>{{ item.member.cooperative }}</td>
                                 <td>{{ item.requested_amount|intcomma }}</td>
-                                <td>{{ item.request_date|date:"Y m d" }}</td>
+                                <td>{{ item.request_date|date:"Y-m-d" }}</td>
                                 <td>{{ item.status }}</td>
                                 {% if request.user.profile.is_credit_manager or request.user.profile.is_union %}
                                     <td>
