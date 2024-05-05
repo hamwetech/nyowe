@@ -998,11 +998,11 @@ class OrderSearchForm(forms.ModelForm):
                                                              'autocomplete': "off"}))
     class Meta:
         model = MemberOrder
-        fields = ['member', 'cooperative', 'status']
+        fields = ['cooperative', 'status']
 
     def __init__(self, *args, **kwargs):
         super(OrderSearchForm, self).__init__(*args, **kwargs)
-        self.fields['member'].required = False
+        # self.fields['member'].required = False
         self.fields['cooperative'].required = False
         self.fields['status'].required = False
 

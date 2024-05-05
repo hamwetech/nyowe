@@ -348,9 +348,10 @@ class OrderUploadView(View):
                     order_date = (row[order_date_col].value)
                     if order_date:
                         try:
-                            date_str = datetime(*xlrd.xldate_as_tuple(order_date, book.datemode))
+                            date_str = datetime.datetime(*xlrd.xldate_as_tuple(int(order_date), book.datemode))
                             order_date = date_str.strftime("%Y-%m-%d")
                         except Exception as e:
+                            log_error()
                             data['errors'] = '"%s" is not a valid Order Date (row %d): %s' % \
                                              (order_date, i + 1, e)
                             return render(request, self.template_name,

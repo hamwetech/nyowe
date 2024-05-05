@@ -23,6 +23,9 @@ class DashboardView(TemplateView):
         cooperatives = Cooperative.objects.all()
         farmer_group = FarmerGroup.objects.all()
         members = CooperativeMember.objects.filter(is_active=True)
+        registered_numbers = RegisteredSimcards.objects.all()
+        rm_male = registered_numbers.filter(Q(sex__iexact="M")|Q(sex__iexact="MALE"))
+        rm_female = registered_numbers.filter(Q(sex__iexact="F")|Q(sex__iexact="FEMALE"))
         agents = Profile.objects.filter(access_level__name='AGENT')
         cooperative_contribution = CooperativeContribution.objects.all().order_by('-update_date')[:5]
         cooperative_shares = CooperativeShareTransaction.objects.all().order_by('-update_date')
@@ -78,9 +81,10 @@ class DashboardView(TemplateView):
         agent_female_old_youth = [f for f in female_agent if f.age if f.age >= 25 and f.age <= 50]
         agent_female_midlife = [f for f in female_agent if f.age if f.age > 50]
 
-        with_phones = members.filter(own_phone=True)
-        male_phones = male.filter(own_phone=True)
-        female_phones = female.filter(own_phone=True)
+        # with_phones = members.filter(own_phone=True)
+        with_phones = members.filter(phone_number__isnull=False)
+        male_phones = male.filter(phone_number__isnull=False)
+        female_phones = female.filter(phone_number__isnull=False)
         # members_animals = members.aggregate(total_amount=Sum('animal_count'))
 
         shares = cooperatives.aggregate(total_amount=Sum('shares'))
@@ -119,6 +123,9 @@ class DashboardView(TemplateView):
 
         context['male'] = male.count()
         context['female'] = female.count()
+        context['registered_numbers'] = registered_numbers.count()
+        context['rm_male'] = rm_male.count()
+        context['rm_female'] = rm_female.count()
         context['with_phones'] = with_phones.count()
         context['male_phones'] = male_phones.count()
         context['female_phones'] = female_phones.count()

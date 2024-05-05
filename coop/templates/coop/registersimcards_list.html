@@ -31,9 +31,7 @@
                 <div class="uk-width-medium-5 uk-float-right">
                     <button class="md-btn" name="_search" > Search </button>
                     <a href="." class="md-btn md-btn-small md-btn-flat md-btn-flat-primary  uk-margin-small-left"><i class="material-icons md-24 " title="Delete">refresh</i></a>
-                    <button class="md-btn md-btn-success uk-float-right" name="_download" value="download"> Export CSV </button>
-
-
+                    <a  id="download_file" class="md-btn md-btn-success uk-float-right">Download Excel</a>
                 </div>
              </div>
             </form>
@@ -79,16 +77,16 @@
 {% block page_specific_scripts %}
  <!-- page specific plugins -->
     
-    <script>
-        $(function() {
-            $(function() {
-            // enable hires images
-            altair_helpers.retina_images();
-            // fastClick (touch devices)
-            if(Modernizr.touch) {
-                FastClick.attach(document.body);
+    <<script>
+    $('#download_file').on('click', function(){
+            var url = window.location.href;
+            sep = "?";
+
+            if (url.indexOf('?') >= 0) {
+                sep = "&";
             }
+            window.location.href = url+sep+"download=true";
         });
-        });
-    </script>
+</script>
+
 {% endblock %}

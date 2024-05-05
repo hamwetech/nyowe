@@ -47,7 +47,7 @@
   
   {% if request.user.profile.is_union or request.user.profile.is_cooperative %}
    <!-- -->
-    <div class="uk-grid uk-grid-width-large-1-4 uk-grid-width-medium-1-2 uk-grid-medium uk-sortable sortable-handler" data-uk-sortable data-uk-grid-margin>
+    <div class="uk-grid uk-grid-width-large-1-3 uk-grid-width-medium-1-2 uk-grid-medium uk-sortable sortable-handler" data-uk-sortable data-uk-grid-margin>
         <div>
             <div class="md-card">
                 <div class="md-card-content">
@@ -111,15 +111,7 @@
             </div>
         </div>
         
-        <div>
-            <div class="md-card">
-                <div class="md-card-content">
-                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_orders peity_data">64/100</span></div>
-                    <span class="uk-text-muted uk-text-small">Member Savings</span>
-                    <h2 class="uk-margin-remove">{{ savings_balance }}</h2>
-                </div>
-            </div>
-        </div>
+
         <div>
             <div class="md-card">
                 <div class="md-card-content">
@@ -143,6 +135,16 @@
             </div>
         </div>
 
+        <div>
+            <div class="md-card">
+                <div class="md-card-content">
+                    <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_orders peity_data">64/100</span></div>
+                    <span class="uk-text-muted uk-text-small">Member Savings</span>
+                    <h2 class="uk-margin-remove">{{ savings_balance }}</h2>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 
@@ -153,7 +155,7 @@
                 <div class="md-card-content">
                     <div class="uk-float-right uk-margin-top uk-margin-small-right"><span class="peity_visitors peity_data">5,3,9,6,5,9,7</span></div>
                     <span class="uk-text-muted uk-text-small">Farmers with Phones</span>
-                    <h2 class="uk-margin-remove">{{ with_phones }}</h2>
+                    <h2 class="uk-margin-remove"><span class="uk-text-muted uk-text-small">Profile</span> {{ with_phones }}<br> <span class="uk-text-muted uk-text-small">Registered</span> {{ registered_numbers }}</h2>
                     <table class="uk-table">
                         <thead>
                             <tr>
@@ -165,6 +167,13 @@
                             <tr>
                                 <td>{{ male_phones|intcomma }}</td>
                                 <td>{{ female_phones|intcomma }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">Registered</td>
+                            </tr>
+                            <tr>
+                                <td>{{ rm_male|intcomma }}</td>
+                                <td>{{ rm_female|intcomma }}</td>
                             </tr>
 
                         </tbody>
