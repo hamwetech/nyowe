@@ -373,7 +373,7 @@ class PaymentMethodUpateView(UpdateView):
 class DownloadPaymentExcelView(View):
     
     def get(self, request, *args, **kwargs):
-        _choices = ['id','payment_date', 'cooperative__name', 'member__member_id', 'amount', 'payment_method', 'transaction_reference', 'status']
+        _choices = ['id','payment_date', 'cooperative__name', 'phone_number', 'name',  'amount', 'payment_method', 'transaction_reference', 'status']
         columns = []
         columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in _choices]
         

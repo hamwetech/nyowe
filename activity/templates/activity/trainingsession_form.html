@@ -125,7 +125,64 @@
         
         $("#selec_adv_1").selectize({plugins:{remove_button:{label:""}},maxItems:null,valueField:"id",labelField:"title",searchField:"title",create:!1,render:{option:function(t,e){return'<div class="option"><span class="title">'+e(t.title)+"</span></div>"},item:function(t,e){return'<div class="item"><a href="'+e(t.url)+'" target="_blank">'+e(t.title)+"</a></div>"}},onDropdownOpen:function(t){t.hide().velocity("slideDown",{begin:function(){t.css({"margin-top":"0"})},duration:200,easing:easing_swiftOut})},onDropdownClose:function(t){t.show().velocity("slideUp",{complete:function(){t.css({"margin-top":""})},duration:200,easing:easing_swiftOut})}});
         
-        
+        //$("#id_village").empty();
+        $("#id_cooperative").change(function () {
+            var url = "{% url 'coop:ajax_load_members' %}"  // get the url of the `load_cities` view
+            var cooperative = $(this).val();  // get the selected country ID from the HTML input
+
+            $.ajax({                       // initialize an AJAX request
+                url: url,                    // set the url of the request (= localhost:8000/hr/ajax/load-cities/)
+                data: {
+                    'cooperative': cooperative       // add the country id to the GET parameters
+                },
+                success: function (data) {   // `data` is the return of the `load_cities` view function
+                    $("#selec_adv_1").html(data);  // replace the contents of the city input with the data that came from the server
+                    initializeSelectize()
+                }
+            });
+
+        });
+
+        function initializeSelectize() {
+            $("#selec_adv_1").selectize({
+                plugins: {
+                    remove_button: {
+                        label: ""
+                    }
+                },
+                maxItems: null,
+                valueField: "id",
+                labelField: "title",
+                searchField: "title",
+                create: false,
+                render: {
+                    option: function (item, escape) {
+                        return '<div class="option"><span class="title">' + escape(item.title) + "</span></div>";
+                    },
+                    item: function (item, escape) {
+                        return '<div class="item"><a href="' + escape(item.url) + '" target="_blank">' + escape(item.title) + "</a></div>";
+                    }
+                },
+                onDropdownOpen: function ($dropdown) {
+                    $dropdown.hide().velocity("slideDown", {
+                        begin: function () {
+                            $dropdown.css({ "margin-top": "0" });
+                        },
+                        duration: 200,
+                        easing: "easeOutQuart"
+                    });
+                },
+                onDropdownClose: function ($dropdown) {
+                    $dropdown.show().velocity("slideUp", {
+                        complete: function () {
+                            $dropdown.css({ "margin-top": "" });
+                        },
+                        duration: 200,
+                        easing: "easeOutQuart"
+                    });
+                }
+            });
+        }
        
         
     </script>
