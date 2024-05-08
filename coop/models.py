@@ -828,8 +828,10 @@ class MemberOrder(models.Model):
         ('ACCEPT_DELIVERY', 'ACCEPT_DELIVERY')
     )
 
-    cooperative = models.ForeignKey(Cooperative, on_delete=models.CASCADE)
-    member = models.ForeignKey(CooperativeMember, on_delete=models.CASCADE)
+    cooperative = models.ForeignKey(Cooperative, blank=True, null=True, on_delete=models.CASCADE)
+    member = models.ForeignKey(CooperativeMember, blank=True, null=True, on_delete=models.CASCADE)
+    farmers_name = models.CharField(max_length=255, blank=True, null=True)
+    phone_number = models.CharField(max_length=255, blank=True, null=True)
     order_reference = models.CharField(max_length=255, blank=True)
     order_price = models.DecimalField(max_digits=20, decimal_places=2, default=0, blank=True)
     status = models.CharField(max_length=255, default='PENDING', choices=orderstatus)

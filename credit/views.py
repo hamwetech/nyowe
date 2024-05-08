@@ -9,16 +9,16 @@ from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect, HttpResponse
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils.encoding import smart_str
 from django.forms.formsets import formset_factory, BaseFormSet
-from django.views.generic import ListView, DetailView, View
+from django.views.generic import ListView, DetailView, View, FormView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
 from userprofile.models import Profile, AccessLevel
 from credit.utils import create_loan_transaction
 from credit.models import CreditManager, LoanRequest, CreditManagerAdmin, LoanTransaction
-from credit.forms import CreditManagerForm, CreditManagerUserForm, LoanUploadForm, LoanSearchForm
+from credit.forms import CreditManagerForm, CreditManagerUserForm, LoanUploadForm, LoanSearchForm, ApproveForm
 
 from coop.utils import credit_member_account, debit_member_account
 from coop.models import MemberOrder, CooperativeMember, OrderItem
@@ -166,7 +166,7 @@ class LoanRequestListView(ExtraContext, ListView):
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
 
-        profile_choices = ['member__first_name', 'member__surname', 'request_date', 'requested_amount', 'agent', 'status']
+        profile_choices = ['member__first_name', 'member__surname', 'request_date', 'requested_amount', 'approved_amount', 'supplier', 'agent', 'status']
 
         columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
         # Gather the Information Found
@@ -238,6 +238,51 @@ class LoanRequestDetailView(ExtraContext, DetailView):
     ordering = ('-id',)
 
 
+class ApproveLoanFormView(FormView):
+    form_class = ApproveForm
+    template_name = "credit/approve_form.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ApproveLoanFormView, self).get_context_data(**kwargs)
+        pk = self.kwargs.get('pk')
+        loan = LoanRequest.objects.get(pk=pk)
+        context['loan'] = loan
+        return context
+
+    def form_valid(self, form):
+        pk = self.kwargs.get('pk')
+        today = datetime.datetime.today()
+        amount = form.cleaned_data.get('amount')
+        supplier = form.cleaned_data.get('supplier')
+
+        lq = LoanRequest.objects.get(pk=pk)
+
+        if amount > lq.requested_amount:
+            form.add_error('amount', 'Amount is greater than offered amount')
+            return super(ApproveLoanFormView, self).form_invalid(form)
+
+        lq.confirm_date = today
+        ref = genetate_uuid4()
+        LoanTransaction.objects.create(
+            reference=ref,  # Adjust as per your model fields
+            member=lq.member,
+            credit_manager=lq.credit_manager,
+            amount=amount,
+            transaction_type='CREDIT',  # Adjust as per your requirement
+            loan=lq,
+            # Add other fields as required
+        )
+        lq.approved_amount = amount
+        lq.status = 'APPROVED'
+        lq.supplier = supplier
+        lq.save()
+        return super(ApproveLoanFormView, self).form_valid(form)
+
+    def get_success_url(self):
+        id = self.kwargs.get('pk')
+        return reverse('credit:loan_detail', kwargs={'pk': id})
+
+
 class ApproveLoan(View):
     def get(self, request, *args, **kwargs):
         pk = self.kwargs.get('pk')
@@ -246,6 +291,17 @@ class ApproveLoan(View):
         try:
             lq = LoanRequest.objects.get(pk=pk)
             if status == 'APPROVED':
+                lq.confirm_date = today
+                transaction = LoanTransaction.objects.create(
+                    reference=lq.reference,  # Adjust as per your model fields
+                    member=lq.member,
+                    credit_manager=lq.credit_manager,
+                    amount=lq.requested_amount,
+                    transaction_type='CREDIT',  # Adjust as per your requirement
+                    loan=lq,
+                    # Add other fields as required
+                )
+            if status == 'NOTTAKEN':
                 lq.confirm_date = today
             if status == 'REJECTED':
                 lq.confirm_date = today

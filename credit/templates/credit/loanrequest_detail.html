@@ -52,7 +52,7 @@
                             <td>Cooperative</td><td>{{ object.member.cooperative }}</td>
                             </tr>
                          <tr>
-                            <td>Supplier</td><td>{{ object.order_item.item.supplier }}</td>
+                            <td>Supplier</td><td>{{ object.supplier }}</td>
                             </tr>
                         <tr>
                             <td>Request Date</td><td>{{ object.request_date }}</td>
@@ -62,10 +62,14 @@
                             </tr>
 
                         <tr>
-                            <td>Amount</td><td>{{ object.requested_amount|intcomma }}</td>
+                            <td>Request Amount</td><td>{{ object.requested_amount|default:""|intcomma }}</td>
                             </tr>
                         <tr>
-                            <td>Provider Id</td><td>{{ object.loan_request_id }}</td>
+                        <tr>
+                            <td>Approved Amount</td><td>{{ object.approved_amount|default:""|intcomma }}</td>
+                            </tr>
+                        <tr>
+                            <td>Provider Id</td><td>{{ object.loan_request_id|default:"" }}</td>
                             </tr>
                         <tr>
                             <td>Response</td><td>{{ object.response|safe }}</td>
@@ -78,7 +82,10 @@
                     <div class="buttons uk-text-right">
 <!--                        <a href="{% url 'credit:loan_approve' pk=object.id status='STATUS' %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-success">Check Status</a>-->
                         {% if object.status != "APPROVED" %}
-                            <a href="{% url 'credit:loan_approve' pk=object.id status='APPROVED' %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-success">APPROVE</a>
+                            <a href="{% url 'credit:approve_form' pk=object.id %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-success">APPROVE</a>
+                            <a href="{% url 'credit:loan_approve' pk=object.id status='NOTTAKEN' %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-primary">NOT TAKEN</a>
+
+<!--                            <a href="{% url 'credit:loan_approve' pk=object.id status='APPROVED' %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-success">APPROVE</a>-->
                             <a href="{% url 'credit:loan_approve' pk=object.id status='REJECTED' %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-danger">REJECT</a>
                         {% endif %}
                         {% if request.user.profile.is_credit_manager %}

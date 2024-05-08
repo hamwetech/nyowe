@@ -14,6 +14,8 @@ urlpatterns = [
       url(r'loan/(?P<pk>[\w]+)/$', LoanRequestDetailView.as_view(), name='loan_detail'),
       url(r'loan/approve/(?P<pk>[\w]+)/(?P<status>[\w]+)/$', ApproveLoan.as_view(), name='loan_approve'),
 
+      url(r'loan/approval/(?P<pk>[\w]+)/$', ApproveLoanFormView.as_view(), name='approve_form'),
+
       url(r'loan/transaction/list/$', LoanTransactionListView.as_view(), name='loan_transaction_list'),
 
       url(r'list/$', CreditManagerListView.as_view(), name='cm_list'),

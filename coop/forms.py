@@ -719,7 +719,7 @@ class CollectionFilterForm(forms.Form):
 class MemberOrderForm(forms.ModelForm):
     class Meta:
         model = MemberOrder
-        fields = ['cooperative', 'member', 'order_date']
+        fields = ['cooperative', 'member', 'farmers_name', 'phone_number', 'order_date']
         
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)

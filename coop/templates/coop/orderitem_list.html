@@ -66,8 +66,14 @@
                         {% for item in object_list %}
                             <tr>
                                 <td>{{ item.order.order_date| date:"d, M Y" }}</td>
-                                <td>{{ item.order.cooperative }}</td>
-                                <td>{{ item.order.member }}</td>
+                                <td>{{ item.order.cooperative|default:"" }}</td>
+                                <td>
+                                    {% if item.order.member %}
+                                        {{ item.order.member|default:"" }}
+                                    {% else %}
+                                        {{ item.order.farmers_name|default:"" }}
+                                    {% endif %}
+                                </td>
                                 <td>{{ item.item }}</td>
                                 <td>{{ item.quantity }}</td>
                                 <td>{{ item.unit_price }}</td>

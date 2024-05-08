@@ -297,6 +297,8 @@ class OrderUploadView(View):
             data = dict()
             order_list = []
             member = None
+            farmers_name = None
+            farmer_phone_number = None
 
             for i in range(startrow, sheet.nrows):
                 try:
@@ -322,8 +324,10 @@ class OrderUploadView(View):
                                 member = member[0]
 
                     if not member:
-                        data['errors'] = 'Member "%s" not Found, please provide a valid name, phone number or member id. (row %d)' % (farmer_name, i + 1)
-                        return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+                        farmers_name = farmer_name
+                        farmer_phone_number = farmer_reference
+                        # data['errors'] = 'Member "%s" not Found, please provide a valid name, phone number or member id. (row %d)' % (farmer_name, i + 1)
+                        # return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
                     item = smart_str(row[item_col].value).strip()
                     if not re.search('^[A-Z\s\(\)\-\.]+$', item, re.IGNORECASE):
@@ -357,7 +361,7 @@ class OrderUploadView(View):
                             return render(request, self.template_name,
                                           {'active': 'system', 'form': form, 'error': data})
                     price = float(pitem.price) * float(quantity)
-                    order_list.append({"member": member, "item":pitem, "unit_price":float(pitem.price), "price": price, "quantity": quantity, "order_date": order_date})
+                    order_list.append({"farmers_name":farmers_name, "farmer_phone_number":farmer_phone_number, "member": member, "item":pitem, "unit_price":float(pitem.price), "price": price, "quantity": quantity, "order_date": order_date})
 
                 except Exception as err:
                     log_error()
@@ -368,13 +372,19 @@ class OrderUploadView(View):
                 try:
                     for order_i in order_list:
                         order_reference = generate_numeric(8, '30')
+                        farmers_name = order_i.get("farmers_name")
+                        farmer_phone_number = order_i.get("farmer_phone_number")
                         member = order_i.get("member")
                         item = order_i.get("item")
                         unit_price = order_i.get("unit_price")
                         price = order_i.get("price")
                         quantity = order_i.get("quantity")
                         order_date = order_i.get("order_date") if order_i.get("order_date") else datetime.datetime.now()
-                        check_order = MemberOrder.objects.filter(status='CREATING', member=member)
+                        check_order = MemberOrder.objects.filter(
+                            status='CREATING',
+                            member=member
+                        )
+
                         if check_order.exists():
                             check_order=check_order[0]
                             OrderItem.objects.create(
@@ -390,8 +400,10 @@ class OrderUploadView(View):
                             check_order.save()
                         else:
                             ord = MemberOrder.objects.create(
-                                cooperative=member.cooperative,
-                                member = member,
+                                cooperative=member.cooperative if member else None,
+                                member = member if member else None,
+                                farmers_name=farmers_name,
+                                phone_number=farmer_phone_number,
                                 order_reference = order_reference,
                                 order_price=price,
                                 status = 'CREATING',

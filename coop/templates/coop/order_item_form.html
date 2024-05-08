@@ -22,7 +22,6 @@
         <div class="md-card">
         <div class="md-card-content">
             <div class="uk-grid" data-uk-grid-margin="">
-                
                 <div class="uk-width-medium-1-2">
                     <div class="md-input-wrapper">
                         {% include "form/field.html" with field=form.cooperative input_group_add_on='<i class="uk-input-group-icon uk-icon-money "></i>' %}
@@ -34,6 +33,23 @@
                         {% include "form/field.html" with field=form.member input_group_add_on='<i class="uk-input-group-icon uk-icon-money "></i>' %}
                     </div>
                 </div>
+            </div>
+            <br>
+            <small>If the Farmer does not have a profile, fill in the Fields below.</small>
+            <div class="uk-grid" data-uk-grid-margin="">
+                <div class="uk-width-medium-1-2">
+                    <div class="md-input-wrapper">
+                        {% include "form/field.html" with field=form.farmers_name input_group_add_on='<i class="uk-input-group-icon uk-icon-money "></i>' %}
+                    </div>
+                </div>
+
+                <div class="uk-width-medium-1-2">
+                    <div class="md-input-wrapper">
+                        {% include "form/field.html" with field=form.phone_number input_group_add_on='<i class="uk-input-group-icon uk-icon-money "></i>' %}
+                    </div>
+                </div>
+            </div>
+            <div class="uk-grid" data-uk-grid-margin="">
                 <div class="uk-width-medium-1-2">
                     <div class="md-input-wrapper">
                         {% include "form/field.html" with field=form.order_date|htmlattributes:"data-uk-datepicker={format:'YYYY-MM-DD'}"  input_group_add_on='<i class="uk-input-group-icon uk-icon-money "></i>' %}

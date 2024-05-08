@@ -93,6 +93,12 @@ class LoanSearchForm(forms.Form):
         self.fields['cooperative'].choices = choices
 
 
+class ApproveForm(forms.Form):
+    amount = forms.IntegerField()
+    supplier = forms.CharField(max_length=255)
+
+
+bootstrapify(ApproveForm)
 bootstrapify(LoanSearchForm)
 bootstrapify(LoanUploadForm)
 bootstrapify(CreditManagerForm)

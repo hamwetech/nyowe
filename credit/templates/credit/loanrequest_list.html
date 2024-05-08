@@ -64,6 +64,7 @@
                         <th>Member</th>
                         <th>Cooperative</th>
                         <th>Amount</th>
+                        <th>Approved Amount</th>
                         <th>Request Date</th>
                         <th>Status</th>
                         <th></th>
@@ -77,6 +78,7 @@
                                 <td>{{ item.member }}</td>
                                 <td>{{ item.member.cooperative }}</td>
                                 <td>{{ item.requested_amount|intcomma }}</td>
+                                <td>{{ item.approved_amount|default:""|intcomma }}</td>
                                 <td>{{ item.request_date|date:"Y-m-d" }}</td>
                                 <td>{{ item.status }}</td>
                                 {% if request.user.profile.is_credit_manager or request.user.profile.is_union %}

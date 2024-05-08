@@ -50,8 +50,8 @@
                     <tr>
                         <th>Order Date</th>
                         <th>Reference</th>
-                        <th>Cooperative</th>
                         <th>Member</th>
+                        <th>Cooperative</th>
                         <th>Total Price</th>
                         <th>Status</th>
                         
@@ -63,8 +63,14 @@
                             <tr>
                                 <td>{{ item.order_date| date:"d, M Y" }}</td>
                                 <td>{{ item.order_reference }}</td>
-                                <td>{{ item.cooperative }}</td>
-                                <td>{{ item.member }}</td>
+                                <td>
+                                     {% if item.member %}
+                                        {{ item.member|default:"" }}
+                                    {% else %}
+                                        {{ item.farmers_name|default:"" }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.cooperative|default:"" }}</td>
                                 <td>{{ item.order_price }}</td>
                                 <td>{{ item.status }}</td>
                                 
