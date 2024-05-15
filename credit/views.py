@@ -221,7 +221,7 @@ class LoanRequestListView(ExtraContext, ListView):
                 full_name,  # Concatenated name
                 '',
                 '',
-                m['phone_number'],
+                m['name'],
                 m['request_date'].strftime('%d-%m-%Y') if m.get('request_date') else "",
                 m['requested_amount'],
                 m['approved_amount'],
