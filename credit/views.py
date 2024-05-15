@@ -212,7 +212,9 @@ class LoanRequestListView(ExtraContext, ListView):
         for m in queryset:
             row_num += 1
             # Concatenate the name fields
-            full_name = ' '.join([m['member__first_name'], m['member__surname']])
+            full_name = ' '.join([m['member__first_name'] if m['member__first_name'] else '',
+                                  m['member__surname'] if m['member__surname'] else '',
+                                  m['member__other_name'] if m['member__other_name'] else ''])
 
             # Format other fields as before
             row = [
