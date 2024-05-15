@@ -98,6 +98,13 @@ class ApproveForm(forms.Form):
     supplier = forms.CharField(max_length=255)
 
 
+class LoanRequestForm(forms.ModelForm):
+    class Meta:
+        model = LoanRequest
+        exclude = ['create_date', 'update_date']
+
+
+bootstrapify(LoanRequestForm)
 bootstrapify(ApproveForm)
 bootstrapify(LoanSearchForm)
 bootstrapify(LoanUploadForm)

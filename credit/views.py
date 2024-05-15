@@ -18,7 +18,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from userprofile.models import Profile, AccessLevel
 from credit.utils import create_loan_transaction
 from credit.models import CreditManager, LoanRequest, CreditManagerAdmin, LoanTransaction
-from credit.forms import CreditManagerForm, CreditManagerUserForm, LoanUploadForm, LoanSearchForm, ApproveForm
+from credit.forms import CreditManagerForm, CreditManagerUserForm, LoanUploadForm, LoanSearchForm, ApproveForm, LoanRequestForm
 
 from coop.utils import credit_member_account, debit_member_account
 from coop.models import MemberOrder, CooperativeMember, OrderItem
@@ -166,7 +166,8 @@ class LoanRequestListView(ExtraContext, ListView):
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
 
-        profile_choices = ['member__first_name', 'member__surname', 'request_date', 'requested_amount', 'approved_amount', 'supplier', 'agent', 'status']
+
+        profile_choices = ['member__first_name', 'member__surname', 'member__other_name', 'name', 'phone_number',  'request_date', 'requested_amount', 'approved_amount', 'supplier', 'agent', 'status']
 
         columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
         # Gather the Information Found
@@ -209,12 +210,24 @@ class LoanRequestListView(ExtraContext, ListView):
             queryset = queryset.filter(request_date__gte=end_date)
 
         for m in queryset:
-
             row_num += 1
-            ##print profile_choices
+            # Concatenate the name fields
+            full_name = ' '.join([m['member__first_name'], m['member__surname']])
+
+            # Format other fields as before
             row = [
-                m['%s' % x] if 'request_date' not in x else m['%s' % x].strftime('%d-%m-%Y') if m.get('%s' % x) else ""
-                for x in profile_choices]
+                full_name,  # Concatenated name
+                '',
+                '',
+                m['name'],
+                m['phone_number'],
+                m['request_date'].strftime('%d-%m-%Y') if m.get('request_date') else "",
+                m['requested_amount'],
+                m['approved_amount'],
+                m['supplier'],
+                m['agent'],
+                m['status']
+            ]
 
             for col_num in range(len(row)):
                 worksheet.write(row_num, col_num, row[col_num])
@@ -236,6 +249,11 @@ class LoanRequestDetailView(ExtraContext, DetailView):
     model = LoanRequest
     extra_context = {'active': ['_credit', '__loan']}
     ordering = ('-id',)
+
+
+class LoanRequestEdit(ExtraContext, UpdateView):
+    model = LoanRequest
+    form_class = LoanRequestForm
 
 
 class ApproveLoanFormView(FormView):
@@ -408,7 +426,6 @@ class LoanTransactionListView(ExtraContext, ListView):
     model=LoanTransaction
     extra_context = {'active': ['_credit', '__loan_transaction']}
     ordering = ('-id')
-
 
 
 class LoanRequestUploadView(ExtraContext, View):
