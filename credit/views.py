@@ -167,7 +167,7 @@ class LoanRequestListView(ExtraContext, ListView):
         end_date = self.request.GET.get('end_date')
 
 
-        profile_choices = ['member__first_name', 'member__surname', 'member__other_name', 'name', 'phone_number',  'request_date', 'requested_amount', 'approved_amount', 'supplier', 'agent', 'status']
+        profile_choices = ['member__first_name', 'member__surname', 'member__other_name', 'name',  'request_date', 'requested_amount', 'approved_amount', 'supplier', 'agent', 'status']
 
         columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
         # Gather the Information Found
@@ -221,7 +221,6 @@ class LoanRequestListView(ExtraContext, ListView):
                 full_name,  # Concatenated name
                 '',
                 '',
-                m['name'],
                 m['phone_number'],
                 m['request_date'].strftime('%d-%m-%Y') if m.get('request_date') else "",
                 m['requested_amount'],
