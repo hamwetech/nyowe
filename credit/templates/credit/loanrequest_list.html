@@ -81,11 +81,17 @@
                                 <td>{{ item.approved_amount|default:""|intcomma }}</td>
                                 <td>{{ item.request_date|date:"Y-m-d" }}</td>
                                 <td>{{ item.status }}</td>
-                                {% if request.user.profile.is_credit_manager or request.user.profile.is_union %}
+
                                     <td>
-                                        <a href="{% url 'credit:loan_detail' item.id %}" class="md-btn md-btn-wave waves-effect waves-button uk-float-right">OPEN</a>
+                                        {% if request.user.profile.is_credit_manager or request.user.profile.is_union %}
+                                        <a href="{% url 'credit:loan_edit' item.id %}" class="md-btn md-btn-warning waves-effect waves-button uk-float-right">EDIT</a>
+
+                                            <a href="{% url 'credit:loan_detail' item.id %}" class="md-btn md-btn-wave waves-effect waves-button uk-float-right">OPEN</a>
+                                        {% endif %}
+                                        {% if request.user.is_superuser %}
+                                            <a href="{% url 'credit:loan_delete' item.id %}" class="md-btn md-btn-danger waves-effect waves-button uk-float-right">DELETE</a>
+                                        {% endif %}
                                     </td>
-                                {% endif %}
                             </tr>
                         {% endfor %}
                     </tbody>

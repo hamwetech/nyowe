@@ -12,6 +12,8 @@ urlpatterns = [
       url(r'loan/list/$', LoanRequestListView.as_view(), name='loan_list'),
       url(r'loan/upload/$', LoanRequestUploadView.as_view(), name='loan_upload'),
       url(r'loan/(?P<pk>[\w]+)/$', LoanRequestDetailView.as_view(), name='loan_detail'),
+      url(r'loan/edit/(?P<pk>[\w]+)/$', LoanRequestEdit.as_view(), name='loan_edit'),
+      url(r'loan/delete/(?P<pk>[\w]+)/$', LoanRequestDeleteView.as_view(), name='loan_delete'),
       url(r'loan/approve/(?P<pk>[\w]+)/(?P<status>[\w]+)/$', ApproveLoan.as_view(), name='loan_approve'),
 
       url(r'loan/approval/(?P<pk>[\w]+)/$', ApproveLoanFormView.as_view(), name='approve_form'),

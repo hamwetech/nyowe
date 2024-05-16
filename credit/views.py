@@ -167,7 +167,7 @@ class LoanRequestListView(ExtraContext, ListView):
         end_date = self.request.GET.get('end_date')
 
 
-        profile_choices = ['member__first_name', 'member__surname', 'member__other_name', 'name',  'request_date', 'requested_amount', 'approved_amount', 'supplier', 'agent', 'status']
+        profile_choices = ['member__first_name', 'member__surname', 'member__other_name', 'name', 'member__phone_number',  'request_date', 'requested_amount', 'approved_amount', 'supplier', 'agent', 'status']
 
         columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
         # Gather the Information Found
@@ -222,6 +222,7 @@ class LoanRequestListView(ExtraContext, ListView):
                 '',
                 '',
                 m['name'],
+                m['member__phone_number'],
                 m['request_date'].strftime('%d-%m-%Y') if m.get('request_date') else "",
                 m['requested_amount'],
                 m['approved_amount'],
@@ -255,6 +256,24 @@ class LoanRequestDetailView(ExtraContext, DetailView):
 class LoanRequestEdit(ExtraContext, UpdateView):
     model = LoanRequest
     form_class = LoanRequestForm
+
+
+class LoanRequestDeleteView(DeleteView):
+    model = LoanRequest
+    template_name = "confirm_delete.html"
+    success_url = reverse_lazy('credit:loan_list')
+
+    def get_context_data(self, **kwargs):
+        #
+        context = super(LoanRequestDeleteView, self).get_context_data(**kwargs)
+        #
+        deletable_objects, model_count, protected = get_deleted_objects([self.object])
+        #
+        context['deletable_objects'] = deletable_objects
+        context['model_count'] = dict(model_count).items()
+        context['protected'] = protected
+        #
+        return context
 
 
 class ApproveLoanFormView(FormView):
