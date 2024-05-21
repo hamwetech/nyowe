@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from credit.models import CreditManager, LoanRequest
 from conf.utils import bootstrapify, internationalize_number, PHONE_REGEX
+from coop.models import CooperativeMember
 
 
 class CreditManagerForm(forms.ModelForm):
@@ -81,6 +82,10 @@ class LoanSearchForm(forms.Form):
                                widget=forms.TextInput(attrs={'class': 'some_class', 'id': 'uk_dp_end',
                                                              'data-uk-datepicker': "{format:'YYYY-MM-DD'}",
                                                              'autocomplete': "off"}))
+    status = forms.ChoiceField(widget=forms.Select(), required=False, choices=(('', '-----'), ('PENDING', 'PENDING'), ('PROCESSING', 'PROCESSING'),
+                                                      ('ACCEPTED', 'ACCEPTED'), ('NOT TAKEN', 'NOTTAKEN'),
+                                                      ('INPROGRESS', 'INPROGRESS'), ('PAID', 'PAID'),
+                                                      ('APPROVED', 'APPROVED')))
 
     def __init__(self,  *args, **kwargs):
         super(LoanSearchForm, self).__init__(*args, **kwargs)
@@ -102,6 +107,14 @@ class LoanRequestForm(forms.ModelForm):
     class Meta:
         model = LoanRequest
         exclude = ['create_date', 'update_date']
+
+    def __init__(self, *args, **kwargs):
+        super(LoanRequestForm, self).__init__(*args, **kwargs)
+        self.fields['member'].queryset = CooperativeMember.objects.none()
+        if self.instance.pk:
+            cooperative = self.instance.member.cooperative
+            mbs = CooperativeMember.objects.filter(cooperative=cooperative)
+            self.fields['member'].queryset = mbs
 
 
 bootstrapify(LoanRequestForm)

@@ -48,7 +48,7 @@ class LoanRequest(models.Model):
     deadline = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=64, choices=(('PENDING', 'PENDING'), ('PROCESSING', 'PROCESSING'),
                                                       ('ACCEPTED', 'ACCEPTED'), ('REJECTED', 'REJECTED'),
-                                                      ('INPROGRESS', 'INPROGRESS'), ('PAID', 'PAID')), default='PENDING')
+                                                      ('INPROGRESS', 'INPROGRESS'), ('PAID', 'PAID'), ('APPROVED', 'APPROVED')), default='PENDING')
     confirm_date = models.DateTimeField(null=True, blank=True)
     paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     last_payment_date = models.DateTimeField(null=True, blank=True)

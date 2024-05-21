@@ -137,12 +137,15 @@ class LoanRequestListView(ExtraContext, ListView):
         cooperative = self.request.GET.get('cooperative')
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
+        status = self.request.GET.get('status')
 
         if search:
             queryset = queryset.filter(Q(member__surname__icontains=search)|Q(member__first_name__icontains=search)|Q(member__phone_number__icontains=search))
 
         if cooperative:
             queryset = queryset.filter(member__cooperative__id=cooperative)
+        if status:
+            queryset = queryset.filter(status=status)
         if start_date:
             queryset = queryset.filter(request_date__gte=start_date)
         if end_date:
@@ -256,6 +259,7 @@ class LoanRequestDetailView(ExtraContext, DetailView):
 class LoanRequestEdit(ExtraContext, UpdateView):
     model = LoanRequest
     form_class = LoanRequestForm
+    success_url = reverse_lazy("credit:loan_list")
 
 
 class LoanRequestDeleteView(DeleteView):
@@ -557,9 +561,9 @@ class LoanRequestUploadView(ExtraContext, View):
                 data['missing_members'] = '<br>'.join(members_not_found)
                 data['missing_members_count'] = len(members_not_found)
             if not proceed:
-                # if len(members_not_found) > 0:
-                #     data['missing_members'] = '<br>'.join(members_not_found)
-                #     data['missing_members_count'] = len(members_not_found)
+                if len(members_not_found) > 0:
+                    data['missing_members'] = '<br>'.join(members_not_found)
+                    data['missing_members_count'] = len(members_not_found)
                 return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
 
             print(payment_list)
