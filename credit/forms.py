@@ -112,8 +112,8 @@ class LoanRequestForm(forms.ModelForm):
         super(LoanRequestForm, self).__init__(*args, **kwargs)
         self.fields['member'].queryset = CooperativeMember.objects.none()
         if self.instance.pk:
-            cooperative = self.instance.member.cooperative
-            mbs = CooperativeMember.objects.filter(cooperative=cooperative)
+            cooperative = self.instance.member.id
+            mbs = CooperativeMember.objects.filter(pk=cooperative)
             self.fields['member'].queryset = mbs
 
 
