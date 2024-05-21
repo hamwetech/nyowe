@@ -56,7 +56,7 @@ class DashboardView(TemplateView):
         loan_req_cnt = loans.all()
         loan_app_cnt = loans.filter(status='APPROVED')
         loan_sum = loans.aggregate(total_amount=Sum('requested_amount'))
-        loan_taken_sum = loans.filter(status='APPROVED').aggregate(total_amount=Sum('requested_amount'))
+        loan_taken_sum = loans.filter(status='APPROVED').aggregate(total_amount=Sum('approved_amount'))
         total_payment = success_payments.aggregate(total_amount=Sum('amount'))
         collection_amt = collections.aggregate(total_amount=Sum('total_price'))
         members_shares = members.aggregate(total_amount=Sum('shares'))
