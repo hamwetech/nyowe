@@ -170,7 +170,7 @@ class LoanRequestListView(ExtraContext, ListView):
         end_date = self.request.GET.get('end_date')
 
 
-        profile_choices = ['member__first_name', 'member__surname', 'member__other_name', 'name', 'member__phone_number',  'request_date', 'requested_amount', 'approved_amount', 'supplier', 'agent', 'status']
+        profile_choices = ['member__id', 'member__first_name', 'member__surname', 'member__other_name', 'name', 'member__gender', 'member__phone_number',  'request_date', 'requested_amount', 'approved_amount', 'supplier', 'agent', 'status', 'member__date_of_birth']
 
         columns += [self.replaceMultiple(c, ['_', '__name'], ' ').title() for c in profile_choices]
         # Gather the Information Found
@@ -214,6 +214,18 @@ class LoanRequestListView(ExtraContext, ListView):
 
         for m in queryset:
             row_num += 1
+
+            try:
+                # Fetch the member object
+                member = CooperativeMember.objects.get(
+                    id=m['member__id'])  # Assuming there's a field 'member_id' in the queryset
+
+                # Calculate the member's age
+                member_age = member.get_age()
+            except Exception as e:
+                print(e)
+                member_age = 0
+
             # Concatenate the name fields
             full_name = ' '.join([m['member__first_name'] if m['member__first_name'] else '',
                                   m['member__surname'] if m['member__surname'] else '',
@@ -221,17 +233,21 @@ class LoanRequestListView(ExtraContext, ListView):
 
             # Format other fields as before
             row = [
+                m['member__id'],
                 full_name,  # Concatenated name
                 '',
                 '',
                 m['name'],
+                m['member__gender'],
                 m['member__phone_number'],
                 m['request_date'].strftime('%d-%m-%Y') if m.get('request_date') else "",
                 m['requested_amount'],
                 m['approved_amount'],
                 m['supplier'],
                 m['agent'],
-                m['status']
+                m['status'],
+                m['member__date_of_birth'].strftime('%d-%m-%Y') if m.get('member__date_of_birth') else "",
+                member_age
             ]
 
             for col_num in range(len(row)):

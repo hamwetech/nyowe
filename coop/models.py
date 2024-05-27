@@ -376,6 +376,12 @@ class CooperativeMember(models.Model):
             return m.days / 365
         return 0
 
+    def get_age(self):
+        if self.date_of_birth:
+            m = date.today() - self.date_of_birth
+            return m.days / 365
+        return 0
+
     @property
     def age_(self):
         m = date.today() - self.date_of_birth
