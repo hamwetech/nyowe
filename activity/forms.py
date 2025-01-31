@@ -11,6 +11,7 @@ class ThematicAreaForm(forms.ModelForm):
         
 
 class TrainingForm(forms.ModelForm):
+
     class Meta:
         model = TrainingSession
         exclude = ['create_date', 'update_date', 'created_by' , 'training_reference']
@@ -19,6 +20,28 @@ class TrainingForm(forms.ModelForm):
         super(TrainingForm, self).__init__(*args, **kwargs)
         self.fields['coop_member'].widget.attrs['id'] = 'selec_adv_1'
         self.fields['coop_member'].queryset = CooperativeMember.objects.none()
+
+        if 'cooperative' in self.data:
+            try:
+                cooperative_id = int(self.data.get('cooperative'))
+                self.fields['member'].queryset = CooperativeMember.objects.filter(cooperative=cooperative_id).order_by(
+                    'first_name')
+            except Exception as e:  # (ValueError, TypeError):
+                pass  # invalid input from the client; ignore and fallback to empty City queryset
+        elif self.instance.pk:
+            if self.instance.cooperative:
+                self.fields['member'].queryset = self.instance.cooperative.member_set.order_by('first_name')
+
+
+class TrainingUploadForm(forms.ModelForm):
+    upload_trainees = forms.FileField()
+    upload_photo = forms.FileField()
+    class Meta:
+        model = TrainingSession
+        exclude = ['create_date', 'update_date', 'created_by', 'coop_member', 'training_reference']
+
+    def __init__(self, *args, **kwargs):
+        super(TrainingUploadForm, self).__init__(*args, **kwargs)
 
         if 'cooperative' in self.data:
             try:
@@ -42,3 +65,4 @@ class ExternaTrainerForm(forms.ModelForm):
 bootstrapify(ExternaTrainerForm)
 bootstrapify(ThematicAreaForm)
 bootstrapify(TrainingForm)
+bootstrapify(TrainingUploadForm)

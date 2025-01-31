@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 
 from django.shortcuts import render
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, FormView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
 from activity.models import ThematicArea, TrainingSession, ExternalTrainer
-from activity.forms import ThematicAreaForm, TrainingForm, ExternaTrainerForm
+from activity.forms import *
 
 from conf.utils import generate_alpanumeric, log_debug, log_error
 
@@ -75,6 +75,11 @@ class ExternalTrainerCreateView(CreateView):
     form_class = ExternaTrainerForm
     extra_context = {'active': ['_training', '__training']}
     success_url = reverse_lazy('activity:training_create')
+
+
+class UploadTrainingSessionView(FormView):
+    form_class = TrainingUploadForm
+    template_name = "activity/training_upload.html"
 
 
     

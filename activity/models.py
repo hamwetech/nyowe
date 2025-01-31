@@ -101,7 +101,27 @@ class TrainingSession(models.Model):
             time2 = datetime.datetime.strptime(end[:19],'%Y-%m-%d %H:%M:%S')
             difference = time2-time1
             return difference
-    
+
+
+class Trainee(models.Model):
+    name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=255, blank=True, null=True)
+    training_reference = models.CharField(max_length=256, null=True, blank=True)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'trainee'
+
+
+class TrainingPhotos(models.Model):
+    training_reference = models.CharField(max_length=256, null=True, blank=True)
+    photo = models.ImageField(upload_to='training')
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'training_photos'
     
  
 class Visit(models.Model):
