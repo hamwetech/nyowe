@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from credit.models import CreditManager, LoanRequest
+from credit.models import CreditManager, LoanRequest, LoanRepaymentTransaction
 from conf.utils import bootstrapify, internationalize_number, PHONE_REGEX
 from coop.models import CooperativeMember
 
@@ -117,6 +117,17 @@ class LoanRequestForm(forms.ModelForm):
             self.fields['member'].queryset = mbs
 
 
+class LoanRepaymentForm(forms.ModelForm):
+    class Meta:
+        model = LoanRepaymentTransaction
+        exclude = ['create_date', 'update_date']
+
+    def __init__(self, *args, **kwargs):
+        super(LoanRepaymentForm, self).__init__(*args, **kwargs)
+
+
+
+bootstrapify(LoanRepaymentForm)
 bootstrapify(LoanRequestForm)
 bootstrapify(ApproveForm)
 bootstrapify(LoanSearchForm)

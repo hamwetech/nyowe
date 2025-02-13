@@ -34,8 +34,13 @@ class TrainingForm(forms.ModelForm):
 
 
 class TrainingUploadForm(forms.ModelForm):
-    upload_trainees = forms.FileField()
-    upload_photo = forms.FileField()
+
+    is_not_farmer = forms.BooleanField(label='Click if the list of Trainees are not farmers', required=False)
+    trainees_file = forms.FileField(label='Upload the excel of the trainees')
+    attendance_list = forms.FileField(label='Upload a photo of the attendance list')
+    training_proof = forms.FileField(label='Upload a photo of the Training. (Show the trainees and the trainer)')
+
+
     class Meta:
         model = TrainingSession
         exclude = ['create_date', 'update_date', 'created_by', 'coop_member', 'training_reference']

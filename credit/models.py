@@ -43,6 +43,7 @@ class LoanRequest(models.Model):
     credit_manager = models.ForeignKey(CreditManager, null=True, blank=True)
     requested_amount = models.DecimalField(max_digits=12, decimal_places=2)
     approved_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    amount_paid = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, default=0)
     request_date = models.DateTimeField()
     order_item = models.ForeignKey(OrderItem, null=True, blank=True, on_delete=models.SET_NULL)
     deadline = models.DateTimeField(null=True, blank=True)
@@ -64,7 +65,7 @@ class LoanRequest(models.Model):
         db_table = 'loan_request'
 
     def __unicode__(self):
-        return "%s" % self.member.get_name() or u''
+        return "%s - %s | %s/-" % (self.member.get_name(), self.reference, self.approved_amount) or u''
 
 
 class LoanTransaction(models.Model):
@@ -84,3 +85,17 @@ class LoanTransaction(models.Model):
     def __unicode__(self):
         return "%s" % self.member.get_name() or u''
 
+class LoanRepaymentTransaction(models.Model):
+    request = models.ForeignKey(LoanRequest, on_delete=models.CASCADE)
+    amount_paid = models.DecimalField(max_digits=9, decimal_places=2)
+    balance = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
+    repayment_date = models.DateTimeField()
+    created_by = models.ForeignKey(User, null=True, blank=True)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'loan_repayment'
+
+    def __unicode__(self):
+        return "%s" % self.request.member.get_name() or u''

@@ -117,6 +117,7 @@ urlpatterns = [
      url(r'member/delete/(?P<pk>[\w]+)/$', MemberDeleteView.as_view(), name='member_delete'),
      url(r'member/detail/(?P<pk>[\w]+)/$', CooperativeMemberDetailView.as_view(), name='member_detail'),
      url(r'member/qrcode/(?P<pk>[\w]+)/$', ImageQRCodeDownloadView.as_view(), name='member_qrcode'),
+     url(r'member/verify/(?P<pk>[\w]+)/$', VerifyDataView.as_view(), name='member_verify'),
      url(r'member/download/$', DownloadExcelMemberView.as_view(), name='member_download'),
      url(r'member/upload/$', MemberUploadExcel.as_view(), name='member_upload'),
      url(r'member/bulk/$', MemberBulkUpdate.as_view(), name='member_bulk_update'),
@@ -124,6 +125,7 @@ urlpatterns = [
      url(r'member/create/$', MemberCreateView.as_view(), name='member_create'),
      url(r'member/map/$', MembersMapView.as_view(), name='member_map'),
      url(r'member/(?P<pk>[\w]+)/$', MemberUpdateView.as_view(), name='member_update'),
+
      url(r'fg/create/$', FarmerGroupCreateView.as_view(), name='fg_create'),
      url(r'fg/list/$', FarmerGroupListView.as_view(), name='fg_list'),
      url(r'fg/edit/(?P<pk>[\w]+)/$', FarmerGroupUpdateView.as_view(), name='fg_edit'),

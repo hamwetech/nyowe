@@ -90,6 +90,9 @@
                         {% endif %}
                         {% if request.user.profile.is_credit_manager %}
                         {% endif %}
+                        {% if object.status == "APPROVED" %}
+                            <a href="{% url 'credit:loan_repayment' pk=object.id %}" class="md-btn md-btn-wave waves-effect waves-button md-btn-primary">RECORD REPAYMENT</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>

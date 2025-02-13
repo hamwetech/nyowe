@@ -310,6 +310,8 @@ class CooperativeMember(models.Model):
     own_phone = models.BooleanField(default=False)
     has_mobile_money = models.BooleanField(default=False)
     verified_record = models.BooleanField(default=False)
+    verified_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="verifying_user")
+    verified_date = models.DateTimeField(null=True, blank=True)
     email = models.EmailField(max_length=254, null=True, blank=True)
     district = models.ForeignKey(District, null=True, blank=True, on_delete=models.SET_NULL)
     county = models.ForeignKey(County, null=True, blank=True, on_delete=models.SET_NULL)

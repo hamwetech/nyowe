@@ -14,7 +14,7 @@
                 
             </div>
             <div class="user_heading_content">
-                <h2 class="heading_b">
+                <h2 class="heading_b uk-float-left">
                     <span class="uk-text-truncate" id="user_edit_uname">{{ object.surname }} {{ object.first_name }} </span> <div> {{ object.phone_number}}</div>
                 <span class="sub-heading" id="user_edit_position">
                     Role: <b>{{ object.coop_role|title }}</b> |
@@ -23,6 +23,9 @@
                     Paid Amount<b> {{ object.paid_amount|intcomma  }}</b>
                     Sent SMS<b> {{ object.get_sms_sent|intcomma  }}</b></span>
                 </h2>
+                {% if object.verified_record %}
+                    <img src="{% static 'assets/img/verifiedStamp.png' %}" class="uk-float-right" width="45">
+                {% endif %}
             </div>
             <div class="md-fab-wrapper">
                 <div class="md-fab md-fab-toolbar md-fab-small md-fab-accent">
@@ -336,7 +339,21 @@
 
                                 </div>
                             </li>
+                            <li>
+                                <div class="uk-grid">
+                                    <div class="uk-width-medium-1-2 parsley-row">
+                                        {% if not  object.verified_record %}
+                                            <a href="#" id="id_verify_record" class="md-btn md-btn-success uk-float-left ">Verify Record</a>
+                                        {% endif %}
+                                        {% if object.verified_record %}
+                                            <img src="{% static 'assets/img/verifiedStamp.png' %}"  width="45">
+                                            Verified By: {{ object.verified_by }} | {{ object.verified_date }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </li>
                         </ul>
+
                      </div>
                 </li>
                 <li aria-hidden="true">
@@ -528,6 +545,7 @@
                                     {% endfor %}
                                     </tbody>
                                 </table>
+
                             </div>
                         </div>
                     </div> 
@@ -540,15 +558,47 @@
  <!-- page specific plugins -->
     
     <script>
+
+        $('#id_verify_record').on('click', function(){
+            UIkit.modal.confirm(
+                '<div>You are about to Verify this information. This means the information provided is clean and valid. Click Okay to Verify.</div></div>',
+                function(){
+                    $.ajax({
+                        url: '{% url "coop:member_verify" object.id %}',
+                        //url: url,
+                        dataType: 'json',
+                        type: 'post',
+                        contentType: 'application/json',
+
+                        success: function( data, textStatus, jQxhr ){
+                            console.log(data)
+                            var res = data;
+                            UIkit.modal.alert(res.message);
+                            UIkit.modal('#modal_header_footer').hide();
+                            modal.hide()
+                            clear_msg_text();
+                        },
+                        error: function( jqXhr, textStatus, errorThrown ){
+                            var res = jQuery.parseJSON(data);
+                            UIkit.modal.alert(res.message);
+                            UIkit.modal('#modal_header_footer').hide();
+                            modal.hide()
+                            clear_msg_text();
+                        }
+                    })
+
+                  });
+        })
+
         $(function() {
             $(function() {
-            // enable hires images
-            altair_helpers.retina_images();
-            // fastClick (touch devices)
-            if(Modernizr.touch) {
-                FastClick.attach(document.body);
-            }
-        });
+                // enable hires images
+                altair_helpers.retina_images();
+                // fastClick (touch devices)
+                if(Modernizr.touch) {
+                    FastClick.attach(document.body);
+                }
+            });
         });
     </script>
 {% endblock %}

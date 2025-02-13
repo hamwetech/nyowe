@@ -681,6 +681,31 @@ class MemberUploadExcel(ExtraContext, View):
             return False
 
 
+class VerifyDataView(View):
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(VerifyDataView, self).dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        data = {}
+        pk = self.kwargs.get('pk')
+        try:
+            member = CooperativeMember.objects.get(pk=pk)
+            member.verified_record = True
+            member.verified_by = self.request.user
+            member.verified_date = datetime.now()
+            member.save()
+            data = {
+                "message": "Data for %s has been verified" % member.get_name()
+            }
+        except Exception as e:
+            data = {
+                "message": "Error! Verification Failed. %s" % e
+            }
+        return JsonResponse(data)
+
+
 class MemberBulkUpdate(ExtraContext, View):
     template_name = 'coop/collection_upload.html'
 

@@ -17,8 +17,9 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
 from userprofile.models import Profile, AccessLevel
 from credit.utils import create_loan_transaction
-from credit.models import CreditManager, LoanRequest, CreditManagerAdmin, LoanTransaction
-from credit.forms import CreditManagerForm, CreditManagerUserForm, LoanUploadForm, LoanSearchForm, ApproveForm, LoanRequestForm
+from credit.models import CreditManager, LoanRequest, CreditManagerAdmin, LoanTransaction, LoanRepaymentTransaction
+from credit.forms import CreditManagerForm, CreditManagerUserForm, LoanUploadForm, LoanSearchForm, ApproveForm, LoanRequestForm, \
+LoanRepaymentForm
 
 from coop.utils import credit_member_account, debit_member_account
 from coop.models import MemberOrder, CooperativeMember, OrderItem
@@ -617,3 +618,40 @@ class LoanRequestUploadView(ExtraContext, View):
                         log_error()
                         data['error'] = err
         return render(request, self.template_name, {'active': 'system', 'form': form, 'error': data})
+
+
+class LoanRepaymentFormView(CreateView):
+    model = LoanRepaymentTransaction
+    form_class = LoanRepaymentForm
+    success_url = reverse_lazy("credit:loan_list")
+
+    def form_valid(self, form):
+        pk = self.kwargs.get('pk')
+        req = LoanRequest.objects.get(pk=pk)
+
+        repayment_amount = form.instance.amount_paid
+        approved_amount = req.approved_amount
+        amount_paid = req.amount_paid
+
+        dd = approved_amount - amount_paid
+        bal = dd - repayment_amount
+        form.instance.balance = bal
+
+        return super(LoanRepaymentFormView, self).form_valid(form)
+
+    def get_initial(self):
+        pk = self.kwargs.get('pk')
+        print(pk)
+        return {
+            'request': pk
+        }
+
+    def get_form(self, form_class=None):
+        """Limit ForeignKey choices dynamically"""
+        form = super(LoanRepaymentFormView, self).get_form(form_class)
+        form.fields['request'].queryset = LoanRequest.objects.filter(status='APPROVED')  # You can filter here if needed
+        return form
+
+
+class LoanRepaymentListView(ListView):
+    model = LoanRepaymentTransaction
