@@ -51,6 +51,7 @@ class LoanRequest(models.Model):
                                                       ('ACCEPTED', 'ACCEPTED'), ('REJECTED', 'REJECTED'),
                                                       ('INPROGRESS', 'INPROGRESS'), ('PAID', 'PAID'), ('APPROVED', 'APPROVED')), default='PENDING')
     confirm_date = models.DateTimeField(null=True, blank=True)
+    loan_reference = models.CharField(max_length=255, null=True, blank=True)
     paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     last_payment_date = models.DateTimeField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)

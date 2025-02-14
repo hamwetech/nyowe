@@ -68,6 +68,11 @@
                         <tr>
                             <td>Approved Amount</td><td>{{ object.approved_amount|default:""|intcomma }}</td>
                             </tr>
+                        {% if object.status == 'APPROVED' %}
+                        <tr>
+                            <td>Amount Repaid</td><td>{{ object.amount_paid|default:""|intcomma }}</td>
+                            </tr>
+                        {% endif %}
                         <tr>
                             <td>Provider Id</td><td>{{ object.loan_request_id|default:"" }}</td>
                             </tr>

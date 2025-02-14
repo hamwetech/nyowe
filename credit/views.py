@@ -637,6 +637,9 @@ class LoanRepaymentFormView(CreateView):
         bal = dd - repayment_amount
         form.instance.balance = bal
 
+        req.amount_paid =  repayment_amount + amount_paid
+        req.save()
+
         return super(LoanRepaymentFormView, self).form_valid(form)
 
     def get_initial(self):
