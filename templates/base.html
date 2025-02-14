@@ -231,6 +231,13 @@
                 </li>
                 <hr>
                 <li {% if '_agent' in active %}class="current_section"{% endif %} title="Agents">
+                    <a href="{% url 'activity:meeting_list' %}">
+                        <span class="menu_icon"><i class="material-icons">&#xE86F;</i></span>
+                        <span class="menu_title">Meeting</span>
+                    </a>
+                </li>
+
+                <li {% if '_agent' in active %}class="current_section"{% endif %} title="Agents">
                     <a href="{% url 'coop:agent_list' %}">
                         <span class="menu_icon"><i class="material-icons">assignment_id</i></span>
                         <span class="menu_title">Agent</span>
@@ -241,7 +248,7 @@
                     <li {% if '_cooperative' in active %}class="current_section"{% endif %} title="Cooperative">
                         <a href="{% url 'coop:list' %}">
                             <span class="menu_icon"><i class="material-icons">account_balance</i></span>
-                            <span class="menu_title">FPO</span>
+                            <span class="menu_title">Cooperatives</span>
                         </a>
                     </li>
 

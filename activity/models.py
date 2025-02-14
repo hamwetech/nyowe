@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 import datetime
 from django.db import models
 from django.contrib.auth.models import User
+
+from conf.models import District
 from coop.models import CooperativeMember, Cooperative
 from product.models import ProductVariation
 
@@ -141,3 +143,18 @@ class Visit(models.Model):
         
     def __unicode__(self):
         return "%s" % self.coop_member
+
+
+class Meeting(models.Model):
+    date = models.DateField()
+    agenda = models.CharField(max_length=255)
+    description = models.TextField()
+    attendance = models.TextField()
+    district = models.ForeignKey(District, null=True, on_delete=models.SET_NULL)
+    attendance_sheet = models.FileField()
+    image = models.ImageField()
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'meeting'

@@ -1,7 +1,7 @@
 from django import forms
-from activity.models import ThematicArea, TrainingSession, ExternalTrainer
+from activity.models import *
 from conf.utils import bootstrapify
-from coop.models import CooperativeMember
+from coop.models import *
 
 
 class ThematicAreaForm(forms.ModelForm):
@@ -65,8 +65,15 @@ class ExternaTrainerForm(forms.ModelForm):
     class Meta:
         model = ExternalTrainer
         exclude = ['create_date', 'update_date']
+
+
+class MeetingForm(forms.ModelForm):
+    class Meta:
+        model = Meeting
+        exclude = ['create_date', 'update_date']
     
         
+bootstrapify(MeetingForm)
 bootstrapify(ExternaTrainerForm)
 bootstrapify(ThematicAreaForm)
 bootstrapify(TrainingForm)

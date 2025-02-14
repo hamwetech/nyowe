@@ -144,3 +144,21 @@ class UploadTrainingSessionView(FormView):
         return super(UploadTrainingSessionView, self).form_valid(form)
 
     
+
+
+class MeetingListView(ListView):
+    model = Meeting
+
+
+class MeetingCreateView(CreateView):
+    model = Meeting
+    form_class = MeetingForm
+    success_url = reverse_lazy('activity:meeting_list')
+
+
+class MeetingUpdateView(MeetingCreateView, UpdateView):
+    pass
+
+
+class MeetingDetailView(DetailView):
+    model = Meeting
