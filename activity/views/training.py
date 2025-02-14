@@ -95,6 +95,8 @@ class UploadTrainingSessionView(FormView):
         attendance_list = self.request.FILES['attendance_list']
         training_proof = self.request.FILES['training_proof']
 
+        form.save()
+
         TrainingPhotos.objects.create(
             title="attendance_list",
             training_reference=reference,
